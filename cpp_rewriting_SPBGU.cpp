@@ -98,7 +98,7 @@ void TESTs() {
 	b = Complex(1, 1);
 	c = Complex(1, 0);
 	assert((a / b) == c);
-	// "=="
+	// "==" and "="
 	a = Complex(1, 1);
 	b = Complex(10, 10);
 	c = Complex(10, 10);
