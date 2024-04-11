@@ -1,4 +1,4 @@
-#include "stdafx.h"
+
 #include <iostream>
 #include <cassert>
 #include <sstream>
@@ -163,7 +163,7 @@ void complex_calc() {
         
         std::cin >> L;
         //getchar();
-        if (L == 'E' |L=='e')
+        if ((L == 'E') ||(L=='e'))
         {
             abort();
         }
@@ -183,7 +183,70 @@ void complex_calc() {
  
     
 }
- 
+
+class Matrix
+{
+public:
+    Matrix();
+    ~Matrix();
+
+private:
+    unsigned int line, column;
+};
+
+Matrix::Matrix()
+{
+}
+
+Matrix::~Matrix()
+{
+}
+void matrix_calc() {
+
+    static char L = 'E';
+    while (1) {
+        double R, I;
+
+        Matrix a, b, c;
+        std::cout << "Enter first Number \n";
+        std::cin >> a;
+        std::cout << "Enter second Number \n";
+        std::cin >> b;
+
+        std::cout << "Enter Action('-','+','/','*','E','T') :";
+
+        std::cin >> L;
+        //getchar();
+        if ((L == 'E') || (L == 'e'))
+        {
+            abort();
+        }
+        std::cout << std::endl;
+        switch (L)
+        {
+        case '+':c = a + b; break;
+        case '-':c = a - b; break;
+        case '*':c = a * b; break;
+        case 'x':c = a[b]; break;//scalar multiplication
+        case '/':c = a / b; break;
+        case 'T':TESTs(); break;
+        case 't':TESTs(); break;
+        default:abort();
+        }
+        std::cout << c << "\n";
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
 int main() {
     complex_calc();
     system("pause");
