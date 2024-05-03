@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include <iostream>
 #include <cassert>
 #include <sstream>
@@ -52,7 +51,7 @@ public:
         return (R == other.R) && (I == other.I);
     }
     bool operator!=(const Complex& other) {
-        return (R != other.R)|(I != other.I);
+        return (R != other.R)||(I != other.I);
     }
  
 };
@@ -151,7 +150,7 @@ void complex_calc() {
     
     static char L = 'E';
     while (1) {
-        double R, I;
+   
         
         Complex a,b,c;
         std::cout << "Enter first Number \n";
@@ -163,7 +162,7 @@ void complex_calc() {
         
         std::cin >> L;
         //getchar();
-        if (L == 'E' |L=='e')
+        if (L == 'E'||L=='e')
         {
             abort();
         }
