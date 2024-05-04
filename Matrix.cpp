@@ -1,98 +1,7 @@
-#include "stdafx.h"
-#include <iostream>
-#include <cassert>
-#include <sstream>
-#pragma warning(disable : 4996)
+#include "matrix.h"
 
-
-class Matrix
-{
-public:
-	Matrix(uint64_t h, uint64_t w):sizex(w), sizey(h){};
-	~Matrix();
-
-	Matrix operator-()const;//unary matrix inverse finding(if exists)
-
-	Matrix operator+(const Matrix& other) const;//binary matrix addition
-	Matrix operator-(const Matrix& other) const;//binary matrix subtraction
-	Matrix operator*(const Matrix& other) const;//binary matrix multiplication
-	Matrix operator/(const Matrix& other) const;//binary matrix division(if not a singular matrix on the left)
-
-	Matrix operator*(const uint64_t other)const;////binary matrix multiplication by scalar 
-
-	
-	friend std::ostream& operator<<(std::ostream& out, const Matrix& p); //overloading the output operator
-	friend std::istream& operator>>(std::istream& in, Matrix& p);//overloading the input operator
-
-	Matrix& operator = (const Matrix& other)//
-	//assignment operator overload
-	{
-		return;
-	}
-
-	Matrix operator()(const uint64_t x1, const uint64_t y1, const uint64_t x2, const uint64_t y2, const std::string acrion, Matrix& other);//overload(), extended union operator
-	Matrix operator()(const uint64_t x1, const uint64_t y1, const uint64_t x2, const uint64_t y2, const std::string acrion);//overload(),advanced editing operator
-private:
-	uint64_t determinant() const;//finding the determinant if there is one
-	uint64_t *ptr;
-	uint64_t sizex;
-	uint64_t sizey;
-
-};
-
-Matrix::Matrix(uint64_t h, uint64_t w)
-{
-}
-
-Matrix::~Matrix()
-{
-}
-
-Matrix Matrix::operator+(const Matrix& other)const
-{
-	return Matrix(1, 2);
-}
-Matrix Matrix::operator-(const Matrix& other)const
-{
-	return Matrix(2,1)
-}
-Matrix Matrix::operator*(const Matrix& other)const
-{
-	return Matrix(1, 2);
-}
-Matrix Matrix::operator/(const Matrix& other)const
-{
-	return Matrix(1, 2);
-}
-
-Matrix Matrix::operator*(const uint64_t other)const
-{
-	return Matrix(2, 1)
-};
-
-Matrix Matrix::operator-()const
-{
-	return Matrix(2, 1)
-}
-
-Matrix Matrix::operator()(const uint64_t x1, const uint64_t y1, const uint64_t x2, const uint64_t y2, std::string acrion,Matrix& other)
-
-{
-	return Matrix(2, 1)
-}
-Matrix Matrix::operator()(const uint64_t x1, const uint64_t y1, const uint64_t x2, const uint64_t y2, std::string acrion)
-{
-	return Matrix(2, 1);
-};
-
-uint64_t Matrix::determinant() const
-
-{
-	return 0;
-};
-
-
-double** _M_malloc(int str, int column)//memory allocation function in one piece
+/*
+double** _M_malloc(int str, int column)
 {
 	double** M = (double**)malloc(column * sizeof(double*) + column * str * sizeof(double));
 	double* start = (double*)((char*)M + column * sizeof(double*));
@@ -102,8 +11,20 @@ double** _M_malloc(int str, int column)//memory allocation function in one piece
 	}
 	return M;
 }
+*/
 
 
+template <typename T> T** _M_malloc(int rows, int columns)//memory allocation function in one piece
+{
+	T** M = new T * [columns + rows * columns];
+	T* start = (T*)((char*)M + columns * sizeof(T*));
+	for (int i = 0; i < columns; i++) {
+		M[i] = start + i * rows;
+	}
+	return M;
+}
+
+#if 0
 template <class T1> void complex_calc(T1 o) {
 
 	static char L = 'E';
@@ -140,10 +61,4 @@ template <class T1> void complex_calc(T1 o) {
 
 
 }
-
-
-
-int main()
-{
-
-}
+#endif

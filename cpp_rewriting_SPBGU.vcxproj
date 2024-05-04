@@ -127,12 +127,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="c.c" />
+    <ClCompile Include="complex.cpp" />
     <ClCompile Include="complex_number.cpp" />
     <ClCompile Include="cpp_rewriting_SPBGU.cpp" />
+    <ClCompile Include="Matrix.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="complex.h" />
+    <ClInclude Include="matrix.h" />
+    <ClInclude Include="polynomial.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
