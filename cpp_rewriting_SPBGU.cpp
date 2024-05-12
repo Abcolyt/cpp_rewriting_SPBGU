@@ -2,60 +2,61 @@
 #include <assert.h>
 #include <sstream>
 #include "complex.h"
+#include "matrix.h"
 
 void TESTs() {
-    Complex a, b, c,d;
+    Complex a, b, c, d;
     // "+"
     a = Complex(1, 1);
     b = Complex(-1, -1);
     c = Complex(0, 0);
     assert((a + b) == c);
- 
+
     // "-"
     a = Complex(1, 1);
     b = Complex(-1, -1);
     c = Complex(2, 2);
     assert((a - b) == c);
- 
+
     // "*"
     a = Complex(1, 1);
     b = Complex(1, 1);
     c = Complex(0, 2);
     assert((a * b) == c);
- 
+
     // "/"
     a = Complex(1, 1);
     b = Complex(1, 1);
     c = Complex(1, 0);
     assert((a / b) == c);
-    a = Complex(6,8);
-    b = Complex(5,15);
+    a = Complex(6, 8);
+    b = Complex(5, 15);
     c = Complex(0.6, -0.2);
     assert((a / b) == c);
- 
+
     // "==" and "="
     a = Complex(1, 1);
     b = Complex(10, 10);
     c = Complex(10, 10);
     assert((a = b) == c);
- 
+
     // "!="
     a = Complex(1, 1);
     b = Complex(10, 15);
     c = Complex(10, 5);
     assert((a = b) != c);
- 
+
     // "<<" 
-    a=Complex(3, 4);
+    a = Complex(3, 4);
     std::stringstream so;
     so << a;
     assert(so.str() == "Real(:3)Imaginary(:4)");
- 
+
     // ">>" 
     //std::stringstream si("Real(:3)Imaginary(:4)");
     //si >> a; 
     //assert(a.real_Get() == 3 && a.imag_Get() == 4);
-    
+
 }
 void complex_calc() {
     
@@ -95,7 +96,8 @@ void complex_calc() {
 }
  
 int main() {
-    complex_calc();
+    //TESTs();
+    std::cout << "i tuut!!";
     system("pause");
     return 0;
 }

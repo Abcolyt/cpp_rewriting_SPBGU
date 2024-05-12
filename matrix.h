@@ -1,45 +1,49 @@
 #pragma once
 #include <sstream>
-
-template <typename T> class Matrix
+template<typename T> class matrix;
+template<typename T> std::ostream& operator<<(std::ostream& out, const matrix<T>& plnm);
+template<typename T> std::istream& operator>>(std::istream& in, matrix<T>& plnm);
+template <typename T> class matrix
 {
 public:
+    matrix(const matrix<T>& mtrx); //the copying constructor
+    matrix(uint64_t colsize, uint64_t rowsize);//constructor with dimensions
+    matrix();//the default constructor
+    ~matrix();//destructor
 
-    Matrix(uint64_t h, uint64_t w) : sizex(w), sizey(h)
-    {
-        ptr = new T[w * h];
-    }
-    Matrix() :Matrix(0, 0) { ptr = nullptr; }
-    ~Matrix()
-    {
-        delete[] ptr;
-    }
-    
+    matrix<T>& operator-() const; // unary matrix inverse finding(if exists)
+    matrix<T> operator+(const matrix<T>& other) const; // binary matrix addition
+    matrix<T> operator-(const matrix<T>& other) const; // binary matrix subtraction
+    matrix<T> operator*(const matrix<T>& other) const; // binary matrix multiplication
+    matrix<T> operator/(const matrix<T>& other) const; // binary matrix division(if not a singular matrix on the left)
+    T* operator[](const uint64_t index1) const/* to index1 row access operator*/ { return ptr + index1 * rowsize; }
+    matrix<T> operator*(const T& other) const; // binary matrix multiplication by  an element from the field
+    matrix<T>& operator=(const matrix<T>& other); // assignment operator overload
 
-    Matrix operator-() const; // unary matrix inverse finding(if exists)
+    friend std::ostream& operator<<<>(std::ostream& out, const matrix<T>& p); // overloading the output operator
+    friend std::istream& operator>><>(std::istream& in, matrix<T>& p); // overloading the input operator
 
-    Matrix operator+(const Matrix<T>& other) const; // binary matrix addition
-    Matrix operator-(const Matrix<T>& other) const; // binary matrix subtraction
-    Matrix operator*(const Matrix<T>& other) const; // binary matrix multiplication
-    Matrix operator/(const Matrix<T>& other) const; // binary matrix division(if not a singular matrix on the left)
+    uint64_t getcol()const { return colsize; }
+    uint64_t getrow()const { return rowsize; }
 
-    Matrix operator*(const T& other) const; // binary matrix multiplication by  an element from the field
-
-    friend std::ostream& operator<<(std::ostream& out, const Matrix<T>& p); // overloading the output operator
-    friend std::istream& operator>>(std::istream& in, Matrix<T>& p); // overloading the input operator
-
-    Matrix& operator=(const Matrix<T>& other) // assignment operator overload
-    {
-       
-        return *this;
-    }
-
-    Matrix operator()(const uint64_t x1, const uint64_t y1, const uint64_t x2, const uint64_t y2, const std::string action, Matrix<T>& other); // overload(), extended union operator
-    Matrix operator()(const uint64_t x1, const uint64_t y1, const uint64_t x2, const uint64_t y2, const std::string action); // overload(), advanced editing operator
+    matrix to_uptrng()const;//return of the upper triangular matrix after transformations
+    matrix to_uptrng(matrix<T>& other)const;//bringing to the upper triangular view together with the "other" matrix
+    matrix transpose()const;//matrix transposition
     T determinant() const; // finding the determinant if there is one
+    matrix sqprediag(const uint64_t S)const;//return of the square matrix from 1 to the lower diagonal
+    matrix inverse_M()const;//return of the inverse matrix  
+
 private:
-    void memory_overexpression(uint64_t h, uint64_t w);
     T* ptr;
-    uint64_t sizex;
-    uint64_t sizey;
+    uint64_t colsize;
+    uint64_t rowsize;
+
+    //in the future. maybe..
+    // 
+    //void memory_overexpression(uint64_t h, uint64_t w);
+    //matrix operator()(const uint64_t x1, const uint64_t y1, const uint64_t x2, const uint64_t y2, const std::string action, matrix<T>& other); // overload(), extended union operator
+    //matrix operator()(const uint64_t x1, const uint64_t y1, const uint64_t x2, const uint64_t y2, const std::string action); // overload(), advanced editing operator
+    //uint64_t setcol(uint64_t colsize)const { this->colsize = colsize; }
+    //uint64_t setrow(uint64_t rowsize)const { this->rowsize = rowsize; }
 };
+

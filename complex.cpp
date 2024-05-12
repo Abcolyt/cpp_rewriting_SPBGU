@@ -73,3 +73,4 @@ std::istream& operator>>(std::istream& instream, Complex& number) {
 
     return instream;
 }
+

@@ -131,6 +131,7 @@
     <ClCompile Include="complex_number.cpp" />
     <ClCompile Include="cpp_rewriting_SPBGU.cpp" />
     <ClCompile Include="Matrix.cpp" />
+    <ClCompile Include="polynomial.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
