@@ -2,8 +2,9 @@
 #include<iostream>
 #include <sstream>
 template<typename P> class polynomial;
-template<typename P> std::ostream& operator<<  (std::ostream& out, const polynomial<P>& plnm);
+template<typename P> std::ostream& operator<<(std::ostream& out, const polynomial<P>& plnm);
 template<typename P> std::istream& operator>> (std::istream& in, polynomial<P>& plnm);
+
 template<typename P> class polynomial
 {
 public:
@@ -33,21 +34,4 @@ public:
 	bool operator==(const polynomial<P>& other)const;// 
 	bool operator!=(const polynomial<P>& other)const;
 };
-
-
-
-#if 0
-int main() {
-	using T = int;
-	polynomial<T> a;
-	std::cin >> a;
-	polynomial<T> b;
-	std::cin >> b;
-
-	//bool c = (a == b);
-	std::cout << a << " " << b << " " << a * b;
-
-	system("pause");
-	return 0;
-}
-#endif
+#include "polynomial.cpp"

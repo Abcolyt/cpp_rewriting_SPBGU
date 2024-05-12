@@ -1,3 +1,4 @@
+#pragma once
 #include"polynomial.h"
 template<typename P>polynomial<P> polynomial<P>::operator>>(const uint64_t power)const
 {
@@ -251,3 +252,6 @@ template<typename P>polynomial<P> polynomial<P>::operator%(const polynomial<P>& 
 
 	return result;
 }
+
+template class polynomial<int>;
+template class polynomial<double>;

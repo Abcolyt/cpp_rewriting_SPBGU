@@ -1,4 +1,5 @@
 #pragma once
+#include<iostream>
 #include <sstream>
 template<typename T> class matrix;
 template<typename T> std::ostream& operator<<(std::ostream& out, const matrix<T>& plnm);
@@ -20,11 +21,13 @@ public:
     matrix<T> operator*(const T& other) const; // binary matrix multiplication by  an element from the field
     matrix<T>& operator=(const matrix<T>& other); // assignment operator overload
 
-    friend std::ostream& operator<<<>(std::ostream& out, const matrix<T>& p); // overloading the output operator
-    friend std::istream& operator>><>(std::istream& in, matrix<T>& p); // overloading the input operator
+    template<typename T>friend std::ostream& operator<<<>(std::ostream& out, const matrix<T>& p); // overloading the output operator
+    template<typename T>friend std::istream& operator>><>(std::istream& in, matrix<T>& p); // overloading the input operator
 
-    uint64_t getcol()const { return colsize; }
+    uint64_t getcol()const { return colsize; }//////////////////////////////it will be taken out in .cpp
     uint64_t getrow()const { return rowsize; }
+    void setcol(uint64_t colsize) { this->colsize = colsize; }
+    void setrow(uint64_t rowsize) { this->rowsize = rowsize; }//////////////////////////////////////
 
     matrix to_uptrng()const;//return of the upper triangular matrix after transformations
     matrix to_uptrng(matrix<T>& other)const;//bringing to the upper triangular view together with the "other" matrix
@@ -43,7 +46,8 @@ private:
     //void memory_overexpression(uint64_t h, uint64_t w);
     //matrix operator()(const uint64_t x1, const uint64_t y1, const uint64_t x2, const uint64_t y2, const std::string action, matrix<T>& other); // overload(), extended union operator
     //matrix operator()(const uint64_t x1, const uint64_t y1, const uint64_t x2, const uint64_t y2, const std::string action); // overload(), advanced editing operator
-    //uint64_t setcol(uint64_t colsize)const { this->colsize = colsize; }
-    //uint64_t setrow(uint64_t rowsize)const { this->rowsize = rowsize; }
+    
 };
+#include "matrix.cpp"
+
 

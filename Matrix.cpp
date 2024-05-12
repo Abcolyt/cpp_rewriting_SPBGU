@@ -1,3 +1,4 @@
+#pragma once
 #include "matrix.h"
 
 template<typename T>matrix<T>::~matrix()
@@ -181,11 +182,20 @@ template<typename T> std::ostream& operator<<(std::ostream& out, const matrix<T>
     return out;
 }
 
-template<typename T>std::istream& operator>>(std::istream& in, matrix<T>& p)
+template<typename T>std::istream& operator>>(std::istream& in, matrix<T>& mtrx)
 {
-    for (uint64_t i = 0; i < p.getcol(); i++) {
-        for (uint64_t j = 0; j < p.getrow(); j++) {
-            in >> p[i][j];
+    uint64_t size;
+    std::cout << "Enter number of rows: ";
+    in >> size;
+    mtrx.setrow(size);
+
+    std::cout << "Enter number of columns: ";
+    in >> size;
+    mtrx.setcol(size);
+
+    for (uint64_t i = 0; i < mtrx.getcol(); i++) {
+        for (uint64_t j = 0; j < mtrx.getrow(); j++) {
+            in >> mtrx[i][j];
         }
     }
     return in;
@@ -311,42 +321,5 @@ template <typename T> T** _M_malloc(int rows, int columns)//memory allocation fu
 	}
 	return M;
 }
-
-#if 0
-template <class T1> void complex_calc(T1 o) {
-
-	static char L = 'E';
-	while (1) {
-		double R, I;
-
-		T1 a, b, c;
-		std::cout << "Enter first Number \n";
-		std::cin >> a;
-		std::cout << "Enter second Number \n";
-		std::cin >> b;
-
-		std::cout << "Enter Action('-','+','/','*','E','T') :";
-
-		std::cin >> L;
-		//getchar();
-		if (L == 'E' | L == 'e')
-		{
-			abort();
-		}
-		std::cout << std::endl;
-		switch (L)
-		{
-		case '+':c = a + b; break;//для одинаковой размерности
-		case '-':c = a - b; break;
-		case '*':c = a * b; break;// Для матриц при размере одной из матриц 1 на 1 воспринимать как умножение на скаляр
-		case '/':c = a / b; break;//Для матриц умножить на обратное число
-		case 'T':TESTs(); break;
-		case 't':TESTs(); break;
-		default:abort();
-		}
-		std::cout << c << "\n";
-	}
-
-
-}
-#endif
+template class matrix<int>;
+template class matrix<double>;

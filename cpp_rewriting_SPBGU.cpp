@@ -3,6 +3,7 @@
 #include <sstream>
 #include "complex.h"
 #include "matrix.h"
+#include "polynomial.h"
 
 void TESTs() {
     Complex a, b, c, d;
@@ -95,9 +96,14 @@ void complex_calc() {
     
 }
  
+
 int main() {
-    //TESTs();
-    std::cout << "i tuut!!";
+
+    polynomial<double> a(2);
+    
+    std::cin >> a;
+    std::cout << "a = \n" <<a;
+
     system("pause");
     return 0;
 }
