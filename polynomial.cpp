@@ -33,6 +33,23 @@ template<typename P>bool polynomial<P>::operator==(const polynomial<P>& other)co
 	return true;
 }
 
+template<typename P>bool polynomial<P>::operator==(int64_t zero)const
+{ 
+	if (zero != 0) {
+		return 0;
+	}
+		for (uint64_t i = 0; i < this->deg; i++)
+		{
+			if (ptr[i] != 0)
+			{
+				return 0;
+			}
+		}
+	return 1;
+
+		
+}
+
 template<typename P>bool polynomial<P>::operator!=(const polynomial<P>& other)const //no working //C2666
 {
 	if (deg != other.deg)return true;
@@ -61,7 +78,18 @@ template<typename P>polynomial<P>::~polynomial()
 {
 	delete[] ptr;
 }
-
+template<typename P>polynomial<P>& polynomial<P>::operator=(const P other)
+{	
+	//del
+	//std::cout << "\nother in operator=" << other<<"\n";
+	if (other == 1) {
+		delete[] ptr;
+		deg = other;
+		ptr = new P[deg];
+		ptr[0] = other;
+	}	
+	return *this;
+}
 template<typename P>polynomial<P>& polynomial<P>::operator=(const polynomial<P>& other)
 {
 	if (this != &other)
@@ -115,8 +143,11 @@ template<typename P>std::ostream& operator<<(std::ostream& out, const polynomial
 		out << " ";
 
 	}
-
-	out << std::endl;
+	if (plnm.deg == 0)
+	{
+		out << "0";
+	}
+	//out << std::endl;
 
 	return out;
 }
@@ -253,5 +284,3 @@ template<typename P>polynomial<P> polynomial<P>::operator%(const polynomial<P>& 
 	return result;
 }
 
-template class polynomial<int>;
-template class polynomial<double>;

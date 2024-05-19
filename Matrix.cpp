@@ -1,6 +1,26 @@
 #pragma once
 #include "matrix.h"
+template<typename T>matrix<T>::matrix(const matrix<T>& mtrx) //the copying constructor
+{
+    (*this) = mtrx;
+}
+template<typename T>matrix<T>::matrix() //the default constructor
+{
+    this->colsize = 0;
+    this->rowsize = 0;
+    ptr = nullptr;
+}
 
+template<typename T>matrix<T>::matrix(uint64_t colsize, uint64_t rowsize)
+{
+    this->colsize = colsize;
+    this->rowsize = rowsize;
+    ptr = new T[colsize * rowsize];
+    for (uint64_t i = 0; i < colsize * rowsize; i++)
+    {
+        ptr[i] = 0;
+    }
+}
 template<typename T>matrix<T>::~matrix()
 {
     delete[] ptr;
@@ -59,8 +79,9 @@ template<typename T>matrix<T> matrix<T>::inverse_M()const
         for (uint64_t k = 0; k < sizeM; k++)
         {
             t1[i][k] = t1[i][k] / koef;
+            std::cout << "before reversM[" << i << "][" << k << "] = " << reversM[i][k];
             reversM[i][k] = reversM[i][k] / koef;
-
+            std::cout << "after reversM[" << i << "][" << k << "] = " << reversM[i][k];
         }
 
     }
@@ -81,8 +102,9 @@ template<typename T>matrix<T> matrix<T>::to_uptrng(matrix<T>& other)const
                 while (temp[i][i] == 0 && temp[j][i] == 0) {
                     j++;
                     if (j >= rowsize) {
-                        throw "писец";
-
+                        std::cout << "j >= rowsize>>>" << (j >= rowsize) << "<<";
+                        throw "fail in to_uptrng";
+                        
                         //return хз что ;
                     }
                 }
@@ -108,18 +130,25 @@ template<typename T>matrix<T> matrix<T>::to_uptrng(matrix<T>& other)const
         return temp;
     }
     throw std::invalid_argument("[  ((this->colsize == this->rowsize) && (this->colsize == (other.colsize)) && ((other.colsize) == other.rowsize)) ]==0");
-    abort();
+  
 }
 
 template<typename T>matrix<T> matrix<T>::to_uptrng()const
 {
     matrix<T> temp((*this));
 
-    T det = 1;
+    T det;
+    det = 1;
+    //std::cout << "\ndet:\n" << det << "\n";
     for (uint64_t i = 0; i < rowsize - 1; i++) {
         for (uint64_t j = i + 1; j < rowsize; j++) {
-
+            // delete
+            /*std::cout <<"\n" <<temp << "\n";
+            std::cout << "\ntemp[i][i] == 0:" << (temp[i][i] == 0) << "\n";
+            std::cout << "\ntemp[j][i] == 0:" << (temp[i][i] == 0) << "\n";
+            std::cout << "\ni:" << (i) <<" j:"<<j<< "\n";*/
             while (temp[i][i] == 0 && temp[j][i] == 0) {
+                //std::cout<<"\n" << temp << "\n";
                 j++;
                 if (j >= rowsize) {
                     throw std::invalid_argument("the matrix is irreducible to the triangular form");
@@ -127,42 +156,59 @@ template<typename T>matrix<T> matrix<T>::to_uptrng()const
 
                 }
             }
-
+            //std::cout << "\ntemp[" << i << "][" << i << "] == 0:" << (temp[i][i] == 0) << "\n";
             if (temp[i][i] == 0) {
+                //std::cout << "\ntemp before for" << temp << "\n";
                 for (uint64_t k = 0; k < rowsize; k++) {
-                    std::swap(temp[i][k], temp[j][k]);
+                    //std::swap(temp[i][k], temp[j][k]);
+                    //std::cout << "\ndet * (-1) before:\n" << det << "\n";
                     det = det * (-1);
+                    //std::cout << "\ndet* (-1) after:\n" << det << "\n";
                 }
-
+                //std::cout << "\ntemp after for\n" << temp << "\n";
             }
 
             T koef = temp[j][i] / temp[i][i];
-
+            //std::cout << "\nkoef:" << koef << "\n";
             for (uint64_t k = i; k < rowsize; k++) {
+                //std::cout << "\ntemp["<<j<<"]["<<k<<"] == 0:\n" << (temp[i][i] == 0) << "\n";
                 temp[j][k] = temp[j][k] - temp[i][k] * koef;
 
             }
+            //std::cout << "\ntemp after for()temp[j][k] - temp[i][k] * koef:\n" << temp << "\n";
 
         }
 
     }
+    //std::cout << "\ntemp after all:\n" << temp << "\n";
     for (uint64_t i = 0; i < rowsize - 1; i++) {
+        //std::cout << "\ndet:\n" << det << "\n";
+        //std::cout << "\ntemp[0][i] before:\n" << temp[0][i] << "\n";
+        
         temp[0][i] = (temp[0][i]) * det;
+        //std::cout << "\ntemp[0][i] after:\n" << temp[0][i] << "\n";
+
     }
+    //std::cout << "\ntemp after all(ALL):\n" << temp << "\n";
     return temp;
 }
 
 template <typename T>T matrix<T>::determinant() const {
     if (rowsize != colsize) {
-        //throw()
-        return 0;
+        throw("no determinant");
+        //return 0;
     }
 
     matrix<T> temp((*this).to_uptrng());
 
-    T det = 1;
+    T det;
+    det = 1;
+    //std::cout <<"temp:\n" << temp << "\n";
     for (uint64_t i = 0; i < rowsize; i++) {
-        det *= temp[i][i];
+        //std::cout << "i=" << i << "\n" << det << "\n";
+        //std::cout << "i=" << i << " " << (det * temp[i][i]) << "\n";
+        
+        det = (det *temp[i][i]);
     }
 
     return det;
@@ -185,6 +231,7 @@ template<typename T> std::ostream& operator<<(std::ostream& out, const matrix<T>
 template<typename T>std::istream& operator>>(std::istream& in, matrix<T>& mtrx)
 {
     uint64_t size;
+    //std::cout << "size rows, cols "<<mtrx.getrow()<<"  "<<mtrx.getcol();
     std::cout << "Enter number of rows: ";
     in >> size;
     mtrx.setrow(size);
@@ -192,12 +239,15 @@ template<typename T>std::istream& operator>>(std::istream& in, matrix<T>& mtrx)
     std::cout << "Enter number of columns: ";
     in >> size;
     mtrx.setcol(size);
-
-    for (uint64_t i = 0; i < mtrx.getcol(); i++) {
-        for (uint64_t j = 0; j < mtrx.getrow(); j++) {
+    mtrx.allocateMemory();
+    //std::cout << "size rows, cols " << mtrx.getrow() << "  " << mtrx.getcol()<<" ptr="<<&mtrx;//адрес нормальный
+    for (uint64_t i = 0; i < mtrx.getrow(); i++) {
+        for (uint64_t j = 0; j < mtrx.getcol(); j++) {
+            std::cout << "["<<i<<"]["<<j<<"]=";
             in >> mtrx[i][j];
         }
     }
+    
     return in;
 }
 
@@ -321,5 +371,3 @@ template <typename T> T** _M_malloc(int rows, int columns)//memory allocation fu
 	}
 	return M;
 }
-template class matrix<int>;
-template class matrix<double>;

@@ -28,10 +28,15 @@ public:
 	polynomial<P> operator<<(const uint64_t power)const;//coefficient shift(decrease). or the whole part of (plnm* x^(-n))
 
 	//P& operator[](uint64_t index);//the access operator to the polynomial coefficient
-
+	polynomial<P>& operator=(const P other);
 	polynomial<P>& operator=(const polynomial<P>& other);
 
 	bool operator==(const polynomial<P>& other)const;// 
+	bool operator==(int64_t zero)const;//isZero()?(all values==0 so polynomial have zero coefficent in any position)
+	bool operator!=(int64_t zero)const { return not((*this) == zero); }
 	bool operator!=(const polynomial<P>& other)const;
+private:
+	
 };
+
 #include "polynomial.cpp"

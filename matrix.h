@@ -8,6 +8,7 @@ template <typename T> class matrix
 {
 public:
     matrix(const matrix<T>& mtrx); //the copying constructor
+    matrix(uint64_t size_diag) :matrix(size_diag, size_diag) {}
     matrix(uint64_t colsize, uint64_t rowsize);//constructor with dimensions
     matrix();//the default constructor
     ~matrix();//destructor
@@ -26,8 +27,8 @@ public:
 
     uint64_t getcol()const { return colsize; }//////////////////////////////it will be taken out in .cpp
     uint64_t getrow()const { return rowsize; }
-    void setcol(uint64_t colsize) { this->colsize = colsize; }
-    void setrow(uint64_t rowsize) { this->rowsize = rowsize; }//////////////////////////////////////
+    void setcol(uint64_t colsize) { this->colsize = colsize; this->allocateMemory(); }
+    void setrow(uint64_t rowsize) { this->rowsize = rowsize; this->allocateMemory();}//////////////////////////////////////
 
     matrix to_uptrng()const;//return of the upper triangular matrix after transformations
     matrix to_uptrng(matrix<T>& other)const;//bringing to the upper triangular view together with the "other" matrix
@@ -43,11 +44,12 @@ private:
 
     //in the future. maybe..
     // 
-    //void memory_overexpression(uint64_t h, uint64_t w);
+    void allocateMemory()//re-allocation of memory(does not save old values0
+    {
+        ptr = new T[colsize * rowsize];
+    }
     //matrix operator()(const uint64_t x1, const uint64_t y1, const uint64_t x2, const uint64_t y2, const std::string action, matrix<T>& other); // overload(), extended union operator
     //matrix operator()(const uint64_t x1, const uint64_t y1, const uint64_t x2, const uint64_t y2, const std::string action); // overload(), advanced editing operator
     
 };
 #include "matrix.cpp"
-
-
