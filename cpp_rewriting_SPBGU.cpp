@@ -198,18 +198,14 @@ template<typename P>void polynomial_matrix_calc() {
 }
 
 int main() {
-   //fraction<polynomial<uint64_t>> a(1,1), b;
-    //std::cin >> a >> b;
-    //std::cout <<"a="<<a<<"b="<<b <<"a / b=" << (a / b)<<"((a) == 0)"<< (a == 1);
+    fraction<polynomial<uint64_t>> a(1,1), b;
+    std::cin >> a >> b;
+    std::cout <<"a="<<a<<"b="<<b <<"a / b=" << (a / b)<<"(a == 0)"<< (a == 1);
 
-    polynomial_matrix_calc<double>();
-    //matrix_calc<double>();
+    //polynomial_matrix_calc<double>();
+    //matrix_calc<fraction<polynomial<double>>>();
 
-    //matrix<int> a(2);
-    //
-    //std::cin >> a;
-    //std::cout << "a = \n" <<a;
 
-    //system("pause");
+    system("pause");
     return 0;
 }
