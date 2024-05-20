@@ -1,0 +1,41 @@
+#pragma once
+#include<iostream>
+
+
+
+template <typename T>class fraction;
+template <typename T>std::ostream& operator<<(std::ostream& os, const fraction<T>& fraction);
+template <typename T>std::istream& operator>>(std::istream& is, fraction<T>& fraction);
+
+template <typename T>class fraction {
+private:
+    T numerator;
+    T denominator;
+
+public:
+    fraction() :fraction(1, 1) {};
+    fraction(T num):fraction(num,1){}
+    fraction(T num, T denom):numerator(num), denominator(denominator){
+        reduce();
+    }
+
+    fraction<T> reduce();
+
+    T& findGCD(T a, T b)const;
+
+    friend std::ostream& operator<<<>(std::ostream& os, const fraction<T>& fraction);
+
+    friend std::istream& operator>><>(std::istream& is, fraction<T>& fraction);
+
+    fraction operator+(const fraction& other)const;
+    fraction operator*(const fraction& other)const;
+    fraction operator/(const fraction & other)const;
+    fraction operator-(const fraction& other)const;
+    fraction operator=(const T other)const;
+    bool operator==(const fraction& other)const;
+    bool operator==(const T other) const;//it only works for comparison with 1 and 0
+    bool operator!=(const fraction& other) const;
+
+};
+
+#include "fraction.cpp"

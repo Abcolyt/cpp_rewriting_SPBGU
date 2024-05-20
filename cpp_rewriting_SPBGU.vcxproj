@@ -132,6 +132,7 @@
     <ClCompile Include="complex.cpp" />
     <ClCompile Include="complex_number.cpp" />
     <ClCompile Include="cpp_rewriting_SPBGU.cpp" />
+    <ClCompile Include="fraction.cpp" />
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="polynomial.cpp" />
   </ItemGroup>
@@ -140,6 +141,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="complex.h" />
+    <ClInclude Include="fraction.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="polynomial.h" />
   </ItemGroup>

@@ -2,6 +2,7 @@
 #include"polynomial.h"
 template<typename P>polynomial<P> polynomial<P>::operator>>(const uint64_t power)const
 {
+	if (power == 0)return *this;
 	polynomial result(deg + power);
 	for (uint64_t i = 0; i < deg; i++)
 	{
@@ -12,6 +13,7 @@ template<typename P>polynomial<P> polynomial<P>::operator>>(const uint64_t power
 
 template<typename P>polynomial<P> polynomial<P>::operator<<(const uint64_t power)const
 {
+	if (power == 0)return *this;
 	polynomial result(deg - power);
 	for (uint64_t i = 0; i <= (deg - power); i++)
 	{
@@ -70,7 +72,7 @@ template<typename P>polynomial<P>::polynomial(uint64_t size) {
 	else
 		ptr = nullptr;
 	for (uint64_t i = 0; i < size; i++)
-		ptr[i] = 0;
+		ptr[i] = (P)0;
 
 }
 
@@ -80,21 +82,35 @@ template<typename P>polynomial<P>::~polynomial()
 }
 template<typename P>polynomial<P>& polynomial<P>::operator=(const P other)
 {	
+	delete[] ptr;
+	deg = 1;
+	ptr = new P[deg];
+	ptr[0] = other;
 	//del
 	//std::cout << "\nother in operator=" << other<<"\n";
-	if (other == 1) {
+	/*if (other == 1) {
 		delete[] ptr;
 		deg = other;
 		ptr = new P[deg];
 		ptr[0] = other;
-	}	
+	}	*/
+	//if (other == 0) {
+	//	delete[] ptr;
+	//	deg = other;
+	//	ptr = nullptr;
+	//	
+	//}
+
 	return *this;
 }
 template<typename P>polynomial<P>& polynomial<P>::operator=(const polynomial<P>& other)
 {
 	if (this != &other)
 	{
+		std::cout << "\nother:" << other << "\n";
+		std::cout << "\nptr:" << ptr << "\n";
 		delete[] ptr;
+		
 		deg = other.deg;
 		ptr = new P[deg];
 
@@ -128,7 +144,7 @@ template<typename P>std::ostream& operator<<(std::ostream& out, const polynomial
 {
 	//it is not necessary if there will be inside another class
 	// 
-	//out << "Degree: " << plnm.deg << ", Coefficients: ";
+	out << "Degree: " << plnm.deg << ", Coefficients: ";
 
 	for (uint64_t i = 0; i < plnm.deg; ++i)
 	{
@@ -152,7 +168,7 @@ template<typename P>std::ostream& operator<<(std::ostream& out, const polynomial
 	return out;
 }
 
-template<typename P>polynomial<P> polynomial<P>::operator+(const polynomial<P>& other) const
+template<typename P>polynomial<P>& polynomial<P>::operator+(const polynomial<P>& other) const
 {
 	uint64_t new_size = std::max(deg, other.deg);
 	polynomial<P> result(new_size);
@@ -177,10 +193,10 @@ template<typename P>polynomial<P> polynomial<P>::operator+(const polynomial<P>& 
 	return result;
 }
 
-template<typename P>polynomial<P> polynomial<P>::operator-(const polynomial<P>& other) const
+template<typename P>polynomial<P>& polynomial<P>::operator-(const polynomial<P>& other) const
 {
 	uint64_t new_size = std::max(deg, other.deg);
-	polynomial<P> result(new_size);
+	polynomial<P> result(new_size),zero(1);
 
 	for (uint64_t i = 0; i < new_size; i++)
 	{
@@ -194,7 +210,7 @@ template<typename P>polynomial<P> polynomial<P>::operator-(const polynomial<P>& 
 		}
 		else if (i < other.deg)
 		{
-			result.ptr[i] = -other.ptr[i];
+			result.ptr[i] = zero.ptr[i] - other.ptr[i];
 		}
 
 	}
@@ -202,7 +218,7 @@ template<typename P>polynomial<P> polynomial<P>::operator-(const polynomial<P>& 
 	return result;
 }
 
-template<typename P>polynomial<P> polynomial<P>::operator*(const polynomial<P>& other)const
+template<typename P>polynomial<P>& polynomial<P>::operator*(const polynomial<P>& other)const
 {
 	uint64_t new_size = deg + other.deg + (deg == 0 || other.deg == 0 ? 0 : -1);
 	polynomial<P> result(new_size);
@@ -216,7 +232,7 @@ template<typename P>polynomial<P> polynomial<P>::operator*(const polynomial<P>& 
 	return result;
 }
 
-template<typename P>polynomial<P> polynomial<P>::operator*(const P& other)const
+template<typename P>polynomial<P>& polynomial<P>::operator*(const P& other)const
 {
 
 	polynomial<P> result(deg);
@@ -230,15 +246,15 @@ template<typename P>polynomial<P> polynomial<P>::operator*(const P& other)const
 
 }
 
-template<typename P>polynomial<P> polynomial<P>::operator/(const polynomial<P>& other)const
+template<typename P>polynomial<P>& polynomial<P>::operator/(const polynomial<P>& other)const
 {
 	polynomial<P> result(1), ans;
 	if (deg < other.deg)
 	{
-		result.ptr[0] = 0;
+		result.ptr[0] = (P)0;
 	}
 	else if ((*this) == other) {
-		result.ptr[0] = 1;
+		result.ptr[0] = (P)1;
 	}
 	else
 	{
@@ -257,15 +273,15 @@ template<typename P>polynomial<P> polynomial<P>::operator/(const polynomial<P>& 
 	return ans;
 }
 
-template<typename P>polynomial<P> polynomial<P>::operator%(const polynomial<P>& other)const
+template<typename P>polynomial<P>& polynomial<P>::operator%(const polynomial<P>& other)const
 {
 	polynomial<P> result(1), ans;
 	if (deg < other.deg)
 	{
-		result.ptr[0] = 0;
+		result.ptr[0] = (P)0;
 	}
 	else if ((*this) == other) {
-		result.ptr[0] = 1;
+		result.ptr[0] = (P)1;
 	}
 	else
 	{

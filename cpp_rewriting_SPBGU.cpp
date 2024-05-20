@@ -5,6 +5,8 @@
 #include "matrix.h"
 #include "polynomial.h"
 #include <string>
+#include "fraction.h"
+
 void TESTs() {
     Complex a, b, c, d;
     // "+"
@@ -196,11 +198,11 @@ template<typename P>void polynomial_matrix_calc() {
 }
 
 int main() {
-    polynomial<double> a, b;
-    std::cin >> a >> b;
-    std::cout <<"a="<<a<<"b="<<b <<"a / b=" << (a / b)<< a % b<<((a%b)!=0);
+   //fraction<polynomial<uint64_t>> a(1,1), b;
+    //std::cin >> a >> b;
+    //std::cout <<"a="<<a<<"b="<<b <<"a / b=" << (a / b)<<"((a) == 0)"<< (a == 1);
 
-    //polynomial_matrix_calc<double>();
+    polynomial_matrix_calc<double>();
     //matrix_calc<double>();
 
     //matrix<int> a(2);

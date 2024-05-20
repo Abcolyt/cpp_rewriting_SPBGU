@@ -14,12 +14,12 @@ public:
 	polynomial() :polynomial(0) {};
 	polynomial(uint64_t size);
 	~polynomial();
-	polynomial<P> operator+(const polynomial<P>& other)const;//addition of polynomials
-	polynomial<P> operator-(const polynomial<P>& other)const;
-	polynomial<P> operator/(const polynomial<P>& other)const;//binary division of a polynomial by a polynomial
-	polynomial<P> operator%(const polynomial<P>& other)const;//the remainder of the division of a polynomial by a polynomial
-	polynomial<P> operator*(const polynomial<P>& other)const;//binary polynomial multiplication 
-	polynomial<P> operator*(const P& other)const; //binary polynomial multiplication by an element from the field
+	polynomial<P>& operator+(const polynomial<P>& other)const;//addition of polynomials
+	polynomial<P>& operator-(const polynomial<P>& other)const;
+	polynomial<P>& operator/(const polynomial<P>& other)const;//binary division of a polynomial by a polynomial
+	polynomial<P>& operator%(const polynomial<P>& other)const;//the remainder of the division of a polynomial by a polynomial
+	polynomial<P>& operator*(const polynomial<P>& other)const;//binary polynomial multiplication 
+	polynomial<P>& operator*(const P& other)const; //binary polynomial multiplication by an element from the field
 
 	friend std::ostream& operator<<<>(std::ostream& out, const polynomial<P>& plnm); // overloading the output operator
 	friend std::istream& operator>><>(std::istream& in, polynomial<P>& plnm); // overloading the input operator
