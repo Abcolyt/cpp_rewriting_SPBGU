@@ -162,7 +162,7 @@ template<typename P>void polynomial_matrix_calc() {
         std::cout << "\n" << a << "\n";
         "Enter second Number \n";
         std::cin >> b;
-        std::cout << "Enter Action('-','+','/','*','r','T') :\n";
+        std::cout << "Enter Action('-','+','/','*','d','r') :\n";
 
         std::cin >> L;
         //getchar();
@@ -196,12 +196,38 @@ template<typename P>void polynomial_matrix_calc() {
 }
 
 int main() {
-    polynomial<double> a, b;
-    std::cin >> a >> b;
-    std::cout <<"a="<<a<<"b="<<b <<"a / b=" << (a / b)<< a % b<<((a%b)!=0);
+    try
+    {
+        char L;
+        polynomial<double> a, b;
+        std::cout << "polynomial_matrix_calc<double>?(y/n) \n\n";
+        std::cin >> L;
+        if (L == 'y') {
+            polynomial_matrix_calc<double>();
 
-    //polynomial_matrix_calc<double>();
-    //matrix_calc<double>();
+        }
+        else {
+            std::cout << "matrix_calc<double>?(y/n) \n\n";
+            std::cin >> L;
+           
+            matrix_calc<double>();
+        }
+       
+    }
+    catch (const std::exception& err)
+    {
+        std::cout <<"Error:\nwhat():" << err.what();
+    }
+    catch (...)
+    {
+        std::cout << "unknown error";
+    }
+    
+    //std::cin >> a >> b;
+    //std::cout <<"a="<<a<<"b="<<b <<"a / b=" << (a / b)<< a % b<<((a%b)!=0);
+
+    
+    //
 
     //matrix<int> a(2);
     //
