@@ -2,18 +2,30 @@
 #include"polynomial.h"
 template<typename P>polynomial<P> polynomial<P>::operator>>(const uint64_t power)const
 {
-	if (power == 0)return *this;
-	polynomial result(deg + power);
-	for (uint64_t i = 0; i < deg; i++)
-	{
-		result.ptr[i + power] = ptr[i];
+	if (power == 0) {
+		polynomial result=(*this); 
+		return result;
 	}
-	return result;
+	else
+	{
+		polynomial result(deg + power);
+		if (deg != 0 && power != 1) {
+			for (uint64_t i = 0; i < result.deg; i++)
+			{
+				result.ptr[i + power] = ptr[i];
+			}
+		}
+		return result;
+	}
+
 }
 
 template<typename P>polynomial<P> polynomial<P>::operator<<(const uint64_t power)const
 {
-	if (power == 0)return *this;
+	
+	if (power == 0) {
+		polynomial result(*this); return result;
+	}
 	polynomial result(deg - power);
 	for (uint64_t i = 0; i <= (deg - power); i++)
 	{
@@ -70,9 +82,10 @@ template<typename P>polynomial<P>::polynomial(uint64_t size) {
 	if (size)
 		ptr = new P[size];
 	else
+		/*deg = 1;*/
 		ptr = nullptr;
 	for (uint64_t i = 0; i < size; i++)
-		ptr[i] = (P)0;
+		ptr[i] = 0;
 
 }
 
@@ -85,26 +98,10 @@ template<typename P>polynomial<P>& polynomial<P>::operator=(const P other)
 	delete[] ptr;
 	deg = 1;
 	ptr = new P[deg];
-	ptr[0] = other;
-	//del
-	//std::cout << "\nother in operator=" << other<<"\n";
-	/*if (other == 1) {
-		delete[] ptr;
-		deg = other;
-		ptr = new P[deg];
-		ptr[0] = other;
-	}	*/
-	//if (other == 0) {
-	//	delete[] ptr;
-	//	deg = other;
-	//	ptr = nullptr;
-	//	
-	//}
-
+	ptr[0] = other;	
 	return *this;
 }
-template<typename P>polynomial<P>& polynomial<P>::operator=(const polynomial<P>& other)
-{
+template<typename P>polynomial<P>& polynomial<P>::operator=(const polynomial<P>& other){
 	if (this != &other)
 	{
 		std::cout << "\nother:" << other << "\n";
@@ -140,6 +137,10 @@ template<typename P>std::istream& operator>>(std::istream& in, polynomial<P>& pl
 	return in;
 }
 
+template<typename P>P& polynomial<P>::operator[](uint64_t index)const{
+	return ptr[index];
+}
+
 template<typename P>std::ostream& operator<<(std::ostream& out, const polynomial<P>& plnm)
 {
 	//it is not necessary if there will be inside another class
@@ -148,6 +149,7 @@ template<typename P>std::ostream& operator<<(std::ostream& out, const polynomial
 
 	for (uint64_t i = 0; i < plnm.deg; ++i)
 	{
+		//std::cout << "EEEE:\n";
 		out << plnm.ptr[i];
 		if (i == 1)
 		{
@@ -246,25 +248,32 @@ template<typename P>polynomial<P>& polynomial<P>::operator*(const P& other)const
 
 }
 
-template<typename P>polynomial<P>& polynomial<P>::operator/(const polynomial<P>& other)const
+template<typename P>polynomial<P>& polynomial<P>::operator/(const polynomial<P> other)const
 {
+	std::cout << "(*this)" << (*this) << "\n";
+	std::cout << "other in /" << other << "\n";
 	polynomial<P> result(1), ans;
 	if (deg < other.deg)
 	{
-		result.ptr[0] = (P)0;
+		result.ptr[0] = 0;
 	}
 	else if ((*this) == other) {
-		result.ptr[0] = (P)1;
+		result.ptr[0] = 1;
 	}
 	else
 	{
 		result = (*this);
 		uint64_t difference = deg - other.deg;
 		for (int64_t i = difference; i >= 0; i--) {
-
+			std::cout << "\n(ans )" << (ans) << "\n";
+			std::cout << "\n(ans >> 1)" << (ans >> 1) << "\n";
 			ans = ans >> 1;
+			std::cout << "\nans" << (ans) << "\n";
 			ans.ptr[0] = (((result.ptr[other.deg + i - 1] / other.ptr[other.deg - 1])));
+			std::cout << "\nother >> i" << (other >> i)<<"\n";
 			result = result - (other >> i) * (((result.ptr[other.deg + i - 1] / other.ptr[other.deg - 1])));
+			std::cout << "\nresult" << result << "\n";
+                                                                                                       
 		}
 
 

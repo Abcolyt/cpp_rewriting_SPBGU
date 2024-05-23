@@ -2,20 +2,20 @@
 #include"fraction.h"
 template<typename T>fraction<T> fraction<T>::reduce()
 {
-    if (denominator == 0)denominator = 1;
-    T gcd = findGCD(numerator, denominator);
-    std::cout << "\ngcd:" << gcd << "\n";
+    //if (denominator == 0)return fraction < T>(1);
+    T& gcd = findGCD(denominator, numerator);
+    std::cout << "\ngcd(out7):" << gcd << "\n";
+    //std::cout << "\ngcd:" << gcd[0] << "\n";
     numerator = (numerator/gcd);
     denominator = (denominator/ gcd);
+    std::cout << "\ngcd:" << (*this)<< "\n";
     return *this;
 }
 
-template<typename T>T& fraction<T>::findGCD(T a, T b)const
+template<typename T>T& fraction<T>::findGCD(T& a, T& b)const
 {
-
-
-    std::cout << "\ngcd:a:" <<a <<" b: "<<b << " \n";
     if (b == 0) {
+        //std::cout << "\ngcd:a:" << a << " b: " << b << " \n";
         return a;
     }
     else {
@@ -61,6 +61,11 @@ template<typename T>fraction<T> fraction<T>::operator-(const fraction<T>& other)
     result.numerator = (this->numerator * other.denominator) - (other.numerator * this->denominator);
     result.denominator = this->denominator * other.denominator;
     return result.reduce();
+}
+template<typename T>fraction<T> fraction<T>::operator=(const fraction other)const {
+    this->numerator = other.numerator;
+    this->denominator = other.denominator;
+
 }
 
 template<typename T>fraction<T> fraction<T>::operator=(const T other)const {

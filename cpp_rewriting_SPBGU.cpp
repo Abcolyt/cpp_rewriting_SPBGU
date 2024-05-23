@@ -198,7 +198,7 @@ template<typename P>void polynomial_matrix_calc() {
 }
 
 int main() {
-    fraction<polynomial<uint64_t>> a(1,1), b;
+    fraction<polynomial<int64_t>> a(1,1), b;
     std::cin >> a >> b;
     std::cout <<"a="<<a<<"b="<<b <<"a / b=" << (a / b)<<"(a == 0)"<< (a == 1);
 

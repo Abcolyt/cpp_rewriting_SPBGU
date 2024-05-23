@@ -15,13 +15,15 @@ private:
 public:
     fraction() :fraction(1, 1) {};
     fraction(T num):fraction(num,1){}
-    fraction(T num, T denom):numerator(num), denominator(denominator){
+    fraction(T num, T denom){
+        denominator = 1;
+        numerator = 0;
         reduce();
     }
 
     fraction<T> reduce();
 
-    T& findGCD(T a, T b)const;
+    T& findGCD(T& a, T& b)const;
 
     friend std::ostream& operator<<<>(std::ostream& os, const fraction<T>& fraction);
 
@@ -31,6 +33,8 @@ public:
     fraction operator*(const fraction& other)const;
     fraction operator/(const fraction & other)const;
     fraction operator-(const fraction& other)const;
+
+    fraction operator=(const fraction other)const;
     fraction operator=(const T other)const;
     bool operator==(const fraction& other)const;
     bool operator==(const T other) const;//it only works for comparison with 1 and 0
