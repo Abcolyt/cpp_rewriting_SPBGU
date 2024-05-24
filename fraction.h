@@ -13,17 +13,19 @@ private:
     T denominator;
 
 public:
-    fraction() :fraction(1, 1) {};
-    fraction(T num):fraction(num,1){}
-    fraction(T num, T denom){
-        denominator = 1;
-        numerator = 0;
+    fraction() :fraction(0, 1) {};
+    fraction(T num):fraction(num,1){}//поправить
+    fraction(T num, T denom)
+    {
+        denominator = denom;
+        numerator = num;
         reduce();
+        //std::cout<<"\nreduce:"<<reduce()<<"\n";
     }
 
-    fraction<T> reduce();
+    fraction<T>& reduce();
 
-    T& findGCD(T& a, T& b)const;
+    T findGCD(T& a, T& b)const;
 
     friend std::ostream& operator<<<>(std::ostream& os, const fraction<T>& fraction);
 
