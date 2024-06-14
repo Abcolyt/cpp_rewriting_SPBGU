@@ -37,17 +37,30 @@ public:
     matrix sqprediag(const uint64_t S)const;//return of the square matrix from 1 to the lower diagonal
     matrix inverse_M()const;//return of the inverse matrix  
 
+    //(not tested) a method that applies a method of class T to each element of the matrix
+   /* template <typename ReturnType, typename ClassType>void applyMethodToElements(ReturnType(ClassType::* method)()) {
+        for (size_t i = 0; i < data.size(); ++i) {
+            for (size_t j = 0; j < data[i].size(); ++j) {
+                (data[i][j].*method)();
+            }
+        }
+    }*/
 private:
     T* ptr;
     uint64_t colsize;
     uint64_t rowsize;
-
-    //in the future. maybe..
-    // 
-    void allocateMemory()//re-allocation of memory(does not save old values0
+    //re-allocation of memory(does not save old values)
+    void allocateMemory()
     {
+        delete[] ptr;
         ptr = new T[colsize * rowsize];
+        for (uint64_t i = 0; i < colsize * rowsize; i++)
+        {
+            ptr[i] = 0;
+        }
     }
+    //in the future. maybe..
+   // 
     //matrix operator()(const uint64_t x1, const uint64_t y1, const uint64_t x2, const uint64_t y2, const std::string action, matrix<T>& other); // overload(), extended union operator
     //matrix operator()(const uint64_t x1, const uint64_t y1, const uint64_t x2, const uint64_t y2, const std::string action); // overload(), advanced editing operator
     

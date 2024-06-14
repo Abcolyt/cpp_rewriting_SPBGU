@@ -34,7 +34,7 @@ public:
     fraction operator/(const fraction & other)const;
     fraction operator-(const fraction& other)const;
 
-    fraction operator=(const fraction other)const;
+    fraction operator=(const fraction other);
     fraction operator=(const T other)const;
     bool operator==(const fraction& other)const;
     bool operator==(const T other) const;//it only works for comparison with 1 and 0

@@ -81,7 +81,7 @@ template<typename T>fraction<T> fraction<T>::operator-(const fraction<T>& other)
     result.denominator = this->denominator * other.denominator;
     return result.reduce();
 }
-template<typename T>fraction<T> fraction<T>::operator=(const fraction other)const {
+template<typename T>fraction<T> fraction<T>::operator=(const fraction other) {
     this->numerator = other.numerator;
     this->denominator = other.denominator;
 

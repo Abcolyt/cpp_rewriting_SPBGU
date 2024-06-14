@@ -17,7 +17,7 @@ private:
 
 public:
 
-	output_mode outm_E;
+	
 
 
 
@@ -34,6 +34,23 @@ public:
 	polynomial<P> operator*(const polynomial<P>& other)const;//binary polynomial multiplication 
 	polynomial<P> operator*(const P& other)const; //binary polynomial multiplication by an element from the field
 
+	output_mode outm_E;
+	void output_mode_set(std::string newmode) {
+		if (newmode == "FULL") {
+			outm_E = output_mode::FULL;
+		}
+		if (newmode == "ABBREVIATED") {
+			outm_E = output_mode::ABBREVIATED;
+		}
+		if (newmode == "SHORT")	{
+			outm_E = output_mode::SHORT;
+		}
+	}
+	void output_mode_set(uint64_t newmode) {
+		if (0 <= newmode && newmode < 3) {
+			outm_E = newmode;
+		}
+	}
 	friend std::ostream& operator<<<>(std::ostream& out, const polynomial<P>& plnm); // overloading the output operator
 	friend std::istream& operator>><>(std::istream& in, polynomial<P>& plnm); // overloading the input operator
 

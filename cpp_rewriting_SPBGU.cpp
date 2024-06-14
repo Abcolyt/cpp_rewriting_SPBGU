@@ -157,6 +157,7 @@ template<typename P>void polynomial_matrix_calc() {
 
 
         matrix<polynomial<P>> a, b, ans_out;
+        //ans_out.applyMethodToElements(&MyClass::myMethod);
         polynomial<P> ans_out_T;
         std::cout << "Enter first Number \n";
 
@@ -201,12 +202,21 @@ template<typename P>void polynomial_matrix_calc() {
 
 
 int main() {
-    matrix<double> m(2, 3);
+    matrix_calc<fraction<double>>();
+    /*
+    * polynomial_matrix_calc<double>();
+    */
+    
+
+
+
+
+    /*matrix<double> m(2, 3);
     m[0][0] = 1; m[0][1] = 2; m[0][2] = 3;
     m[1][0] = 4; m[1][1] = 5; m[1][2] = 6;
     std::cout << m;
     matrix<double> transposed = m.transpose();
-    std::cout << transposed<<"\n"<< transposed[2][1];
+    std::cout << transposed<<"\n"<< transposed[2][1];*/
     //polynomial_matrix_calc<double>();
     //matrix_calc<fraction<polynomial<double>>>();
 
