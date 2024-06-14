@@ -64,6 +64,8 @@ template<typename P>bool polynomial<P>::operator!=(const polynomial<P>& other)co
 }
 
 template<typename P>polynomial<P>::polynomial(P number) {
+	outm_E = output_mode::FULL;
+
 	deg = 1;
 	ptr = new P[deg];
 	ptr[0] = number;
@@ -95,7 +97,7 @@ template<typename P>polynomial<P>::polynomial(const polynomial<P>& other)
 	deg = other.deg; // Копируем степень полинома
 	ptr = new P[deg + 1]; // Выделяем память под массив коэффициентов
 
-	for (uint64_t i = 0; i <= deg; ++i)
+	for (uint64_t i = 0; i < deg; ++i)
 	{
 		ptr[i] = other.ptr[i]; // Копируем коэффициенты из другого полинома
 	}
@@ -154,11 +156,20 @@ template<typename P>std::ostream& operator<<(std::ostream& out, const polynomial
 {
 	//it is not necessary if there will be inside another class
 	// 
-	out << "Degree: " << plnm.deg << ", Coefficients: ";
+	if (output_mode::FULL == plnm.outm_E) {
+		out << "Degree: " << plnm.deg << ", Coefficients: ";
+	}
+	
 
 	for (uint64_t i = 0; i < plnm.deg; ++i)
 	{
-		out << plnm.ptr[i];
+		if (plnm.ptr[i] < 0 && (output_mode::FULL == plnm.outm_E || output_mode::ABBREVIATED == plnm.outm_E)) {
+			out << "(" << plnm.ptr[i] << ")";
+		}
+		else {
+			out << plnm.ptr[i];
+		}
+
 		if (i == 1)
 		{
 			out << "x";
@@ -166,8 +177,19 @@ template<typename P>std::ostream& operator<<(std::ostream& out, const polynomial
 		else if (i > 1) {
 			out << "x^" << i;
 		}
-		out << " ";
+		if (1+i< plnm.deg) {
 
+			if (output_mode::FULL == plnm.outm_E) {
+				out << " + ";
+			}
+			else if (output_mode::ABBREVIATED == plnm.outm_E) {
+				out << "+";
+			}
+			else if (output_mode::SHORT == plnm.outm_E)
+			{
+				out << " ";
+			}
+		}
 	}
 	if (plnm.deg == 0)
 	{
@@ -231,7 +253,7 @@ template<typename P>polynomial<P> polynomial<P>::operator-(const polynomial<P>& 
 
 template<typename P>polynomial<P> polynomial<P>::operator*(const polynomial<P>& other)const
 {
-	uint64_t new_size = deg + other.deg + (deg == 0 || other.deg == 0 ? 0 : -1);
+	uint64_t new_size = deg + other.deg;
 	polynomial<P> result; result.newsize(new_size);
 	for (uint64_t i = 0; i < deg; i++)
 	{
@@ -240,7 +262,7 @@ template<typename P>polynomial<P> polynomial<P>::operator*(const polynomial<P>& 
 			result.ptr[i + j] = result.ptr[i + j] + ptr[i] * other.ptr[j];
 		}
 	}
-	return result;
+	return result.cutbag();
 }
 
 template<typename P>polynomial<P> polynomial<P>::operator*(const P& other)const
@@ -277,19 +299,19 @@ template<typename P>polynomial<P> polynomial<P>::operator/(const polynomial<P>& 
 		result = (*this);
 		uint64_t difference = deg - other.deg;
 		for (int64_t i = difference; i >= 0; i--) {
-			std::cout << "\nans1" << ans << "\n";
+			//std::cout << "\nans1" << ans << "\n";
 			ans = ans >> 1;
-			std::cout << "\nans2" << ans << "\n";
+			//std::cout << "\nans2" << ans << "\n";
 			ans.ptr[0] = (((result.ptr[other.deg + i - 1] / other.ptr[other.deg - 1])));
-			std::cout << "\nans3" << ans << "\n";
+			//std::cout << "\nans3" << ans << "\n";
 			result = result - (other >> i) * (ans.ptr[0]);
-			std::cout << "\nres:" << result << "\n";
+			//std::cout << "\nres:" << result << "\n";
 		}
 
 
 	}
-	std::cout << "ans:" << ans;
-	return ans;
+	//std::cout << "ans:" << ans;
+	return ans.cutbag();
 }
 
 template<typename P>polynomial<P> polynomial<P>::operator%(const polynomial<P>& other)const
@@ -311,15 +333,14 @@ template<typename P>polynomial<P> polynomial<P>::operator%(const polynomial<P>& 
 
 			ans = ans >> 1;
 			ans.ptr[0] = (((result.ptr[other.deg + i - 1] / other.ptr[other.deg - 1])));
-			result = result - (other >> i) * (((result.ptr[other.deg + i - 1] / other.ptr[other.deg - 1])));
+			result = result - (other >> i) * (ans.ptr[0]);
 		}
 
 
 	}
 
-	return result;
+	return result.cutbag();
 }
-
 template<typename P>bool  polynomial<P>::operator>(const polynomial<P>& other)const
 {
 	return this->deg > other.deg;
@@ -328,4 +349,22 @@ template<typename P>bool  polynomial<P>::operator>(const polynomial<P>& other)co
 template<typename P>bool  polynomial<P>::operator<(const polynomial<P>& other)const
 {
 	return this->deg <  other.deg;
+}
+template<typename P>P& polynomial<P>::operator[](uint64_t index) {
+	if (index >= deg) {
+		throw std::out_of_range("Index out of range");
+	}
+	return ptr[index];
+}
+template<typename P>polynomial<P> polynomial<P>::cutbag() const {
+	uint64_t new_deg = deg;
+	while (new_deg > 0 && ptr[new_deg - 1] == 0) {
+		new_deg--;
+	}
+
+	polynomial<P> new_poly;
+	new_poly.newsize(new_deg);
+	std::copy(ptr, ptr + new_deg, new_poly.ptr);
+
+	return new_poly;
 }

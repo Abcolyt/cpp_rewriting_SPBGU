@@ -1,8 +1,6 @@
 #pragma once
 #include<iostream>
 
-
-
 template <typename T>class fraction;
 template <typename T>std::ostream& operator<<(std::ostream& os, const fraction<T>& fraction);
 template <typename T>std::istream& operator>>(std::istream& is, fraction<T>& fraction);
@@ -41,7 +39,10 @@ public:
     bool operator==(const fraction& other)const;
     bool operator==(const T other) const;//it only works for comparison with 1 and 0
     bool operator!=(const fraction& other) const;
-
+    
+    T getNumerator() { return numerator; }
+    T getDenominator() { return denominator; }
+    
 };
 
 #include "fraction.cpp"

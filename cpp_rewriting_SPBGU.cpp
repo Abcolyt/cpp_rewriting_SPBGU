@@ -197,16 +197,16 @@ template<typename P>void polynomial_matrix_calc() {
 
 }
 
-int main() {
-    fraction<polynomial<int64_t>> a(1,1), b;
-    std::cout << "a=" << a << "\nb=" << b << "\n";
-    std::cin >> a;
-    a.reduce();
-    std::cout << "a=" << a << "\n";
-    std::cin >> b;
-    std::cout << "b=" <<b << "\n";
-    std::cout <<"a="<<a<<"b="<<b <<"a / b=" << (a / b)<<"(a == 0)"<< (a == 1);
 
+
+
+int main() {
+    matrix<double> m(2, 3);
+    m[0][0] = 1; m[0][1] = 2; m[0][2] = 3;
+    m[1][0] = 4; m[1][1] = 5; m[1][2] = 6;
+    std::cout << m;
+    matrix<double> transposed = m.transpose();
+    std::cout << transposed<<"\n"<< transposed[2][1];
     //polynomial_matrix_calc<double>();
     //matrix_calc<fraction<polynomial<double>>>();
 

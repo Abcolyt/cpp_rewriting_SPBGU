@@ -11,12 +11,12 @@ template<typename T>fraction<T>& fraction<T>::reduce()
     T gcd = findGCD(M,m);
     std::cout << "\ngcd(out7):" << gcd << "\n";
     //std::cout << "\ngcd:" << gcd[0] << "\n";
-    std::cout << "\n(numerator/gcd):" << (numerator/gcd) << "\n";
-    std::cout << "\n(denominator/ gcd):" << (denominator / gcd) << "\n";
+    //std::cout << "\n(numerator/gcd):" << (numerator/gcd) << "\n";
+    //std::cout << "\n(denominator/ gcd):" << (denominator / gcd) << "\n";
     numerator = (numerator/gcd);
    // std::cout << "\nnumerator:" << numerator << "\n";
     this->denominator = (denominator/ gcd);
-    std::cout << "\ndenominator:" << denominator << "\n";
+    //std::cout << "\ndenominator:" << denominator << "\n";
     //std::cout << "\n(*this):" << (*this)<< "\n";
     return *this;
 }

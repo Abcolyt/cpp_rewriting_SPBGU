@@ -1,13 +1,25 @@
 #pragma once
 #include<iostream>
 #include <sstream>
+enum class output_mode
+{
+	FULL,
+	ABBREVIATED,
+	SHORT
+};
 template<typename P> class polynomial;
 template<typename P> std::ostream& operator<<(std::ostream& out, const polynomial<P>& plnm);
 template<typename P> std::istream& operator>> (std::istream& in, polynomial<P>& plnm);
 
 template<typename P> class polynomial
 {
+private:
+
 public:
+
+	output_mode outm_E;
+
+
 
 	P* ptr;
 	uint64_t deg;
@@ -40,9 +52,10 @@ public:
     bool operator>(const polynomial<P>& other)const;
 	bool operator<(const polynomial<P>& other)const;
 	
-private:
+
 	polynomial cutbag()const;
 	void newsize(uint64_t size);
+
 };
 
 #include "polynomial.cpp"

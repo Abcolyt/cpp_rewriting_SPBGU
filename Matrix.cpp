@@ -2,6 +2,7 @@
 #include "matrix.h"
 template<typename T>matrix<T>::matrix(const matrix<T>& mtrx) //the copying constructor
 {
+    (*this).ptr = nullptr;
     (*this) = mtrx;
 }
 template<typename T>matrix<T>::matrix() //the default constructor
@@ -102,8 +103,8 @@ template<typename T>matrix<T> matrix<T>::to_uptrng(matrix<T>& other)const
                 while (temp[i][i] == 0 && temp[j][i] == 0) {
                     j++;
                     if (j >= rowsize) {
-                        std::cout << "j >= rowsize>>>" << (j >= rowsize) << "<<";
-                        throw "fail in to_uptrng";
+  ////////////////////////////////////////////////////////// ///////////////////////////          ////////////           /////////////////////////std::cout << "j >= rowsize>>>" << (j >= rowsize) << "<<";
+                        throw std::invalid_argument("the matrix is irreducible to the triangular form");
                         
                         //return хз что ;
                     }
@@ -195,7 +196,8 @@ template<typename T>matrix<T> matrix<T>::to_uptrng()const
 
 template <typename T>T matrix<T>::determinant() const {
     if (rowsize != colsize) {
-        throw("no determinant");
+        
+        throw std::invalid_argument("rowsize != colsize");
         //return 0;
     }
 
