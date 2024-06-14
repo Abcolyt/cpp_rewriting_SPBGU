@@ -64,20 +64,13 @@ template<typename P>bool polynomial<P>::operator!=(const polynomial<P>& other)co
 }
 
 template<typename P>polynomial<P>::polynomial(P number) {
-	outm_E = output_mode::FULL;
-
+	
+	
+	outm_E = default_output_mode;
 	deg = 1;
 	ptr = new P[deg];
 	ptr[0] = number;
-	/*
-	* 	deg = size;
-	if (size)
-		ptr = new P[size];
-	else
-		ptr = nullptr;
-	for (uint64_t i = 0; i < size; i++)
-		ptr[i] = 0;
-	*/
+
 
 
 }
@@ -85,8 +78,10 @@ template<typename P>polynomial<P>::polynomial(P number) {
 template<typename P>void polynomial<P>::newsize(uint64_t size)
 {
 	deg = size;
-	if (size)
+	if (size) {
+		delete[] ptr;
 		ptr = new P[size];
+	}
 	else
 		ptr = nullptr;
 	for (uint64_t i = 0; i < size; i++)
@@ -94,12 +89,14 @@ template<typename P>void polynomial<P>::newsize(uint64_t size)
 }
 template<typename P>polynomial<P>::polynomial(const polynomial<P>& other)
 {
-	deg = other.deg; // Копируем степень полинома
-	ptr = new P[deg + 1]; // Выделяем память под массив коэффициентов
+	
+	outm_E = default_output_mode;
+	deg = other.deg; 
+	ptr = new P[deg + 1]; 
 
 	for (uint64_t i = 0; i < deg; ++i)
 	{
-		ptr[i] = other.ptr[i]; // Копируем коэффициенты из другого полинома
+		ptr[i] = other.ptr[i]; 
 	}
 }
 template<typename P>polynomial<P>::~polynomial()
@@ -108,8 +105,6 @@ template<typename P>polynomial<P>::~polynomial()
 }
 template<typename P>polynomial<P>& polynomial<P>::operator=(const P other)
 {
-	//del
-	//std::cout << "\nother in operator=" << other<<"\n";
 	
 		delete[] ptr;
 		deg = 1;
@@ -150,6 +145,23 @@ template<typename P>std::istream& operator>>(std::istream& in, polynomial<P>& pl
 	plnm = temp;
 
 	return in;
+}
+
+template<typename P>void polynomial<P>::output_mode_set(std::string newmode) {
+	if (newmode == "FULL") {
+		outm_E = output_mode::FULL;
+	}
+	if (newmode == "ABBREVIATED") {
+		outm_E = output_mode::ABBREVIATED;
+	}
+	if (newmode == "SHORT") {
+		outm_E = output_mode::SHORT;
+	}
+}
+template<typename P>void polynomial<P>::output_mode_set(uint64_t newmode) {
+	if (0 <= newmode && newmode < 3) {
+		outm_E = newmode;
+	}
 }
 
 template<typename P>std::ostream& operator<<(std::ostream& out, const polynomial<P>& plnm)
@@ -291,7 +303,7 @@ template<typename P>polynomial<P> polynomial<P>::operator/(const polynomial<P>& 
 	}
 	else if ((*this) == other) {
 		ans = 1;
-		//std::cout << "\nans in op/" << ans << "\n";
+
 		return ans;
 	}
 	else
@@ -299,18 +311,12 @@ template<typename P>polynomial<P> polynomial<P>::operator/(const polynomial<P>& 
 		result = (*this);
 		uint64_t difference = deg - other.deg;
 		for (int64_t i = difference; i >= 0; i--) {
-			//std::cout << "\nans1" << ans << "\n";
 			ans = ans >> 1;
-			//std::cout << "\nans2" << ans << "\n";
 			ans.ptr[0] = (((result.ptr[other.deg + i - 1] / other.ptr[other.deg - 1])));
-			//std::cout << "\nans3" << ans << "\n";
 			result = result - (other >> i) * (ans.ptr[0]);
-			//std::cout << "\nres:" << result << "\n";
 		}
-
-
 	}
-	//std::cout << "ans:" << ans;
+
 	return ans.cutbag();
 }
 

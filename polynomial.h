@@ -1,6 +1,7 @@
 #pragma once
 #include<iostream>
 #include <sstream>
+//the degree of detail of the output
 enum class output_mode
 {
 	FULL,
@@ -10,69 +11,93 @@ enum class output_mode
 template<typename P> class polynomial;
 template<typename P> std::ostream& operator<<(std::ostream& out, const polynomial<P>& plnm);
 template<typename P> std::istream& operator>> (std::istream& in, polynomial<P>& plnm);
-
 template<typename P> class polynomial
 {
 private:
-
-public:
-
-	
-
-
-
-	P* ptr;
 	uint64_t deg;
+public:
+	//CONSTRUCTORS\DESTRUCTORS
 	polynomial() :polynomial(0) {};
 	polynomial(P number);
-	~polynomial();
 	polynomial(const polynomial<P>& other);
-	polynomial<P> operator+(const polynomial<P>& other)const;//addition of polynomials
+	~polynomial();
+
+
+	//ARITHMETIC OPERATORS
+	 
+	//addition of polynomials
+	polynomial<P> operator+(const polynomial<P>& other)const;
+	//subtruction of polynomials
 	polynomial<P> operator-(const polynomial<P>& other)const;
-	polynomial<P> operator/(const polynomial<P>& other)const;//binary division of a polynomial by a polynomial
-	polynomial<P> operator%(const polynomial<P>& other)const;//the remainder of the division of a polynomial by a polynomial
-	polynomial<P> operator*(const polynomial<P>& other)const;//binary polynomial multiplication 
-	polynomial<P> operator*(const P& other)const; //binary polynomial multiplication by an element from the field
+	//binary division of a polynomial by a polynomial
+	polynomial<P> operator/(const polynomial<P>& other)const;
+	//the remainder of the division of a polynomial by a polynomial
+	polynomial<P> operator%(const polynomial<P>& other)const;
+	//binary polynomial multiplication 
+	polynomial<P> operator*(const polynomial<P>& other)const;
+	//binary polynomial multiplication by an element from the field
+	polynomial<P> operator*(const P& other)const;
 
-	output_mode outm_E;
-	void output_mode_set(std::string newmode) {
-		if (newmode == "FULL") {
-			outm_E = output_mode::FULL;
-		}
-		if (newmode == "ABBREVIATED") {
-			outm_E = output_mode::ABBREVIATED;
-		}
-		if (newmode == "SHORT")	{
-			outm_E = output_mode::SHORT;
-		}
-	}
-	void output_mode_set(uint64_t newmode) {
-		if (0 <= newmode && newmode < 3) {
-			outm_E = newmode;
-		}
-	}
-	friend std::ostream& operator<<<>(std::ostream& out, const polynomial<P>& plnm); // overloading the output operator
-	friend std::istream& operator>><>(std::istream& in, polynomial<P>& plnm); // overloading the input operator
 
-	polynomial<P> operator>>(const uint64_t power)const;//coefficient shift (increase). or (plnm*x^n)
-	polynomial<P> operator<<(const uint64_t power)const;//coefficient shift(decrease). or the whole part of (plnm* x^(-n))
+    // I/O OPERATIONS
+    
+	//default output mode
+	static output_mode default_output_mode;
+	//class realization output mode
+	output_mode outm_E = default_output_mode;
+	//set the output mode via a variable of type: std::string newmode
+	void output_mode_set(std::string newmode);
+	//set the output mode via a variable of type: uint64_t newmode
+	void output_mode_set(uint64_t newmode);
+	//the output operator (with the degree of detail specified in the outm_E field)
+	friend std::ostream& operator<<<>(std::ostream& out, const polynomial<P>& plnm); 
+	//the input operator
+	friend std::istream& operator>><>(std::istream& in, polynomial<P>& plnm);
 
-	P& operator[](uint64_t index);//the access operator to the polynomial coefficient
-	polynomial<P>& operator=(const P other);
-	polynomial<P>& operator=(const polynomial<P>& other);
 
-	bool operator==(const polynomial<P>& other)const;// 
+	//CHARACTER SHIFTS
+
+	//coefficient shift (increase). or (plnm*x^n)
+	polynomial<P> operator>>(const uint64_t power)const;
+	//coefficient shift(decrease). or the whole part of (plnm* x^(-n))
+	polynomial<P> operator<<(const uint64_t power)const;
+
+
+	//COMPARISON OPERATORS
+	
+	//is it true if the polynomials are equal
+	bool operator==(const polynomial<P>& other)const;
+	//is it false if the polynomials are equal
+	bool operator!=(const polynomial<P>& other)const;
+	//is it true if this->deg > other.deg;
+	bool operator>(const polynomial<P>& other)const;
+	//is it true if this->deg < other.deg;
+	bool operator<(const polynomial<P>& other)const;
+
+
+	//COMPARISON OPERATORS WITH ZERO
 	bool operator==(int64_t zero)const;//isZero()?(all values==0 so polynomial have zero coefficent in any position)
 	bool operator!=(int64_t zero)const { return not((*this) == zero); }
-	bool operator!=(const polynomial<P>& other)const;
-
-    bool operator>(const polynomial<P>& other)const;
-	bool operator<(const polynomial<P>& other)const;
 	
 
+	//SPECIAL METHODS
+
+    //the access operator to the polynomial coefficient
+	P& operator[](uint64_t index);
+	//equalization operator(low coefficient=other )
+	polynomial<P>& operator=(const P other);
+	//the equalization operator
+	polynomial<P>& operator=(const polynomial<P>& other);
+	//reduction of the polynomial (due to the higher zero coefficients)
 	polynomial cutbag()const;
+	//reallocate memory with zeros (old data is not saved)
 	void newsize(uint64_t size);
-
+	//set the degree of the polynomial
+	uint64_t get_deg() { return deg; };
+	//get the degree of the polynomial
+	void set_deg(uint64_t newdeg) { deg = newdeg; };
+	//an array of coefficients
+	P* ptr;
 };
-
+template<typename P> output_mode polynomial<P>::default_output_mode = output_mode::SHORT;
 #include "polynomial.cpp"
