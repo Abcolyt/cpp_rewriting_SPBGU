@@ -97,12 +97,6 @@ void complex_calc() {
  
     
 }
-void backspace(int count)
-{
-    for (int i = 0; i < count; i++)
-        printf_s("\b \b");
-}
-
 template<typename T>void matrix_calc() {
 
     static char L = 'E';
@@ -115,12 +109,10 @@ template<typename T>void matrix_calc() {
         
         std::cin >> a;
         std::cout <<"\n" << a<<"\n";
-         "Enter second Number \n";
+        std::cout << "Enter second Number \n";
         std::cin >> b;
-        std::cout << "Enter Action('-','+','/','*','r','T') :\n";
-
+        std::cout << "Enter Action('-','+','/','*','r') :\n";
         std::cin >> L;
-        //getchar();
         if (L == 'E' || L == 'e')
         {
             abort();
@@ -149,68 +141,10 @@ template<typename T>void matrix_calc() {
 
 
 }
-
-template<typename P>void polynomial_matrix_calc() {
-
-    static char L = 'E';
-    while (1) {
-
-
-        matrix<polynomial<P>> a, b, ans_out;
-        polynomial<P> ans_out_T;
-        std::cout << "Enter first Number \n";
-
-        std::cin >> a;
-        std::cout << "\n" << a << "\n";
-        "Enter second Number \n";
-        std::cin >> b;
-        std::cout << "Enter Action('-','+','/','*','r','T') :\n";
-
-        std::cin >> L;
-        //getchar();
-        if (L == 'E' || L == 'e')
-        {
-            abort();
-        }
-        std::cout << std::endl;
-        switch (L)
-        {
-        case '+':ans_out = a + b; break;
-        case '-':ans_out = a - b; break;
-        case '*':ans_out = a * b; break;
-        case '/':ans_out = a / b; break;
-        case 'd':ans_out_T = (a.determinant()); break;
-        case 'r':ans_out = a.inverse_M(); break;
-        default:abort();
-        }
-        if (L == 'd') {
-            std::cout << ans_out_T << "\n";
-        }
-        else
-        {
-            std::cout << ans_out << "\n";
-        }
-
-
-    }
-
-
-}
-
 int main() {
-    fraction<polynomial<int64_t>> a(1,1), b;
-    std::cout << "a=" << a << "\nb=" << b << "\n";
-    std::cin >> a;
-    a.reduce();
-    std::cout << "a=" << a << "\n";
-    std::cin >> b;
-    std::cout << "b=" <<b << "\n";
-    std::cout <<"a="<<a<<"b="<<b <<"a / b=" << (a / b)<<"(a == 0)"<< (a == 1);
-
-    //polynomial_matrix_calc<double>();
-    //matrix_calc<fraction<polynomial<double>>>();
-
-
+    
+    matrix_calc<fraction<polynomial<int>>>();
+    
     system("pause");
     return 0;
 }
