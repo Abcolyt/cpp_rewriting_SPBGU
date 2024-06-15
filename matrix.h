@@ -48,6 +48,7 @@ public:
 
 
     //ROW\COL ACCESS
+
     uint64_t getcol()const { return colsize; }
     uint64_t getrow()const { return rowsize; }
     void setcol(uint64_t colsize) { this->colsize = colsize; this->allocateMemory(); }

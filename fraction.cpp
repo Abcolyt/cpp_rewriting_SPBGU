@@ -2,10 +2,7 @@
 #include"fraction.h"
 template<typename T>fraction<T>& fraction<T>::reduce()
 {
-    /*if (denominator == 0)return fraction < T>(1);
-    //
-    //std::max(denominator, numerator);
-    //std::min(denominator, numerator);*/
+
     T M = std::max(denominator, numerator);
     T m = std::min(denominator, numerator);
     T gcd = findGCD(M,m);
@@ -30,7 +27,7 @@ template<typename T>T fraction<T>::findGCD(T& a, T& b)const
 }
 template<typename T>std::ostream& operator<<(std::ostream& os, const fraction<T>& fraction)
 {
-    os << fraction.numerator << " / (" << fraction.denominator << ")";
+    os <<"("<< fraction.numerator << ") / (" << fraction.denominator << ")";
     return os;
 }
 

@@ -1,5 +1,4 @@
 #include <iostream>
-#include <assert.h>
 #include <sstream>
 #include "complex.h"
 #include "matrix.h"
@@ -7,96 +6,7 @@
 #include <string>
 #include "fraction.h"
 
-void TESTs() {
-    Complex a, b, c, d;
-    // "+"
-    a = Complex(1, 1);
-    b = Complex(-1, -1);
-    c = Complex(0, 0);
-    assert((a + b) == c);
-
-    // "-"
-    a = Complex(1, 1);
-    b = Complex(-1, -1);
-    c = Complex(2, 2);
-    assert((a - b) == c);
-
-    // "*"
-    a = Complex(1, 1);
-    b = Complex(1, 1);
-    c = Complex(0, 2);
-    assert((a * b) == c);
-
-    // "/"
-    a = Complex(1, 1);
-    b = Complex(1, 1);
-    c = Complex(1, 0);
-    assert((a / b) == c);
-    a = Complex(6, 8);
-    b = Complex(5, 15);
-    c = Complex(0.6, -0.2);
-    assert((a / b) == c);
-
-    // "==" and "="
-    a = Complex(1, 1);
-    b = Complex(10, 10);
-    c = Complex(10, 10);
-    assert((a = b) == c);
-
-    // "!="
-    a = Complex(1, 1);
-    b = Complex(10, 15);
-    c = Complex(10, 5);
-    assert((a = b) != c);
-
-    // "<<" 
-    a = Complex(3, 4);
-    std::stringstream so;
-    so << a;
-    assert(so.str() == "Real(:3)Imaginary(:4)");
-
-    // ">>" 
-    //std::stringstream si("Real(:3)Imaginary(:4)");
-    //si >> a; 
-    //assert(a.real_Get() == 3 && a.imag_Get() == 4);
-
-}
-void complex_calc() {
-    
-    static char L = 'E';
-    while (1) {
-   
-        
-        Complex a,b,c;
-        std::cout << "Enter first Number \n";
-        std::cin >> a;
-        std::cout << "Enter second Number \n";
-        std::cin >> b;
- 
-        std::cout << "Enter Action('-','+','/','*','E','T') :";
-        
-        std::cin >> L;
-        //getchar();
-        if (L == 'E'||L=='e')
-        {
-            abort();
-        }
-        std::cout << std::endl;
-        switch (L)
-        {
-        case '+':c=a+b; break;
-        case '-':c = a - b; break;
-        case '*':c = a * b; break;
-        case '/':c = a / b; break;
-        case 'T':TESTs(); break;
-        case 't':TESTs(); break;
-        default:abort();
-        }
-        std::cout << c<<"\n";
-    }
- 
-    
-}
+//I dont recommend using with fraction<polynomial<double>> /fraction<polynomial<float>>,because of the representation, the coefficients will not be integers, for example (-36.125 -144.5x -289x^2 -433.5x^3 -397.375x^4 -144.5x^5) / (0 72.25x 180.625x^2 -108.375x^3 -614.125x^4 -541.875x^5 -144.5x^6) 
 template<typename T>void matrix_calc() {
 
     static char L = 'E';
@@ -141,8 +51,9 @@ template<typename T>void matrix_calc() {
 
 
 }
+
 int main() {
-    
+
     matrix_calc<fraction<polynomial<int>>>();
     
     system("pause");

@@ -1,22 +1,20 @@
 #pragma once
 #include<iostream>
-#include <sstream>
-//the degree of detail of the output
+#include<sstream>
 enum class output_mode
 {
 	FULL,
 	ABBREVIATED,
 	SHORT
 };
+
 template<typename P> class polynomial;
 template<typename P> std::ostream& operator<<(std::ostream& out, const polynomial<P>& plnm);
 template<typename P> std::istream& operator>> (std::istream& in, polynomial<P>& plnm);
 template<typename P> class polynomial
 {
-private:
-	uint64_t deg;
 public:
-	//CONSTRUCTORS\DESTRUCTORS
+	//CONSTRUCTORS\DESTRUCTOR
 	polynomial() :polynomial(0) {};
 	polynomial(P number);
 	polynomial(const polynomial<P>& other);
@@ -45,10 +43,11 @@ public:
 	static output_mode default_output_mode;
 	//class realization output mode
 	output_mode outm_E = default_output_mode;
-	//set the output mode via a variable of type: std::string newmode
+	//set the output mode via a variable of type: std::string newmode(it will be installed if it exists)
 	void output_mode_set(std::string newmode);
 	//set the output mode via a variable of type: uint64_t newmode
 	void output_mode_set(uint64_t newmode);
+	void output_mode_set(output_mode new_outm_E);
 	//the output operator (with the degree of detail specified in the outm_E field)
 	friend std::ostream& operator<<<>(std::ostream& out, const polynomial<P>& plnm); 
 	//the input operator
@@ -92,12 +91,16 @@ public:
 	polynomial cutbag()const;
 	//reallocate memory with zeros (old data is not saved)
 	void newsize(uint64_t size);
-	//set the degree of the polynomial
-	uint64_t get_deg() { return deg; };
 	//get the degree of the polynomial
+	uint64_t get_deg() { return deg; };
+	//set the degree of the polynomial
 	void set_deg(uint64_t newdeg) { deg = newdeg; };
+
 	//an array of coefficients
 	P* ptr;
+private:
+	//the degree of the polynomial(for example 4:1+2x+3x^2+7x^3)
+	uint64_t deg;
 };
-template<typename P> output_mode polynomial<P>::default_output_mode = output_mode::SHORT;
+template<typename P> output_mode polynomial<P>::default_output_mode = output_mode::ABBREVIATED;
 #include "polynomial.cpp"
