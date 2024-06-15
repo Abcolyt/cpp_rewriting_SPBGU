@@ -15,6 +15,7 @@ template<typename P> class polynomial
 {
 public:
 	//CONSTRUCTORS\DESTRUCTORS
+
 	polynomial() :polynomial(0) {};
 	polynomial(P number);
 	polynomial(const polynomial<P>& other);
@@ -96,6 +97,7 @@ public:
 	uint64_t get_deg() { return deg; };
 	//get the degree of the polynomial
 	void set_deg(uint64_t newdeg) { deg = newdeg; };
+
 	//an array of coefficients
 	P* ptr;
 private:
