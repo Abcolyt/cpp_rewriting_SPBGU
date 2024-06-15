@@ -91,11 +91,13 @@ public:
     //matrix.applyMethodToElements(&ExampleClass::output_mode_set, 2);
     //a method that applies a method( output_mode_set(M) ) of class T to each element of the matrix
     //(Not tested. Everything worked in the simplified code) 
-    template <typename T,typename ReturnType, typename Param>
-    std::enable_if_t<HasMethodWithParam<T, Param>::value> applyMethodToElements(ReturnType(T::* method)(Param), Param param)const
+    template <typename T, typename ReturnType, typename Param>
+    std::enable_if_t<HasMethodWithParam<T, Param>::value> applyMethodToElements(ReturnType(T::* method)(Param), Param param)const////the implementation is not displayed in the cpp file((
     {
-        for (size_t i = 0; i < colsize* rowsize; ++i) {
-            (ptr[i].*method)(param);
+        for (size_t i = 0; i < rowsize; ++i) {
+            for (size_t j = 0; j < colsize; ++j) {
+                (ptr[i][j].*method)(param);
+            }
         }
     }
    //to index1 row access operator
