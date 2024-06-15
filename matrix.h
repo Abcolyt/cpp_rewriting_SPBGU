@@ -80,10 +80,10 @@ public:
     // finding the determinant if there is one
     T determinant() const;
     //return of the square matrix from 1 to the lower diagonal
-    // 
+    //         S
     //  0 0  ..  0 1
     //  0 0  ..  1 0
-    //  .   .  ..  0 0
+    //  . ..   ...  .. ..        S                    
     //  0 1  ..  0 0
     //  1 0  ..  0 0
     //
