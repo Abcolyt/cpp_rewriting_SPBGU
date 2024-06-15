@@ -20,7 +20,7 @@ template<typename P>polynomial<P> polynomial<P>::operator<<(const uint64_t power
 	return result;
 }
 
-template<typename P>bool polynomial<P>::operator==(const polynomial<P>& other)const //no working //C2666
+template<typename P>bool polynomial<P>::operator==(const polynomial<P>& other)const 
 {
 	if (deg != other.deg)return false;
 	else
@@ -50,7 +50,7 @@ template<typename P>bool polynomial<P>::operator==(int64_t zero)const
 
 }
 
-template<typename P>bool polynomial<P>::operator!=(const polynomial<P>& other)const //no working //C2666
+template<typename P>bool polynomial<P>::operator!=(const polynomial<P>& other)const 
 {
 	if (deg != other.deg)return true;
 	else
@@ -150,27 +150,27 @@ template<typename P>std::istream& operator>>(std::istream& in, polynomial<P>& pl
 template<typename P>void polynomial<P>::output_mode_set(std::string newmode) {
 	switch (newmode)
 	{
-	case "FULL": outm_E = output_mode::FULL; break;
-	case "ABBREVIATED": outm_E = output_mode::ABBREVIATED; break;
-	case "SHORT": outm_E = output_mode::SHORT; break;
+	case "FULL": outm_E = output_mode::FULL;			 break;
+	case "ABBREVIATED":outm_E = output_mode::ABBREVIATED;break;
+	case "SHORT": outm_E = output_mode::SHORT;			 break;
 	default:break;
 	}
 }
 template<typename P>void polynomial<P>::output_mode_set(uint64_t newmode) {
 	switch (newmode)
 	{
-	case 0: this->outm_E = output_mode::FULL; break;
-	case 1: this->outm_E = output_mode::ABBREVIATED; break;
-	case 2: this->outm_E = output_mode::SHORT; break;
+	case 0: outm_E = output_mode::FULL;			break;
+	case 1: outm_E = output_mode::ABBREVIATED;  break;
+	case 2: outm_E = output_mode::SHORT;		break;
 	default:break;
 	}
 }
 template<typename P>void polynomial<P>::output_mode_set(output_mode new_outm_E) {
 	switch (new_outm_E)
 	{
-	case output_mode::FULL: outm_E = output_mode::FULL; break;
-	case output_mode::ABBREVIATED: outm_E = output_mode::ABBREVIATED; break;
-	case output_mode::SHORT: outm_E = output_mode::SHORT; break;
+	case output_mode::FULL:			outm_E = output_mode::FULL;			break;
+	case output_mode::ABBREVIATED:  outm_E = output_mode::ABBREVIATED;  break;
+	case output_mode::SHORT:		outm_E = output_mode::SHORT;		break;
 	default:break;
 	}
 }

@@ -30,7 +30,7 @@ template<typename T>T fraction<T>::findGCD(T& a, T& b)const
 }
 template<typename T>std::ostream& operator<<(std::ostream& os, const fraction<T>& fraction)
 {
-    os << fraction.numerator << " / (" << fraction.denominator << ")";
+    os << "(" << fraction.numerator << ") / (" << fraction.denominator << ")";
     return os;
 }
 

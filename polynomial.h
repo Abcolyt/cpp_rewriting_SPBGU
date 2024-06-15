@@ -13,8 +13,6 @@ template<typename P> std::ostream& operator<<(std::ostream& out, const polynomia
 template<typename P> std::istream& operator>> (std::istream& in, polynomial<P>& plnm);
 template<typename P> class polynomial
 {
-private:
-	uint64_t deg;
 public:
 	//CONSTRUCTORS\DESTRUCTORS
 	polynomial() :polynomial(0) {};
@@ -100,6 +98,8 @@ public:
 	void set_deg(uint64_t newdeg) { deg = newdeg; };
 	//an array of coefficients
 	P* ptr;
+private:
+	uint64_t deg;
 };
 template<typename P> output_mode polynomial<P>::default_output_mode = output_mode::SHORT;
 #include "polynomial.cpp"
