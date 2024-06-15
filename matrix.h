@@ -2,6 +2,10 @@
 #include<iostream>
 #include <sstream>
 
+// //
+//  logic of the apply Method To Elements method using SFINAE to check for the presence of a 
+// method with a parameter for a matrix element and to call it if it exists
+
 //the main template/
 template <typename T, typename Param, typename = void>
 struct HasMethodWithParam : std::false_type {};
@@ -9,7 +13,7 @@ struct HasMethodWithParam : std::false_type {};
 //Now the compiler is thinking whether to use the main template, or somewhere there is a separate specialization for such a case.
 template <typename T, typename Param>
 struct HasMethodWithParam<T, Param, std::void_t<decltype(std::declval<T>().output_mode_set(std::declval<Param>()))>> : std::true_type {};
-
+// //
 
 template<typename T> class matrix;
 template<typename T> std::ostream& operator<<(std::ostream& out, const matrix<T>& plnm);
@@ -28,7 +32,8 @@ public:
     matrix(uint64_t colsize, uint64_t rowsize);
     //the default constructor
     matrix();
-    ~matrix();//destructor
+    //destructor
+    ~matrix();
 
 
     //ARITHMETIC OPERATORS
@@ -82,7 +87,7 @@ public:
     //  0 1  ..  0 0
     //  1 0  ..  0 0
     //
-    matrix sqprediag(const uint64_t S)const;
+    matrix sqlowdiag(const uint64_t S)const;
     //return of the inverse matrix  
     matrix inverse_M()const;
     //applyMethodToElements function using SFINAE to check for a method with a parameter and call it
@@ -92,14 +97,16 @@ public:
     //a method that applies a method( output_mode_set(M) ) of class T to each element of the matrix
     //(Not tested. Everything worked in the simplified code) 
     template <typename T,typename ReturnType, typename Param>
-    std::enable_if_t<HasMethodWithParam<T, Param>::value> applyMethodToElements(ReturnType(T::* method)(Param), Param param)const
+    std::enable_if_t<HasMethodWithParam<T, Param>::value> applyMethodToElements(ReturnType(T::* method)(Param), Param param)const////the implementation is not displayed in the cpp file((
     {
-        for (size_t i = 0; i < colsize* rowsize; ++i) {
-            (ptr[i].*method)(param);
+        for (size_t i = 0; i < colsize; ++i) {
+            for (size_t j = 0; j < rowsize; ++j) {
+                (ptr[i][j].*method)(param);
+            }
         }
     }
    //to index1 row access operator
-   T* operator[](const uint64_t index1) const { return ptr + index1 * rowsize; }
+   T* operator[](const uint64_t index1) const { return ptr + index1 * colsize; }
 private:
     //an array with T elements
     T* ptr;

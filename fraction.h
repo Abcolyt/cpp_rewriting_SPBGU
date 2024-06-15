@@ -12,7 +12,9 @@ private:
 
 public:
     //CONSTRUCTORS\DESTRUCTORS
+
     fraction() :fraction(0, 1) {};
+    //:fraction(num,1){}
     fraction(T num):fraction(num,1){}
     fraction(T num, T denom)
     {
@@ -24,11 +26,13 @@ public:
 
 
     // I/O OPERATIONS
+
     friend std::ostream& operator<<<>(std::ostream& os, const fraction<T>& fraction);
     friend std::istream& operator>><>(std::istream& is, fraction<T>& fraction);
 
 
     //ARITHMETIC OPERATORS
+
     fraction operator+(const fraction& other)const;
     fraction operator*(const fraction& other)const;
     fraction operator*(const T& other)const;
@@ -52,7 +56,9 @@ public:
     //SPECIAL METHODS
     T getNumerator() { return numerator; }
     T getDenominator() { return denominator; }
+    //reduces fractions by dividing the numerator and denominator by a GCD
     fraction<T>& reduce();
+
     T findGCD(T& a, T& b)const;
 };
 

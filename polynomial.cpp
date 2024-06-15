@@ -133,6 +133,7 @@ template<typename P>polynomial<P>& polynomial<P>::operator=(const polynomial<P>&
 template<typename P>std::istream& operator>>(std::istream& in, polynomial<P>& plnm)
 {
 	uint64_t new_size;
+	std::cout << "size:";
 	in >> new_size;
 
 	polynomial<P> temp; temp.newsize(new_size);
@@ -148,13 +149,11 @@ template<typename P>std::istream& operator>>(std::istream& in, polynomial<P>& pl
 }
 
 template<typename P>void polynomial<P>::output_mode_set(std::string newmode) {
-	switch (newmode)
-	{
-	case "FULL": outm_E = output_mode::FULL;			 break;
-	case "ABBREVIATED":outm_E = output_mode::ABBREVIATED;break;
-	case "SHORT": outm_E = output_mode::SHORT;			 break;
-	default:break;
-	}
+
+	if(newmode=="FULL") outm_E = output_mode::FULL;
+	if (newmode == "ABBREVIATED")outm_E = output_mode::ABBREVIATED;
+	if (newmode == "SHORT") outm_E = output_mode::SHORT;			 
+
 }
 template<typename P>void polynomial<P>::output_mode_set(uint64_t newmode) {
 	switch (newmode)

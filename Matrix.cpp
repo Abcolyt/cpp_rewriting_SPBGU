@@ -27,7 +27,7 @@ template<typename T>matrix<T>::~matrix()
     delete[] ptr;
 }
 
-template<typename T>matrix<T> matrix<T>::sqprediag(const uint64_t S)const
+template<typename T>matrix<T> matrix<T>::sqlowdiag(const uint64_t S)const
 {
     matrix<T> temp(S, S);
     for (int i = S - 1; i >= 0; i--)
@@ -57,7 +57,7 @@ template<typename T>matrix<T> matrix<T>::inverse_M()const
     }
     uint64_t sizeM = (*this).colsize;
     matrix<T> a = (*this), reversM, E_lower_diagonal, t1;
-    E_lower_diagonal = a.sqprediag(sizeM);
+    E_lower_diagonal = a.sqlowdiag(sizeM);
     reversM = E_lower_diagonal * E_lower_diagonal;
 
     t1 = a.to_uptrng(reversM);
@@ -90,7 +90,7 @@ template<typename T>matrix<T> matrix<T>::inverse_M()const
 
 template<typename T>matrix<T> matrix<T>::to_uptrng(matrix<T>& other)const
 {
-    if ((this->colsize == this->rowsize) && (this->colsize == (other.colsize)) && ((other.colsize) == other.rowsize))
+    if ((this->colsize == this->rowsize) && (this->colsize == (other.colsize)))
     {
 
 
@@ -111,6 +111,7 @@ template<typename T>matrix<T> matrix<T>::to_uptrng(matrix<T>& other)const
                 if (temp[i][i] == 0) {
                     for (uint64_t k = 0; k < rowsize; k++) {
                         std::swap(temp[i][k], temp[j][k]);
+                        if(other.rowsize>k)
                         std::swap(other[i][k], other[j][k]);
 
                     }
@@ -120,6 +121,7 @@ template<typename T>matrix<T> matrix<T>::to_uptrng(matrix<T>& other)const
                 T koef1 = temp[j][i] / temp[i][i];
                 for (uint64_t k = 0; k < rowsize; k++) {
                     temp[j][k] = temp[j][k] - temp[i][k] * koef1;
+                    if (other.rowsize > k)
                     other[j][k] = other[j][k] - other[i][k] * koef1;
                 }
 
@@ -128,7 +130,7 @@ template<typename T>matrix<T> matrix<T>::to_uptrng(matrix<T>& other)const
         }
         return temp;
     }
-    throw std::invalid_argument("[  ((this->colsize == this->rowsize) && (this->colsize == (other.colsize)) && ((other.colsize) == other.rowsize)) ]==0");
+    throw std::invalid_argument("  ((this->colsize == this->rowsize) && (this->colsize == (other.colsize))) == 0");
   
 }
 
@@ -192,7 +194,7 @@ template <typename T>T matrix<T>::determinant() const {
 template<typename T> std::ostream& operator<<(std::ostream& out, const matrix<T>& mtrx)
 {
     out << "sizex:" << mtrx.getcol() << "sizey:" << mtrx.getrow() << "\n";
-    for (uint64_t i = 0; i < mtrx.getcol(); i++)
+    for (uint64_t i = 0; i <mtrx.getcol() ; i++)
     {
         for (uint64_t j = 0; j < mtrx.getrow(); j++)
         {
@@ -214,8 +216,8 @@ template<typename T>std::istream& operator>>(std::istream& in, matrix<T>& mtrx)
     in >> size;
     mtrx.setcol(size);
     mtrx.allocateMemory();
-    for (uint64_t i = 0; i < mtrx.getrow(); i++) {
-        for (uint64_t j = 0; j < mtrx.getcol(); j++) {
+    for (uint64_t i = 0; i < mtrx.getcol(); i++) {
+        for (uint64_t j = 0; j < mtrx.getrow(); j++) {
             std::cout << "["<<i<<"]["<<j<<"]=";
             in >> mtrx[i][j];
         }
@@ -234,9 +236,9 @@ template<typename T>matrix<T>& matrix<T>::operator=(const matrix<T>& other)
         this->colsize = other.getcol();
         this->rowsize = other.getrow();
 
-        for (uint64_t i = 0; i < other.getrow(); i++)
+        for (uint64_t i = 0; i < other.getcol(); i++)
         {
-            for (uint64_t j = 0; j < other.getcol(); j++)
+            for (uint64_t j = 0; j < other.getrow(); j++)
             {
                 (*this)[i][j] = other[i][j];
             }
@@ -251,9 +253,9 @@ template<typename T>matrix<T> matrix<T>::operator+(const matrix<T>& other) const
     matrix<T> result(other.getcol(), other.getrow());
     if ((other.getcol()) == ((*this).getcol()) && (other.getrow() == (*this).getrow())) {
 
-        for (uint64_t i = 0; i < other.getrow(); i++)
+        for (uint64_t i = 0; i < other.getcol(); i++)
         {
-            for (uint64_t j = 0; j < other.getcol(); j++)
+            for (uint64_t j = 0; j < other.getrow(); j++)
             {
                 result[i][j] = (other[i][j] + (*this)[i][j]);
             }
@@ -273,9 +275,9 @@ template<typename T>matrix<T> matrix<T>::operator-(const matrix<T>& other) const
     matrix<T> result(other.getcol(), other.getrow());
     if ((other.getcol()) == ((*this).getcol()) && (other.getrow() == (*this).getrow())) {
 
-        for (uint64_t i = 0; i < other.getrow(); i++)
+        for (uint64_t i = 0; i < other.getcol(); i++)
         {
-            for (uint64_t j = 0; j < other.getcol(); j++)
+            for (uint64_t j = 0; j < other.getrow(); j++)
             {
                 result[i][j] = (other[i][j] - (*this)[i][j]);
             }
@@ -292,9 +294,9 @@ template<typename T>matrix<T> matrix<T>::operator*(const T& other) const
     matrix<T> result(this->getcol(), this->getrow());
 
 
-    for (uint64_t i = 0; i < this->getrow(); i++)
+    for (uint64_t i = 0; i < this->getcol(); i++)
     {
-        for (uint64_t j = 0; j < this->getcol(); j++)
+        for (uint64_t j = 0; j < this->getrow(); j++)
         {
             result[i][j] = other * ((*this)[i][j]);
         }
@@ -307,14 +309,14 @@ template<typename T>matrix<T> matrix<T>::operator*(const T& other) const
 
 template<typename T>matrix<T> matrix<T>::operator*(const matrix<T>& other) const
 {
-    if (rowsize != other.colsize)
+    if (rowsize != other.colsize)//problematic condition???
     {
         throw std::invalid_argument("Matrix dimensions are not compatible for multiplication.");
 
     }
 
     matrix<T> result(colsize, other.rowsize);
-
+    //!!!!!!!
     for (uint64_t i = 0; i < colsize; ++i) {
         for (uint64_t j = 0; j < other.rowsize; ++j) {
             for (uint64_t k = 0; k < rowsize; ++k) {
