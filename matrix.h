@@ -2,6 +2,10 @@
 #include<iostream>
 #include <sstream>
 
+// //
+//  logic of the apply Method To Elements method using SFINAE to check for the presence of a 
+// method with a parameter for a matrix element and to call it if it exists
+
 //the main template/
 template <typename T, typename Param, typename = void>
 struct HasMethodWithParam : std::false_type {};
@@ -9,7 +13,7 @@ struct HasMethodWithParam : std::false_type {};
 //Now the compiler is thinking whether to use the main template, or somewhere there is a separate specialization for such a case.
 template <typename T, typename Param>
 struct HasMethodWithParam<T, Param, std::void_t<decltype(std::declval<T>().output_mode_set(std::declval<Param>()))>> : std::true_type {};
-
+// //
 
 template<typename T> class matrix;
 template<typename T> std::ostream& operator<<(std::ostream& out, const matrix<T>& plnm);
