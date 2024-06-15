@@ -148,19 +148,30 @@ template<typename P>std::istream& operator>>(std::istream& in, polynomial<P>& pl
 }
 
 template<typename P>void polynomial<P>::output_mode_set(std::string newmode) {
-	if (newmode == "FULL") {
-		outm_E = output_mode::FULL;
-	}
-	if (newmode == "ABBREVIATED") {
-		outm_E = output_mode::ABBREVIATED;
-	}
-	if (newmode == "SHORT") {
-		outm_E = output_mode::SHORT;
+	switch (newmode)
+	{
+	case "FULL": outm_E = output_mode::FULL; break;
+	case "ABBREVIATED": outm_E = output_mode::ABBREVIATED; break;
+	case "SHORT": outm_E = output_mode::SHORT; break;
+	default:break;
 	}
 }
 template<typename P>void polynomial<P>::output_mode_set(uint64_t newmode) {
-	if (0 <= newmode && newmode < 3) {
-		outm_E = newmode;
+	switch (newmode)
+	{
+	case 0: this->outm_E = output_mode::FULL; break;
+	case 1: this->outm_E = output_mode::ABBREVIATED; break;
+	case 2: this->outm_E = output_mode::SHORT; break;
+	default:break;
+	}
+}
+template<typename P>void polynomial<P>::output_mode_set(output_mode new_outm_E) {
+	switch (new_outm_E)
+	{
+	case output_mode::FULL: outm_E = output_mode::FULL; break;
+	case output_mode::ABBREVIATED: outm_E = output_mode::ABBREVIATED; break;
+	case output_mode::SHORT: outm_E = output_mode::SHORT; break;
+	default:break;
 	}
 }
 

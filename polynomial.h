@@ -49,6 +49,8 @@ public:
 	void output_mode_set(std::string newmode);
 	//set the output mode via a variable of type: uint64_t newmode
 	void output_mode_set(uint64_t newmode);
+	//set the output mode via a variable of type: uint64_t newmode
+	void output_mode_set(output_mode new_outm_E);
 	//the output operator (with the degree of detail specified in the outm_E field)
 	friend std::ostream& operator<<<>(std::ostream& out, const polynomial<P>& plnm); 
 	//the input operator
