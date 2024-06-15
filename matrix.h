@@ -112,12 +112,6 @@ private:
     uint64_t colsize;
     uint64_t rowsize;
     //re-allocation of memory(does not save old values)
-    void allocateMemory();
-
-    //in the future. maybe..
-    // 
-    //matrix operator()(const uint64_t x1, const uint64_t y1, const uint64_t x2, const uint64_t y2, const std::string action, matrix<T>& other); // overload(), extended union operator
-    //matrix operator()(const uint64_t x1, const uint64_t y1, const uint64_t x2, const uint64_t y2, const std::string action); // overload(), advanced editing operator
-    
+    void allocateMemory();  
 };
 #include "matrix.cpp"
