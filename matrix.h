@@ -62,6 +62,7 @@ public:
 
 
     //ROW\COL ACCESS
+
     uint64_t getcol()const { return colsize; }
     uint64_t getrow()const { return rowsize; }
     void setcol(uint64_t colsize) { this->colsize = colsize; this->allocateMemory(); }
@@ -89,6 +90,7 @@ public:
     matrix sqprediag(const uint64_t S)const;
     //return of the inverse matrix  
     matrix inverse_M()const;
+
     //applyMethodToElements function using SFINAE to check for a method with a parameter and call it
     //for example:
     //Matrix<ExampleClass> matrix;
