@@ -20,6 +20,16 @@ template<typename T> std::ostream& operator<<(std::ostream& out, const matrix<T>
 template<typename T> std::istream& operator>>(std::istream& in, matrix<T>& plnm);
 template <typename T> class matrix
 {
+private:
+
+    //an array with T elements
+    T* ptr;
+    uint64_t colsize;
+    uint64_t rowsize;
+
+    //re-allocation of memory(does not save old values)
+    void allocateMemory();
+
 public:
      
     //CONSTRUCTORS\DESTRUCTORS
@@ -35,10 +45,20 @@ public:
     ~matrix();//destructor
 
 
+    //DATA ACCESS
+
+    uint64_t getcol()const { return colsize; }
+    uint64_t getrow()const { return rowsize; }
+    void setcol(uint64_t colsize) { this->colsize = colsize; this->allocateMemory(); }
+    void setrow(uint64_t rowsize) { this->rowsize = rowsize; this->allocateMemory(); }
+    //to index1 row access operator
+    T* operator[](const uint64_t index1) const { return ptr + index1 * rowsize; }
+
+
     //ARITHMETIC OPERATORS
 
-     // unary matrix inverse finding(if exists)
-    matrix<T>& operator-() const;
+     // the unary operator returns a matrix with inverse (multiplied by minus 1 ) elements
+    matrix<T> operator-() const;
     // binary matrix addition
     matrix<T> operator+(const matrix<T>& other) const;
     // binary matrix subtraction
@@ -61,14 +81,6 @@ public:
     template<typename T>friend std::istream& operator>><>(std::istream& in, matrix<T>& p);
 
 
-    //ROW\COL ACCESS
-
-    uint64_t getcol()const { return colsize; }
-    uint64_t getrow()const { return rowsize; }
-    void setcol(uint64_t colsize) { this->colsize = colsize; this->allocateMemory(); }
-    void setrow(uint64_t rowsize) { this->rowsize = rowsize; this->allocateMemory();}
-
-
     //SPECIAL METHODS
     
     //return of the upper triangular matrix after transformations
@@ -80,12 +92,12 @@ public:
     // finding the determinant if there is one
     T determinant() const;
     //return of the square matrix from 1 to the lower diagonal
-    //         S
-    //  0 0  ..  0 1
-    //  0 0  ..  1 0
-    //  . ..   ...  .. ..        S                    
-    //  0 1  ..  0 0
-    //  1 0  ..  0 0
+    //  <-----S---->s
+    //  0 0  ..  0 1     |
+    //  0 0  ..  1 0     |
+    //  . ..   ...  .. ..     S                    
+    //  0 1  ..  0 0     |
+    //  1 0  ..  0 0     |
     //
     matrix sqprediag(const uint64_t S)const;
     //return of the inverse matrix  
@@ -100,20 +112,9 @@ public:
     template <typename T, typename ReturnType, typename Param>
     std::enable_if_t<HasMethodWithParam<T, Param>::value> applyMethodToElements(ReturnType(T::* method)(Param), Param param)const////the implementation is not displayed in the cpp file((
     {
-        for (size_t i = 0; i < rowsize; ++i) {
-            for (size_t j = 0; j < colsize; ++j) {
-                (ptr[i][j].*method)(param);
-            }
+        for (size_t i = 0; i < rowsize * colsize; ++i) {
+            (ptr[i].*method)(param);
         }
     }
-   //to index1 row access operator
-   T* operator[](const uint64_t index1) const { return ptr + index1 * rowsize; }
-private:
-    //an array with T elements
-    T* ptr;
-    uint64_t colsize;
-    uint64_t rowsize;
-    //re-allocation of memory(does not save old values)
-    void allocateMemory();  
 };
 #include "matrix.cpp"

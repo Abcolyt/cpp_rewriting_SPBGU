@@ -177,8 +177,6 @@ template<typename P>void polynomial<P>::output_mode_set(output_mode new_outm_E) 
 
 template<typename P>std::ostream& operator<<(std::ostream& out, const polynomial<P>& plnm)
 {
-	//it is not necessary if there will be inside another class
-	// 
 	if (output_mode::FULL == plnm.outm_E) {
 		out << "Degree: " << plnm.deg << ", Coefficients: ";
 	}
@@ -218,7 +216,6 @@ template<typename P>std::ostream& operator<<(std::ostream& out, const polynomial
 	{
 		out << "0";
 	}
-	//out << std::endl;
 
 	return out;
 }

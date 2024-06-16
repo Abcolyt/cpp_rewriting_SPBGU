@@ -10,17 +10,37 @@ enum class output_mode
 };
 template<typename P> class polynomial;
 template<typename P> std::ostream& operator<<(std::ostream& out, const polynomial<P>& plnm);
-template<typename P> std::istream& operator>> (std::istream& in, polynomial<P>& plnm);
+template<typename P> std::istream& operator>>(std::istream& in, polynomial<P>& plnm);
 template<typename P> class polynomial
 {
+private:
+	//degree of the polynomial
+	uint64_t deg;
 public:
+	//an array of coefficients
+	P* ptr;
+	//default output mode
+	static output_mode default_output_mode;
+	//class realization output mode
+	output_mode outm_E;
+
+
 	//CONSTRUCTORS\DESTRUCTORS
 
 	polynomial() :polynomial(0) {};
+	polynomial(P number, output_mode mode) :polynomial(number) { outm_E = mode; }
 	polynomial(P number);
+	polynomial(const polynomial<P>& other, output_mode mode) :polynomial(other) { outm_E = mode; }
 	polynomial(const polynomial<P>& other);
 	~polynomial();
 
+
+	//DATA ACCESS
+	
+    //set the degree of the polynomial
+	uint64_t get_deg() { return deg; };
+	//get the degree of the polynomial
+	void set_deg(uint64_t newdeg) { deg = newdeg; };
 
 	//ARITHMETIC OPERATORS
 	 
@@ -39,17 +59,7 @@ public:
 
 
     // I/O OPERATIONS
-    
-	//default output mode
-	static output_mode default_output_mode;
-	//class realization output mode
-	output_mode outm_E = default_output_mode;
-	//set the output mode via a variable of type: std::string newmode
-	void output_mode_set(std::string newmode);
-	//set the output mode via a variable of type: uint64_t newmode
-	void output_mode_set(uint64_t newmode);
-	//set the output mode via a variable of type: uint64_t newmode
-	void output_mode_set(output_mode new_outm_E);
+
 	//the output operator (with the degree of detail specified in the outm_E field)
 	friend std::ostream& operator<<<>(std::ostream& out, const polynomial<P>& plnm); 
 	//the input operator
@@ -77,7 +87,10 @@ public:
 
 
 	//COMPARISON OPERATORS WITH ZERO
-	bool operator==(int64_t zero)const;//isZero()?(all values==0 so polynomial have zero coefficent in any position)
+
+	//isZero()?(all values==0 so polynomial have zero coefficent in any position)
+	bool operator==(int64_t zero)const;
+	//!isZero()?(all values==0 so polynomial have zero coefficent in any position)
 	bool operator!=(int64_t zero)const { return not((*this) == zero); }
 	
 
@@ -93,15 +106,13 @@ public:
 	polynomial cutbag()const;
 	//reallocate memory with zeros (old data is not saved)
 	void newsize(uint64_t size);
-	//set the degree of the polynomial
-	uint64_t get_deg() { return deg; };
-	//get the degree of the polynomial
-	void set_deg(uint64_t newdeg) { deg = newdeg; };
+	//set the output mode via a variable of type: uint64_t newmode
+	void output_mode_set(uint64_t newmode);
+	//set the output mode via a variable of type: uint64_t newmode
+	void output_mode_set(output_mode new_outm_E);
+	//set the output mode via a variable of type: std::string newmode
+	void output_mode_set(std::string newmode);
 
-	//an array of coefficients
-	P* ptr;
-private:
-	uint64_t deg;
 };
 template<typename P> output_mode polynomial<P>::default_output_mode = output_mode::SHORT;
 #include "polynomial.cpp"

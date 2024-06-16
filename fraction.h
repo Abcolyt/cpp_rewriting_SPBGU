@@ -23,12 +23,13 @@ public:
     }
 
 
-    // I/O OPERATIONS
-    friend std::ostream& operator<<<>(std::ostream& os, const fraction<T>& fraction);
-    friend std::istream& operator>><>(std::istream& is, fraction<T>& fraction);
+    //DATA ACCESS
 
+    T getNumerator() { return numerator; }
+    T getDenominator() { return denominator; }
 
     //ARITHMETIC OPERATORS
+
     fraction operator+(const fraction& other)const;
     fraction operator*(const fraction& other)const;
     fraction operator*(const T& other)const;
@@ -36,12 +37,15 @@ public:
     fraction operator-(const fraction& other)const;
     fraction operator-()const;
 
+
     //COMPARISON OPERATORS WITH ZERO
+
     fraction operator=(const fraction other);
     fraction operator=(const T other);
 
 
     //COMPARISON OPERATORS
+
     bool operator==(const fraction& other)const;
     //it only works for comparison with 1 and 0
     bool operator==(const T other) const;
@@ -49,9 +53,15 @@ public:
     bool operator>(const fraction& other)const;
     bool operator<(const fraction& other)const;
 
+
+    // I/O OPERATIONS
+
+    friend std::ostream& operator<<<>(std::ostream& os, const fraction<T>& fraction);
+    friend std::istream& operator>><>(std::istream& is, fraction<T>& fraction);
+
+
     //SPECIAL METHODS
-    T getNumerator() { return numerator; }
-    T getDenominator() { return denominator; }
+
     fraction<T>& reduce();
     T findGCD(T& a, T& b)const;
 };

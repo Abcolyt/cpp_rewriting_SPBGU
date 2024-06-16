@@ -105,10 +105,10 @@ void main_calc_menu() {
     if (type == "complex_calc()" || type == "cmpl")complex_calc();
     else if (type == "matrix_calc<fraction<polynomial<int>>>()" || type == "mfpint" || type == "matfrpolint") matrix_calc<fraction<polynomial<int>>>();
     else if (type == "matrix_calc<fraction<polynomial<double>>>()" || type == "mfpdouble" || type == "matfrpoldouble") matrix_calc<fraction<polynomial<double>>>();
-    else if (type == "matrix_calc<polynomial<int>>()" || type == "mpint" || type == "matpolint") matrix_calc<polynomial<double>>();
+    else if (type == "matrix_calc<polynomial<int>>()" || type == "mpint" || type == "matpolint") matrix_calc<polynomial<int>>();
     else if (type == "matrix_calc<polynomial<double>>()" || type == "mpdouble" || type == "matpoldouble") matrix_calc<polynomial<double>>();
     else if (type == "matrix_calc<double>()" || type == "mdouble" || type == "matdouble") matrix_calc<double>();
-    else if (type == "matrix_calc<int>()" || type == "mint" || type == "matint") matrix_calc<double>();
+    else if (type == "matrix_calc<int>()" || type == "mint" || type == "matint") matrix_calc<int>();
     else throw std::invalid_argument("unknown calculator type or an error in the name");
 }
 

@@ -245,7 +245,24 @@ template<typename T>matrix<T>& matrix<T>::operator=(const matrix<T>& other)
 
     return *this;
 }
+template<typename T>matrix<T> matrix<T>::operator-() const
+{
+    matrix<T> result(this->getcol(), this->getrow());
+    
 
+        for (uint64_t i = 0; i < this->getrow(); i++)
+        {
+            for (uint64_t j = 0; j < this->getcol(); j++)
+            {
+                result[i][j] = (-1)*((*this)[i][j]);
+            }
+
+        }
+
+    
+    return result;
+
+}
 template<typename T>matrix<T> matrix<T>::operator+(const matrix<T>& other) const
 {
     matrix<T> result(other.getcol(), other.getrow());
@@ -343,3 +360,5 @@ template<typename T>void matrix<T>::allocateMemory()
         ptr[i] = 0;
     }
 }
+
+
