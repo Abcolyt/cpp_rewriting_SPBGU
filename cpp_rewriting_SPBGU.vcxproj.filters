@@ -36,6 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
+    <None Include="matrix_h.docx" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="polynomial.h">
