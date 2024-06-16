@@ -139,7 +139,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
+    <None Include="fraction_h.docx" />
     <None Include="matrix_h.docx" />
+    <None Include="polynomial_h.docx" />
+    <None Include="_main_func_file.docx" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="complex.h" />
