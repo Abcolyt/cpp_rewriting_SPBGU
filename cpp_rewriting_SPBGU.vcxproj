@@ -130,25 +130,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="complex.cpp" />
-    <ClCompile Include="complex_number.cpp" />
     <ClCompile Include="cpp_rewriting_SPBGU.cpp" />
-    <ClCompile Include="fraction.cpp" />
-    <ClCompile Include="Matrix.cpp" />
-    <ClCompile Include="polynomial.cpp" />
+    <ClCompile Include="_cpp_realisation_file\complex.cpp" />
+    <ClCompile Include="_cpp_realisation_file\complex_number.cpp" />
+    <ClCompile Include="_cpp_realisation_file\fraction.cpp" />
+    <ClCompile Include="_cpp_realisation_file\Matrix.cpp" />
+    <ClCompile Include="_cpp_realisation_file\polynomial.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
-    <None Include="fraction_h.docx" />
-    <None Include="matrix_h.docx" />
-    <None Include="polynomial_h.docx" />
-    <None Include="_main_func_file.docx" />
+    <None Include="document_h\fraction_h.docx" />
+    <None Include="document_h\matrix_h.docx" />
+    <None Include="document_h\polynomial_h.docx" />
+    <None Include="document_h\_main_func_file.docx" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="complex.h" />
-    <ClInclude Include="fraction.h" />
-    <ClInclude Include="matrix.h" />
-    <ClInclude Include="polynomial.h" />
+    <ClInclude Include="file_h\complex.h" />
+    <ClInclude Include="file_h\fraction.h" />
+    <ClInclude Include="file_h\matrix.h" />
+    <ClInclude Include="file_h\polynomial.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
