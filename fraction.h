@@ -38,6 +38,12 @@ public:
     fraction operator-()const;
 
 
+    // I/O OPERATIONS
+
+    friend std::ostream& operator<<<>(std::ostream& os, const fraction<T>& fraction);
+    friend std::istream& operator>><>(std::istream& is, fraction<T>& fraction);
+
+
     //COMPARISON OPERATORS WITH ZERO
 
     fraction operator=(const fraction other);
@@ -52,12 +58,6 @@ public:
     bool operator!=(const fraction& other) const;
     bool operator>(const fraction& other)const;
     bool operator<(const fraction& other)const;
-
-
-    // I/O OPERATIONS
-
-    friend std::ostream& operator<<<>(std::ostream& os, const fraction<T>& fraction);
-    friend std::istream& operator>><>(std::istream& is, fraction<T>& fraction);
 
 
     //SPECIAL METHODS

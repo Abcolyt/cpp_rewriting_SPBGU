@@ -37,9 +37,9 @@ public:
 
 	//DATA ACCESS
 	
-    //set the degree of the polynomial
+    //get the degree of the polynomial
 	uint64_t get_deg() { return deg; };
-	//get the degree of the polynomial
+	//set the degree of the polynomial
 	void set_deg(uint64_t newdeg) { deg = newdeg; };
 
 
