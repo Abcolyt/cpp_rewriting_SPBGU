@@ -42,6 +42,7 @@ public:
 	//get the degree of the polynomial
 	void set_deg(uint64_t newdeg) { deg = newdeg; };
 
+
 	//ARITHMETIC OPERATORS
 	 
 	//addition of polynomials
