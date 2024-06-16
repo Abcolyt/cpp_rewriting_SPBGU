@@ -1,11 +1,11 @@
 #include <iostream>
-#include <assert.h>
 #include <sstream>
-#include "complex.h"
-#include "matrix.h"
-#include "polynomial.h"
 #include <string>
-#include "fraction.h"
+
+#include <complex.h>
+#include <matrix.h>
+#include <polynomial.h>
+#include <fraction.h>
 
 
 
