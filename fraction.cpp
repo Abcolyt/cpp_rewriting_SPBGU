@@ -104,12 +104,14 @@ template<typename T>bool fraction<T>::operator==(const fraction& other) const {
 template<typename T>bool fraction<T>::operator!=(const fraction<T>& other) const {
     return !(*this == other);
 }
-template<typename T>bool fraction<T>::operator>(const fraction& other)const{
-    return (numerator>0 && denominator>0)||(numerator < 0 && denominator < 0);
+template<typename T>bool fraction<T>::operator>(const fraction& other) const {
+    return (numerator * other.denominator) > (other.numerator * denominator);
 }
-template<typename T>bool fraction<T>::operator<(const fraction& other)const {
-    return (numerator > 0 && denominator < 0);
+
+template<typename T>bool fraction<T>::operator<(const fraction& other) const {
+    return (numerator * other.denominator) < (other.numerator * denominator);
 }
+
 template<typename T>bool fraction<T>::operator==(const T other) const {
     if (other == 0 && numerator == 0) { 
         return true; 
