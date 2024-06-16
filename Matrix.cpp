@@ -41,8 +41,8 @@ template<typename T>matrix<T> matrix<T>::transpose() const {
 
     matrix<T> temp(rowsize, colsize);
 
-    for (size_t i = 0; i < colsize; ++i) {
-        for (size_t j = 0; j < rowsize; ++j) {
+    for (size_t i = 0; i < rowsize; ++i) {
+        for (size_t j = 0; j < colsize; ++j) {
             temp[j][i] = (*this)[i][j];
         }
     }
@@ -192,9 +192,9 @@ template <typename T>T matrix<T>::determinant() const {
 template<typename T> std::ostream& operator<<(std::ostream& out, const matrix<T>& mtrx)
 {
     out << "sizex:" << mtrx.getcol() << "sizey:" << mtrx.getrow() << "\n";
-    for (uint64_t i = 0; i < mtrx.getcol(); i++)
+    for (uint64_t i = 0; i < mtrx.getrow(); i++)
     {
-        for (uint64_t j = 0; j < mtrx.getrow(); j++)
+        for (uint64_t j = 0; j < mtrx.getcol(); j++)
         {
             out << "[" << i << "][" << j << "] = \t" << mtrx[i][j] << "\t | ";
         }
@@ -307,24 +307,24 @@ template<typename T>matrix<T> matrix<T>::operator*(const T& other) const
 
 template<typename T>matrix<T> matrix<T>::operator*(const matrix<T>& other) const
 {
-    if (rowsize != other.colsize)
+    if (colsize != other.rowsize)
     {
         throw std::invalid_argument("Matrix dimensions are not compatible for multiplication.");
-
     }
 
-    matrix<T> result(colsize, other.rowsize);
+    matrix<T> result(other.colsize, rowsize);
 
-    for (uint64_t i = 0; i < colsize; ++i) {
-        for (uint64_t j = 0; j < other.rowsize; ++j) {
-            for (uint64_t k = 0; k < rowsize; ++k) {
-                result[i][j] = result[i][j] + ((*this)[i][k] * other[k][j]);
+    for (uint64_t i = 0; i < rowsize; ++i) {
+        for (uint64_t j = 0; j < other.colsize; ++j) {
+            for (uint64_t k = 0; k < colsize; ++k) {
+                result[i][j] = result[i][j]+((*this)[i][k] * other[k][j]);
             }
         }
     }
 
     return result;
 }
+
 
 template<typename T>matrix<T> matrix<T>::operator/(const matrix<T>& other) const
 {

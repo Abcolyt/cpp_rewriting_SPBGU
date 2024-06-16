@@ -115,13 +115,17 @@ void main_calc_menu() {
 int main() {
     try
     {
-        std::string type;
+        matrix<int> M;
+        std::cin >> M;
+        std::cout << M;
+
+        /*std::string type;
     restart:
         main_calc_menu();
         std::cout << "Do you want to get out?(yes/no)\n:";
         std::cin >> type;
         if (type == "yes" || type == "y" || !(type == "no" || type == "n"))std::exit(0);
-        if (type == "no" || type == "n")goto restart;
+        if (type == "no" || type == "n")goto restart;*/
 
     }
     catch (std::exception ex)
