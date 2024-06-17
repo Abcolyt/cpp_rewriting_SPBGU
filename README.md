@@ -17,6 +17,4 @@
 
  документация в
 
-  document_h
- или(идентичны)
-  file_h
+  documents
