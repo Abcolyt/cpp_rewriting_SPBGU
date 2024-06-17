@@ -51,6 +51,18 @@
     <None Include="document_h\polynomial_h.docx">
       <Filter>Исходные файлы\_docx_documents</Filter>
     </None>
+    <None Include="documents\document_cpp\fraction_cpp.docx">
+      <Filter>Исходные файлы\_docx_documents</Filter>
+    </None>
+    <None Include="documents\document_cpp\matrix_cpp.docx">
+      <Filter>Исходные файлы\_docx_documents</Filter>
+    </None>
+    <None Include="documents\document_cpp\polynomial_cpp.docx">
+      <Filter>Исходные файлы\_docx_documents</Filter>
+    </None>
+    <None Include="documents\document_cpp\tests_cpp.docx">
+      <Filter>Исходные файлы\_docx_documents</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="file_h\polynomial.h">
