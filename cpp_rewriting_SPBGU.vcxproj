@@ -142,6 +142,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
+    <None Include="documents\document_cpp\fraction_cpp.docx" />
+    <None Include="documents\document_cpp\matrix_cpp.docx" />
+    <None Include="documents\document_cpp\polynomial_cpp.docx" />
+    <None Include="documents\document_cpp\tests_cpp.docx" />
     <None Include="document_h\fraction_h.docx" />
     <None Include="document_h\matrix_h.docx" />
     <None Include="document_h\polynomial_h.docx" />
