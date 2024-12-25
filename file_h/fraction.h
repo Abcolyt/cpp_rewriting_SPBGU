@@ -34,6 +34,7 @@ public:
     fraction operator*(const fraction& other)const;
     fraction operator*(const T& other)const;
     fraction operator/(const fraction & other)const;
+    fraction operator/(const T& other)const;                 // NOT TESTED
     fraction operator-(const fraction& other)const;
     fraction operator-()const;
 
