@@ -174,6 +174,39 @@ template<typename P>std::vector<std::pair<P, int>> plnm_roots(polynomial<P> plnm
         ans_roots.push_back(ans);
     }
     
+    ////1
+
+    //auto ans = solve_tangents<P>(plnm, x0, LDBL_EPSILON);
+    //b.newsize(2);
+    //b[1] = 1;
+    //b[0] = (ans.first) * (-1);
+
+    //plnm = (plnm / b);
+    //std::cout << "plnm:" << plnm << "\nnew plnm" << b << "\nnew iter" << '1' << '\n';
+    //ans_roots.push_back(ans);
+    ////
+    //
+    ////2
+    //ans = solve_tangents<P>(plnm, x0, LDBL_EPSILON);
+    //b.newsize(2);
+    //b[1] = 1;
+    //b[0] = (ans.first) * (-1);
+    //plnm = (plnm / b);
+    //std::cout << "plnm:" << plnm << "\nnew plnm" << b << "new iter" << '2' << '\n';
+    //ans_roots.push_back(ans);
+
+    ////
+
+    ////3
+    //ans = solve_tangents<P>(plnm, x0, LDBL_EPSILON);
+    //b.newsize(2);
+    //b[1] = 1;
+    //b[0] = (ans.first) * (-1);
+    //plnm = (plnm / b);
+    //std::cout << "plnm:" << plnm << "\nnew plnm" << b << "new iter" << '3' << '\n';
+    //ans_roots.push_back(ans);
+
+    ////
 
 
     return ans_roots;
