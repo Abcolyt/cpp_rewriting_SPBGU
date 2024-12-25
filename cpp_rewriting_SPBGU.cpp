@@ -157,43 +157,58 @@ template<typename P>std::pair<P, int> solve_tangents(polynomial<P> plnm,P x0, do
 
 
 
-template<typename P>
-std::vector<std::pair<P, int>> plnm_roots(polynomial<P> plnm,P x0) {
+template<typename P>std::vector<std::pair<P, int>> plnm_roots(polynomial<P> plnm,P x0) {
     std::vector<std::pair<P,int>> ans_roots;
     polynomial<P> b;
-    //1
-    auto ans = solve_tangents<P>(plnm,x0, LDBL_EPSILON);
-    b.newsize(2);
-    b[1] = 1;
-    b[0] = (ans.first)*(-1);
+    size_t deg=plnm.get_deg()-1;
+    for (size_t i = 0; i < deg; i++)
+    {
+        auto ans = solve_tangents<P>(plnm, x0, LDBL_EPSILON);
+        std::cout <<"root["<<i<<"]=" << ans.first << '\n';
+        b.newsize(2);
+        b[1] = 1;
+        b[0] = (ans.first) * (-1);
+
+        plnm = (plnm / b);
+        std::cout << "plnm:" << plnm << "\nnew plnm" << b << "\nnew iter" << "'"<< i<< "' \n";
+        ans_roots.push_back(ans);
+    }
     
-    plnm = (plnm / b);
-    std::cout << "plnm:"<<plnm<<"\nnew plnm"<< b << "\nnew iter" << '1' << '\n';
-    ans_roots.push_back(ans);
+    ////1
 
+    //auto ans = solve_tangents<P>(plnm, x0, LDBL_EPSILON);
+    //b.newsize(2);
+    //b[1] = 1;
+    //b[0] = (ans.first) * (-1);
+
+    //plnm = (plnm / b);
+    //std::cout << "plnm:" << plnm << "\nnew plnm" << b << "\nnew iter" << '1' << '\n';
+    //ans_roots.push_back(ans);
+    ////
     //
-    
-    //2
-    ans = solve_tangents<P>(plnm, x0, LDBL_EPSILON);
-    b.newsize(2);
-    b[1] = 1;
-    b[0] = (ans.first) * (-1);
-    plnm = (plnm / b);
-    std::cout << "plnm:" << plnm << "\nnew plnm" << b << "new iter" << '2' << '\n';
-    ans_roots.push_back(ans);
+    ////2
+    //ans = solve_tangents<P>(plnm, x0, LDBL_EPSILON);
+    //b.newsize(2);
+    //b[1] = 1;
+    //b[0] = (ans.first) * (-1);
+    //plnm = (plnm / b);
+    //std::cout << "plnm:" << plnm << "\nnew plnm" << b << "new iter" << '2' << '\n';
+    //ans_roots.push_back(ans);
 
-    //
+    ////
 
-    //3
-    ans = solve_tangents<P>(plnm, x0, LDBL_EPSILON);
-    b.newsize(2);
-    b[1] = 1;
-    b[0] = (ans.first) * (-1);
-    plnm = (plnm / b);
-    std::cout << "plnm:" << plnm << "\nnew plnm" << b << "new iter" << '3' << '\n';
-    ans_roots.push_back(ans);
+    ////3
+    //ans = solve_tangents<P>(plnm, x0, LDBL_EPSILON);
+    //b.newsize(2);
+    //b[1] = 1;
+    //b[0] = (ans.first) * (-1);
+    //plnm = (plnm / b);
+    //std::cout << "plnm:" << plnm << "\nnew plnm" << b << "new iter" << '3' << '\n';
+    //ans_roots.push_back(ans);
 
-    //
+    ////
+
+
     return ans_roots;
 }
 
@@ -203,8 +218,8 @@ void polynomial_test() {
     auto ans = plnm_roots<Complex>(plnm,Complex(LDBL_EPSILON,LDBL_EPSILON));
     for (size_t i = 0; i < ans.size(); i++)
     {
-        std::cout << "root:(" << ans[i].first << ")\niteration for this root" << ans[i].second << "\n";
-        std::cout << "polynomialfunctions::f_polyn_x0_<Complex>(plnm, ans["<< i<<"].first):" << polynomialfunctions::f_polyn_x0_<Complex>(plnm, ans[i].first);
+        std::cout << "root:(" << ans[i].first << ")\niteration for this root:" << ans[i].second << " \n";
+        std::cout << "polynomialfunctions::f_polyn_x0_<Complex>(plnm, ans["<<i<<"].first):" << polynomialfunctions::f_polyn_x0_<Complex>(plnm, ans[i].first)<<'\n';
     }
 
     //std::cout<<polynomialfunctions::derivate(a)<<"\n"<<a<<"\n"<< polynomialfunctions::f_polyn_x0_(a, 5.25)<<std::endl;
