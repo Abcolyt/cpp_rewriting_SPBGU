@@ -204,6 +204,7 @@ void polynomial_test() {
     for (size_t i = 0; i < ans.size(); i++)
     {
         std::cout << "root:(" << ans[i].first << ")\niteration for this root" << ans[i].second << "\n";
+        std::cout << "polynomialfunctions::f_polyn_x0_<Complex>(plnm, ans["<< i<<"].first):" << polynomialfunctions::f_polyn_x0_<Complex>(plnm, ans[i].first);
     }
 
     //std::cout<<polynomialfunctions::derivate(a)<<"\n"<<a<<"\n"<< polynomialfunctions::f_polyn_x0_(a, 5.25)<<std::endl;
