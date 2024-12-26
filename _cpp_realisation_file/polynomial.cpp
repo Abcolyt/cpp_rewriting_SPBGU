@@ -1,5 +1,5 @@
 #pragma once
-#include"polynomial.h"
+#include"../file_h/polynomial.h"
 template<typename P>polynomial<P> polynomial<P>::operator>>(const uint64_t power)const
 {
 	polynomial result;result.newsize(deg + power);

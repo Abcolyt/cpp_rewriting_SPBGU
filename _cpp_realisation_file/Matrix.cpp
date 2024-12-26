@@ -1,5 +1,5 @@
 #pragma once
-#include "matrix.h"
+#include "../file_h/matrix.h"
 template<typename T>matrix<T>::matrix(const matrix<T>& mtrx) 
 {
     (*this).ptr = nullptr;

@@ -120,7 +120,7 @@ public:
 };
 template<typename P> output_mode polynomial<P>::default_output_mode = output_mode::SHORT;
 
-#include "polynomial.cpp"
+#include "../_cpp_realisation_file/polynomial.cpp"
 namespace polynomialfunctions {
 
 	template<typename P>inline polynomial<P> derivate(polynomial<P> polynom) {

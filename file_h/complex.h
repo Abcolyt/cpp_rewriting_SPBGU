@@ -1,6 +1,7 @@
 #include <sstream>
 #pragma once
-class Complex {
+class Complex
+{
 private:
     double R;
     double I;

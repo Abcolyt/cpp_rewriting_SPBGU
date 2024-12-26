@@ -71,7 +71,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\Пользователь\source\repos\cpp_rewriting_SPBGU\main_func_file;C:\Users\Пользователь\source\repos\cpp_rewriting_SPBGU\_cpp_realisation_file;C:\Users\Пользователь\source\repos\cpp_rewriting_SPBGU\file_h;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)main_func_file;$(SolutionDir)_cpp_realisation_file;$(SolutionDir)file_h;$(IncludePath)</IncludePath>
+    <ExternalIncludePath>C:\Users\User\source\repos\cpp_rewriting_SPBGU\_cpp_realisation_file;C:\Users\User\source\repos\cpp_rewriting_SPBGU\file_h;$(ExternalIncludePath)</ExternalIncludePath>
+    <LibraryPath>C:\Users\User\source\repos\cpp_rewriting_SPBGU\file_h;$(LibraryPath)</LibraryPath>
+    <ExecutablePath>$(SolutionDir)main_func_file;$(SolutionDir)_cpp_realisation_file;$(SolutionDir)file_h;$(VC_ExecutablePath_x64);$(CommonExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
