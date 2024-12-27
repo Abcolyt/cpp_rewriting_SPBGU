@@ -234,9 +234,9 @@ namespace counting_methods {
             // Вычисляем значения для следующей итерации
             for (int i = 0; i < num_functions; ++i) {
                 next_guess[i] = functions[i](current_guess);
-                std::cout<<next_guess[i]<<"\n";
+                std::cout<<next_guess[i]<<"    ";
             }
-
+            std::cout << "\n";
             // Проверяем на сходимость
             double max_diff = 0.0;
             for (int i = 0; i < num_functions; ++i) {
@@ -253,7 +253,7 @@ namespace counting_methods {
         throw std::runtime_error("Maximum iterations reached without convergence");
     }
 
-    int run_nnssi_with_setted_function() {
+    int run_nnssi_with_setted_nonlinear_function() {
         //We define the functions of the system of equations 13
         std::vector<Function> functions1 = {
             [](const std::vector<double>& x) { return 1 - ((1+LDBL_EPSILON) / (2)) * std::sin(x[1] + 1); },//x=1-((1)/(2))sin(y+1)
@@ -280,9 +280,42 @@ namespace counting_methods {
 
         return 0;   
     }
+    int run_nnssi_with_setted_linear_function() {
+        //We define the functions of the system of equations 13
+        std::vector<Function> functions1 = {
+            [](const std::vector<double>& x) { return (24.4781 -(0.0496 * x[1] + 0.0444 * x[2] + 0.0393 * x[3])) / 16;},
+            [](const std::vector<double>& x) { return (26.0849 -(.0688 * x[0] + .0585 * x[2] + .0534 * x[3])) / 15.1; } ,
+            [](const std::vector<double>& x) { return (27.3281 -(.0829 * x[0] + .0777 * x[1] + .0674 * x[3])) / 14.2000; },
+            [](const std::vector<double>& x) { return (28.2078 -(.0970 * x[0] + .0918 * x[1] + .0867 * x[2])) / 13.3000;  }
+        };
+
+        std::vector<double> initial_guess = { 0.1, 0.1,0.1,0.1 };
+
+        try {
+
+            std::vector<double> solution = nonlinear_system_with_simple_iterations(functions1, initial_guess);
+
+            //  результат
+            std::cout << "Solution: ";
+            for (double value : solution) {
+                std::cout << value << " ";
+            }
+            std::cout << std::endl;
+
+        }
+        catch (const std::exception& e) {
+            std::cerr << "!Error: " << e.what() << std::endl;
+        }
+
+        return 0;
+    }
 
 
-}
+    }
+
+
+
+
 
     namespace nonlinear_system_with_the_tangent_method {
 
@@ -411,6 +444,21 @@ namespace counting_methods {
 
     namespace gaus_method{
 
+        matrix<double> mult(const matrix<double>& left, const matrix<double>& b)  {
+            //if (left.getcol() != b.getrow() || b.getcol() != 1) {
+            //    throw std::invalid_argument("Invalid dimensions for multiplication.");
+            //}
+            
+            matrix<double> result(left.getrow(), 1);
+            for (size_t i = 0; i < left.getrow(); ++i) {
+                for (size_t j = 0; j < left.getrow(); ++j) {
+                    result[0][i] += left[i][j] * b[0][j];
+                    std::cout << "result[0][<<" << i << "]=" << result[0][i] << "\n";
+                }
+            }
+            return result;
+        }
+
         void gaus_solver_linear_sistem() {
            
 
@@ -423,10 +471,17 @@ namespace counting_methods {
             matrix<double> b;
             std::cin >> b;
             std::cout << "\n" << b;
+            std::cout << "\na^-1:\n" << (a.inverse_M()) ;
+            std::cout << "\na*b:\n" << mult((a.inverse_M()) , b);
+            
+            std::cout << "\ncheck:\n" << a * b;
+            //std::cout << "\n(a.inverse_M()):\n" << (a.inverse_M());
 
-            std::cout << "\na*b:\n" << (a.inverse_M()) * b;
-
+            //std::cout << "\n a*(a.inverse_M()):\n" <<(a.inverse_M())* a;
             }
+
+
+
             catch (std::exception ex)
             {
                 std::cout << "exeption!!What:" << ex.what();
@@ -437,7 +492,36 @@ namespace counting_methods {
             }
     }
     }
+    
+    namespace holechi {
+        int example() {
+        matrix<double> A(4);
+
+        A[0][0] = .1954; A[0][1] = .7700; A[0][2] = 1.3446; A[0][3]= 1.9192;
+        A[1][0] = .7700; A[1][1] = 15.1728; A[1][2] = 21.9666; A[1][3]= 28.7604;
+        A[2][0] = 1.3446; A[2][1] = 21.9666; A[2][2] = 74.7291; A[2][3]= 93.3867;
+        A[3][0] = 1.9192; A[3][1] = 28.7604; A[3][2] = 93.3867; A[3][3]= 208.6609;
+        
+        
+
+            
+        std::cout << "inpyt matrix:\n" << A;
+
+        try {
+            matrix<double> A_inv = (A.cholesky().inverse_M()).transpose()* A.cholesky().inverse_M();
+            std::cout << " A^{-1}:\n" << A_inv;
+
+            std::cout << "check A^{-1}:\n" << A_inv*A;
+        }
+        catch (const std::exception& e) {
+            std::cerr << "error: " << e.what() << std::endl;
+        }
+
+        return 0;
+    }
+    }
 }
+        
 
 
 int main() {
@@ -446,11 +530,15 @@ int main() {
 
 //C:\Users\User\source\repos\cpp_rewriting_SPBGU\input_matrix.txt
     /*counting_methods::polinomial::polynomial_test();*/
-    //counting_methods::nonlinear_system_with_simple_iterations::run_nnssi_with_setted_function();
+    //counting_methods::nonlinear_system_with_simple_iterations::run_nnssi_with_setted_nonlinear_function();
 
     //counting_methods::nonlinear_system_with_the_tangent_method::nonlinsystem_tangent_method();
-    counting_methods::gaus_method::gaus_solver_linear_sistem();
+    //counting_methods::executeWithFileInput((counting_methods::gaus_method::gaus_solver_linear_sistem), "input_matrix.txt");
+    //counting_methods::gaus_method::gaus_solver_linear_sistem();
 
+    //counting_methods::nonlinear_system_with_simple_iterations::run_nnssi_with_setted_linear_function();
+
+    counting_methods::holechi::example();
     system("pause");
     return 0;
 }

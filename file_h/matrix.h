@@ -111,5 +111,84 @@ public:
     //(Not tested. Everything worked in the simplified code) 
     template <typename T, typename ReturnType, typename Param>
     std::enable_if_t<HasMethodWithParam<T, Param>::value> applyMethodToElements(ReturnType(T::* method)(Param), Param param)const;
+
+    matrix<T> cholesky() const {
+        if (colsize != rowsize) {
+            throw std::invalid_argument("Matrix must be square for Cholesky decomposition.");
+        }
+
+        matrix<T> L(colsize, rowsize); // Создаем матрицу L размером n x n
+
+        for (uint64_t i = 0; i < colsize; ++i) {
+            for (uint64_t j = 0; j <= i; ++j) {
+                T sum = 0;
+
+                for (uint64_t k = 0; k < j; ++k) {
+                    sum += L[i][k] * L[j][k];
+                }
+
+                if (i == j) {
+                    // Диагональные элементы
+                    
+                   //std::cout << "i=" << i << "j=" << j << " " << ((*this)[i][i] - sum) << "   ";
+
+                   
+                    L[i][j] = std::sqrt((*this)[i][i] - sum);
+                    
+                    
+                    //std::cout << "i=" << i << "j=" << j << " " << L[i][j] <<"   ";
+                }
+                else {
+                    // Недиагональные элементы
+                    L[i][j] = ((*this)[i][j] - sum) / (L[j][j]);
+                   
+                }
+            }
+        }
+
+        return L;
+    }
+
+    matrix<T> inverse_cholesky() const {
+        if (colsize != rowsize) {
+            throw std::invalid_argument("Matrix must be square for inversion.");
+        }
+
+        matrix<T> L = cholesky(); // Получаем L из разложения Холецкого
+        matrix<T> L_inv(colsize, rowsize); // Матрица для хранения обратной L
+
+        // Обратная матрица L
+        for (uint64_t i = 0; i < colsize; ++i) {
+            for (uint64_t j = 0; j <= i; ++j) {
+                if (i == j) {
+                    L_inv[i][j] = 1 / L[i][j];
+                }
+                else {
+                    T sum = 0;
+                    for (uint64_t k = j; k < i; ++k) {
+                        sum += L[i][k] * L_inv[k][j];
+                    }
+                    L_inv[i][j] = -sum / L[i][i];
+                }
+            }
+        }
+
+        // Теперь находим A^{-1} = L^{-T} * L^{-1}
+        matrix<T> A_inv(colsize, rowsize);
+
+        // Умножаем L_inv на ее транспонированную версию
+        for (uint64_t i = 0; i < colsize; ++i) {
+            for (uint64_t j = 0; j < colsize; ++j) {
+                A_inv[i][j] = 0;
+                for (uint64_t k = 0; k < colsize; ++k) {
+                    A_inv[i][j] += L_inv[i][k] * L_inv[j][k];
+                }
+            }
+        }
+
+        return A_inv;
+    }
+
+
 };
 #include "../_cpp_realisation_file/matrix.cpp"
