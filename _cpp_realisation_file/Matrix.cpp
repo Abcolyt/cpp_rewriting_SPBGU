@@ -361,4 +361,40 @@ template<typename T>void matrix<T>::allocateMemory()
     }
 }
 
+template<typename T>matrix<T> matrix<T>::cholesky() const
+{
+    if (colsize != rowsize) {
+        throw std::invalid_argument("Matrix must be square for Cholesky decomposition.");
+    }
 
+    matrix<T> L(colsize, rowsize); // Создаем матрицу L размером n x n
+
+    for (uint64_t i = 0; i < colsize; ++i) {
+        for (uint64_t j = 0; j <= i; ++j) {
+            T sum = 0;
+
+            for (uint64_t k = 0; k < j; ++k) {
+                sum += L[i][k] * L[j][k];
+            }
+
+            if (i == j) {
+                // Диагональные элементы
+
+               //std::cout << "i=" << i << "j=" << j << " " << ((*this)[i][i] - sum) << "   ";
+
+
+                L[i][j] = std::sqrt((*this)[i][i] - sum);
+
+
+                //std::cout << "i=" << i << "j=" << j << " " << L[i][j] <<"   ";
+            }
+            else {
+                // Недиагональные элементы
+                L[i][j] = ((*this)[i][j] - sum) / (L[j][j]);
+
+            }
+        }
+    }
+
+    return L;
+}
