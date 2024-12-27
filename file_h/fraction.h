@@ -34,6 +34,7 @@ public:
     fraction operator*(const fraction& other)const;
     fraction operator*(const T& other)const;
     fraction operator/(const fraction & other)const;
+    fraction operator/(const T& other)const;                 // NOT TESTED
     fraction operator-(const fraction& other)const;
     fraction operator-()const;
 
@@ -66,4 +67,4 @@ public:
     T findGCD(T& a, T& b)const;
 };
 
-#include "fraction.cpp"
+#include "../_cpp_realisation_file/fraction.cpp"

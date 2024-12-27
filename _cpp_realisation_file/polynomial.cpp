@@ -1,5 +1,5 @@
 #pragma once
-#include"polynomial.h"
+#include"../file_h/polynomial.h"
 template<typename P>polynomial<P> polynomial<P>::operator>>(const uint64_t power)const
 {
 	polynomial result;result.newsize(deg + power);
@@ -262,7 +262,7 @@ template<typename P>polynomial<P> polynomial<P>::operator-(const polynomial<P>& 
 		}
 		else if (i < other.deg)
 		{
-			result.ptr[i] = -other.ptr[i];
+			result.ptr[i] = (other.ptr[i])*(-1);
 		}
 
 	}
@@ -382,3 +382,4 @@ template<typename P>polynomial<P> polynomial<P>::cutbag() const {
 
 	return new_poly;
 }
+

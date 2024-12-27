@@ -1,5 +1,6 @@
+
 #pragma once
-#include"fraction.h"
+#include"../file_h/fraction.h"
 template<typename T>fraction<T>& fraction<T>::reduce()
 {
     /*if (denominator == 0)return fraction < T>(1);
@@ -64,11 +65,19 @@ template<typename T>fraction<T> fraction<T>::operator*(const T& other)const{
     result.denominator = denominator;
     return result.reduce();
 }
+
 template<typename T>fraction<T> fraction<T>::operator/(const fraction<T>& other) const 
 {
     fraction<T> result;
     result.numerator = this->numerator * other.denominator;
     result.denominator = this->denominator * other.numerator;
+    return result.reduce();
+}
+
+template<typename T>fraction<T> fraction<T>::operator/(const T& other)const {
+    fraction<T> result;
+    result.numerator = numerator ;
+    result.denominator = denominator * other;
     return result.reduce();
 }
 

@@ -1,5 +1,6 @@
-﻿#include "complex.h"
+﻿
 #pragma once
+#include "../file_h/complex.h"
 #include<assert.h>
 Complex::Complex(double r, double i) : R(r), I(i) {}
 Complex::Complex(double r) : Complex(r, 0) {}

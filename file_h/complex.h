@@ -1,6 +1,7 @@
 #include <sstream>
 #pragma once
-class Complex {
+class Complex
+{
 private:
     double R;
     double I;
@@ -31,5 +32,33 @@ public:
 
     bool operator==(const Complex& other);
     bool operator!=(const Complex& other);
+//new
+
+
+    // Перегрузка оператора <
+    bool operator<(const Complex& other) const {
+        return this->magnitude() < other.magnitude();
+    }
+
+    // Перегрузка оператора < для сравнения с нулем
+    bool operator<(double value) const {
+        return this->magnitude() < value;
+    }
+
+    // Перегрузка оператора >
+    bool operator>(const Complex& other) const {
+        return this->magnitude() > other.magnitude();
+    }
+
+    // Перегрузка оператора > для сравнения с нулем
+    bool operator>(double value) const {
+        return this->magnitude() > value;
+    }
+
+    // Метод для вычисления модуля комплексного числа
+    double magnitude() const {
+        return std::sqrt(R * R + I * I);
+    }
+
 };
 
