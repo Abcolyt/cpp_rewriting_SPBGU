@@ -520,6 +520,17 @@ namespace counting_methods {
         return 0;
     }
     }
+
+    namespace matrix_norm {
+        void norm() {
+            matrix<double> A;
+            A.outm_E = output_mode::NO;
+            std::cin >> A;
+            std::cout << A.norm();
+            A.outm_E = output_mode::FULL;
+
+        }
+    }
 }
         
 
