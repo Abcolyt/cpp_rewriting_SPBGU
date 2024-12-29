@@ -115,7 +115,15 @@ public:
 
     matrix<T> cholesky() const;
     
-
+    //переделать на норму из списка, согласно настройкам
+    T norm() {
+        T max = 0;
+        for (size_t i = 0; i < (this->getrow()) * (this->getcol()); i++)
+        {
+            max = std::max(max, std::abs(ptr[i]));
+        }
+        return max;
+    }
    
 
 
