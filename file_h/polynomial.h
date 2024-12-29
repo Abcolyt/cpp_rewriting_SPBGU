@@ -3,11 +3,12 @@
 #include <sstream>
 #include <complex.h>
 //the degree of detail of the output
-enum class output_mode
+extern enum class output_mode
 {
 	FULL,
 	ABBREVIATED,
-	SHORT
+	SHORT,
+	NO
 };
 template<typename P> class polynomial;
 template<typename P> std::ostream& operator<<(std::ostream& out, const polynomial<P>& plnm);
