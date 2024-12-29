@@ -31,7 +31,12 @@ private:
     void allocateMemory();
 
 public:
-     
+    //default output mode
+    static output_mode default_output_mode;
+    //class realization output mode
+    output_mode outm_E;
+
+
     //CONSTRUCTORS\DESTRUCTORS
 
     //the copying constructor
