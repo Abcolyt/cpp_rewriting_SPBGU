@@ -2,6 +2,8 @@
 #include<iostream>
 #include <sstream>
 
+extern enum class output_mode;
+
 // //
 //  logic of the apply Method To Elements method using SFINAE to check for the presence of a 
 // method with a parameter for a matrix element and to call it if it exists
@@ -34,7 +36,7 @@ public:
     //default output mode
     static output_mode default_output_mode;
     //class realization output mode
-    output_mode outm_E;
+    output_mode outm_E= default_output_mode;
 
 
     //CONSTRUCTORS\DESTRUCTORS
@@ -133,4 +135,7 @@ public:
 
 
 };
+
+template<typename T> output_mode matrix<T>::default_output_mode = output_mode::FULL;
+
 #include "../_cpp_realisation_file/matrix.cpp"

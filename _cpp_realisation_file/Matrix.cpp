@@ -191,12 +191,26 @@ template <typename T>T matrix<T>::determinant() const {
 
 template<typename T> std::ostream& operator<<(std::ostream& out, const matrix<T>& mtrx)
 {
-    out << "sizex:" << mtrx.getcol() << "sizey:" << mtrx.getrow() << "\n";
+    switch (mtrx.outm_E)
+    {
+    case output_mode::FULL:	out << "sizex:" << mtrx.getcol() << "sizey:" << mtrx.getrow() << "\n";				break;
+    case output_mode::ABBREVIATED:  out <<"x:"<< mtrx.getcol() << "y:" << mtrx.getrow() << "\n";  break;
+    case output_mode::SHORT:       out << mtrx.getcol() << " x :" << mtrx.getrow() << "\n"; break;
+    default:out << "sizex:" << mtrx.getcol() << "sizey:" << mtrx.getrow() << "\n"; break;
+    }
+
+    
     for (uint64_t i = 0; i < mtrx.getcol(); i++)
     {
         for (uint64_t j = 0; j < mtrx.getrow(); j++)
         {
-            out << "[" << i << "][" << j << "] = \t" << mtrx[i][j] << "\t | ";
+            switch (mtrx.outm_E)
+            {
+            case output_mode::FULL:	       out << "[" << i << "][" << j << "] = \t" << mtrx[i][j] << "\t | ";  break;
+            case output_mode::ABBREVIATED: out <<  i << "," << j << "= \t" << mtrx[i][j] << "\t | "; break;
+            case output_mode::SHORT:       out << "\t" << mtrx[i][j] << "\t | ";       break;
+            default:                       out << "[" << i << "][" << j << "] = \t" << mtrx[i][j] << "\t | "; break;
+            }            
         }
         out << "\n";
     }
@@ -206,17 +220,40 @@ template<typename T> std::ostream& operator<<(std::ostream& out, const matrix<T>
 template<typename T>std::istream& operator>>(std::istream& in, matrix<T>& mtrx)
 {
     uint64_t size;
-    std::cout << "Enter number of rows: ";
+    switch (mtrx.outm_E)
+    {
+    case output_mode::FULL:	       std::cout << "Enter number of rows: "; break;
+    case output_mode::ABBREVIATED: std::cout << "rows: ";                 break;
+    case output_mode::SHORT:       std::cout << "rows:";                  break;
+    case output_mode::NO:                                                 break;
+    default:                       std::cout << "Enter number of rows: "; break;
+    }
     in >> size;
     mtrx.setrow(size);
 
-    std::cout << "Enter number of columns: ";
+    switch (mtrx.outm_E)
+    {
+    case output_mode::FULL:	       std::cout << "Enter number of columns: "; break;
+    case output_mode::ABBREVIATED: std::cout << "columns: ";                 break;
+    case output_mode::SHORT:       std::cout << "columns:";                  break;
+    case output_mode::NO:                                                    break;
+    default:                       std::cout << "Enter number of columns: "; break;
+    }
+    
     in >> size;
     mtrx.setcol(size);
+
     mtrx.allocateMemory();
     for (uint64_t i = 0; i < mtrx.getrow(); i++) {
         for (uint64_t j = 0; j < mtrx.getcol(); j++) {
-            std::cout << "["<<i<<"]["<<j<<"]=";
+            switch (mtrx.outm_E)
+            {
+            case output_mode::FULL:	       std::cout << "[" << i << "][" << j << "]="; break;
+            case output_mode::ABBREVIATED: std::cout << i << "," << j << "=";          break;
+            case output_mode::SHORT:       std::cout << "|";                           break;
+            case output_mode::NO:                                                      break;
+            default:                       std::cout << "[" << i << "][" << j << "]="; break;
+            }
             in >> mtrx[i][j];
         }
     }

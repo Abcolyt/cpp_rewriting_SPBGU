@@ -549,7 +549,10 @@ int main() {
 
     //counting_methods::nonlinear_system_with_simple_iterations::run_nnssi_with_setted_linear_function();
 
-    counting_methods::holechi::example();
+    //counting_methods::holechi::example();
+
+    
+    counting_methods::executeWithFileInput(counting_methods::matrix_norm::norm, "input_matrix.txt");
     system("pause");
     return 0;
 }
