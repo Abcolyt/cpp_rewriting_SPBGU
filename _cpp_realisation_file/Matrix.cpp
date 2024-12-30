@@ -398,7 +398,7 @@ template<typename T>void matrix<T>::allocateMemory()
     }
 }
 
-template<typename T>matrix<T> matrix<T>::cholesky() const
+template<typename T>matrix<T> matrix<T>::cholesky_decomposition() const
 {
     if (colsize != rowsize) {
         throw std::invalid_argument("Matrix must be square for Cholesky decomposition.");
@@ -434,4 +434,46 @@ template<typename T>matrix<T> matrix<T>::cholesky() const
     }
 
     return L;
+}
+
+
+template<typename T> T matrix<T>::vec_P_norm(uint64_t P)const
+{
+    T norm = 0;
+    for (size_t i = 0; i < (this->getrow()) * (this->getcol()); i++)
+    {
+        norm = norm + std::pow(ptr[i], P);
+    }
+    return std::pow(norm, 1 / (P));
+
+}
+//the maximum (infinite) matrix norm
+template<typename T> T matrix<T>::inf_norm()const
+{
+    T max = 0;
+    for (size_t i = 0; i < (this->getrow()) * (this->getcol()); i++)
+    {
+        max = std::max(max, std::abs(ptr[i]));
+    }
+    return max;
+}
+
+//spectral matrix norm
+template<typename T> T matrix<T>::Spectr_norm()const
+{
+    std::cout << "ERROR Spectr norm not realized\n";
+    return inf_norm();
+}
+
+
+
+template<typename T> T matrix<T>::norm(uint64_t N)const {
+    switch (nrm_mode)
+    {
+    case norm_mode::Inf:	return inf_norm();   break;
+    case norm_mode::N:      return vec_P_norm(N);   break;
+    case norm_mode::Spectr: return Spectr_norm(); break;
+    default:                return inf_norm();   break;
+    }
+
 }

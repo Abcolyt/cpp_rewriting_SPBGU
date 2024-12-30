@@ -508,7 +508,7 @@ namespace counting_methods {
         std::cout << "inpyt matrix:\n" << A;
 
         try {
-            matrix<double> A_inv = (A.cholesky().inverse_M()).transpose()* A.cholesky().inverse_M();
+            matrix<double> A_inv = (A.cholesky_decomposition().inverse_M()).transpose()* A.cholesky_decomposition().inverse_M();
             std::cout << " A^{-1}:\n" << A_inv;
 
             std::cout << "check A^{-1}:\n" << A_inv*A;
@@ -550,9 +550,10 @@ int main() {
     //counting_methods::nonlinear_system_with_simple_iterations::run_nnssi_with_setted_linear_function();
 
     //counting_methods::holechi::example();
+    // 
+    //counting_methods::executeWithFileInput(counting_methods::matrix_norm::norm, "input_matrix.txt");
 
-    
-    counting_methods::executeWithFileInput(counting_methods::matrix_norm::norm, "input_matrix.txt");
+
     system("pause");
     return 0;
 }

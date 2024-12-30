@@ -4,6 +4,11 @@
 
 extern enum class output_mode;
 
+enum class norm_mode {
+    Inf,
+    N,
+    Spectr
+};
 // //
 //  logic of the apply Method To Elements method using SFINAE to check for the presence of a 
 // method with a parameter for a matrix element and to call it if it exists
@@ -37,7 +42,11 @@ public:
     static output_mode default_output_mode;
     //class realization output mode
     output_mode outm_E= default_output_mode;
-
+    
+    //default norm mode
+    static norm_mode default_nrm_mode;
+    //class realization norm mode
+    norm_mode nrm_mode = default_nrm_mode;
 
     //CONSTRUCTORS\DESTRUCTORS
 
@@ -119,23 +128,25 @@ public:
     template <typename T, typename ReturnType, typename Param>
     std::enable_if_t<HasMethodWithParam<T, Param>::value> applyMethodToElements(ReturnType(T::* method)(Param), Param param)const;
     
+    //Cholesky decomposition of a symmetric matrix
+    matrix<T> cholesky_decomposition() const;
 
-    matrix<T> cholesky() const;
-    
-    //переделать на норму из списка, согласно настройкам
-    T norm() {
-        T max = 0;
-        for (size_t i = 0; i < (this->getrow()) * (this->getcol()); i++)
-        {
-            max = std::max(max, std::abs(ptr[i]));
-        }
-        return max;
-    }
-   
+
+    //THE NORM OF THE MATRIX
+
+    //Vector p-norm
+    T vec_P_norm(uint64_t P)const;
+    //the maximum (infinite) matrix norm
+    T inf_norm()const;
+    //spectral matrix norm
+    T Spectr_norm()const;
+    //the default matrix norm
+    T norm(uint64_t N = 2)const;
 
 
 };
 
 template<typename T> output_mode matrix<T>::default_output_mode = output_mode::FULL;
+template<typename T> norm_mode matrix<T>::default_nrm_mode = norm_mode::Inf;
 
 #include "../_cpp_realisation_file/matrix.cpp"
