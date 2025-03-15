@@ -2,6 +2,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <utility>
 
 #include "file_h/complex.h"
 #include "file_h/fraction.h"
@@ -139,7 +140,7 @@ void calc_global() {
 }
 
 namespace counting_methods {
-
+                                                          
     void executeWithFileInput(std::function<void()> func, const char* filename) {
         FILE* file;
         
@@ -522,7 +523,52 @@ namespace counting_methods {
     }
 }
         
+namespace counting_methods_2 {
+    
+    namespace Polynomial_interpolation {
+        namespace Nuton {
+            //
+            /* polynomial<double> W(k,) */
+            template<typename P>class Nuton:public polynomial<P>
+            {
+            public:
+                Nuton(const std::vector<std::pair<P,P>> Array_xy);
+                Nuton();
+                ~Nuton();
 
+            private:
+                std::vector<std::pair<P, P>> Array_xy;
+
+                std::vector<P> divided_difference_order_0_to_n;
+                //razdelenay raznost
+                P divided_difference0_to_k(uint64_t k);
+
+                polynomial<P> W_k(uint64_t k, P x);
+            };
+            template<typename P>polynomial<P> Nuton<P>::W_k(uint64_t k, P x) {}
+
+            template<typename P>Nuton<P>::Nuton(const std::vector<std::pair<P, P>> Array_xy) {
+                this->Array_xy = Array_xy;
+                divided_difference_order_0_to_n.reserve(Array_xy.size());
+            }
+            template<typename P>Nuton<P>::Nuton() : polynomial<P>()
+            {
+            }
+
+            template<typename P>Nuton<P>::~Nuton()
+            {
+            }
+        }
+
+        namespace Lagrang {
+
+        //prohodit chereze zadannie tochki
+        //djbavit zavisimost ot naklona s bokov
+        void Lagrang() {}
+        }
+    }
+    namespace Spline_interpolation {}   
+}
 
 int main() {
     //calc_computing_f::matrix_calc<double>();
