@@ -9,6 +9,8 @@
 #include "file_h/polynomial.h"
 #include "file_h/matrix.h"
 
+#include "file_h/counting_methods_2.h"
+
 #include <functional>
 namespace calc_computing_f
 {
@@ -522,58 +524,20 @@ namespace counting_methods {
     }
     }
 }
-        
-namespace counting_methods_2 {
-    
-    namespace Polynomial_interpolation {
-        namespace Nuton {
-            //
-            /* polynomial<double> W(k,) */
-            template<typename P>class Nuton:public polynomial<P>
-            {
-            public:
-                Nuton(const std::vector<std::pair<P,P>> Array_xy);
-                Nuton();
-                ~Nuton();
 
-            private:
-                std::vector<std::pair<P, P>> Array_xy;
-
-                std::vector<P> divided_difference_order_0_to_n;
-                //razdelenay raznost
-                P divided_difference0_to_k(uint64_t k);
-
-                polynomial<P> W_k(uint64_t k, P x);
-            };
-            template<typename P>polynomial<P> Nuton<P>::W_k(uint64_t k, P x) {}
-
-            template<typename P>Nuton<P>::Nuton(const std::vector<std::pair<P, P>> Array_xy) {
-                this->Array_xy = Array_xy;
-                divided_difference_order_0_to_n.reserve(Array_xy.size());
-            }
-            template<typename P>Nuton<P>::Nuton() : polynomial<P>()
-            {
-            }
-
-            template<typename P>Nuton<P>::~Nuton()
-            {
-            }
-        }
-
-        namespace Lagrang {
-
-        //prohodit chereze zadannie tochki
-        //djbavit zavisimost ot naklona s bokov
-        void Lagrang() {}
-        }
+template<typename T, typename Func>
+std::vector<std::pair<T, T>> generatePointsLambda(int k, T x0, T step, Func F) {
+    std::vector<std::pair<T, T>> points;
+    for (int i = 0; i < k; ++i) {
+        T x = x0 + i * step;
+        points.emplace_back(x, F(x));
     }
-    namespace Spline_interpolation {}   
+    return points;
 }
 
 int main() {
+#if 0
     //calc_computing_f::matrix_calc<double>();
-
-
 //C:\Users\User\source\repos\cpp_rewriting_SPBGU\input_matrix.txt
     /*counting_methods::polinomial::polynomial_test();*/
     //counting_methods::nonlinear_system_with_simple_iterations::run_nnssi_with_setted_nonlinear_function();
@@ -585,6 +549,36 @@ int main() {
     //counting_methods::nonlinear_system_with_simple_iterations::run_nnssi_with_setted_linear_function();
 
     counting_methods::holechi::example();
+#endif
+#define AU_LOG 2
+#if AU_LOG==1
+    using namespace counting_methods_2::Polynomial_interpolation::nuton;
+    std::vector<std::pair<int, int>> Array_xy = { {1, 10}, {2, 20}, {3, 30},{1, 10}, {2, 20}, {3, 30},{1, 10}, {2, 20}, {3, 30},{1, 10}, {2, 20}, {3, 30},{1, 10}, {2, 20}, {3, 30} };
+    Nuton<int> a(Array_xy);
+    a.divided_difference0_to_k(6);
+#else
+    using namespace counting_methods_2::Polynomial_interpolation::nuton2;
+   
+
+
+    auto Func = [](double x) { return  1 + 10 * x + 10 * x * x + 10 * x * x * x + 10 * x * x * x * x;
+        };
+
+    auto Array_xy = generatePointsLambda(7, -4, 1, Func);
+    
+    std::cout << divided_difference0_to_k(Array_xy)<<"\ndivided_difference0_to_k(Array_xy):"<< divided_difference0_to_k(Array_xy).get_deg() << "\n\n\n\n\n\n\n";
+
+    /*auto Func2 = [](double x) { return -2479 - 1050 * x; };
+    auto Array_xy_2 = generatePointsLambda(7, -4, 1, Func);
+
+    std::cout << divided_difference0_to_k(Array_xy_2);*/
+
+
+    
+
+
+#endif
+    
     system("pause");
     return 0;
 }
