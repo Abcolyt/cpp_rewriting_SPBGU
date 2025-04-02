@@ -2,6 +2,13 @@
 #include <vector>
 #include <algorithm>
 #include "file_h/polynomial.h"
+#include <random>
+#include <functional>
+#include <memory>
+
+#include <cmath>
+#include <corecrt_math_defines.h>
+#include <iomanip> 
 
 namespace counting_methods_2 {
 
@@ -29,7 +36,6 @@ namespace counting_methods_2 {
             
             
             }
-
             template<typename P>Nuton<P>::Nuton(const std::vector<std::pair<P, P>>& Array_xy) {
                 this->Array_xy = Array_xy;
                 divided_difference_order_0_to_n.reserve(Array_xy.size());
@@ -37,7 +43,6 @@ namespace counting_methods_2 {
             template<typename P>Nuton<P>::Nuton() : polynomial<P>()
             {
             }
-
             template<typename P>Nuton<P>::~Nuton()
             {
             }
@@ -70,15 +75,12 @@ namespace counting_methods_2 {
 
         namespace nuton2 {
 
-            template<typename P>
-            std::vector<std::pair<P, P>> extractUniqueY(std::vector<std::pair<P, P>> Array_xy) {
+            template<typename P>std::vector<std::pair<P, P>> extractUniqueY(std::vector<std::pair<P, P>> Array_xy) {
 
                 std::sort(
                     Array_xy.begin(),
                     Array_xy.end(),
-                    [](const auto& a, const auto& b) {
-                        return a.first < b.first;
-                    }
+                    [](const auto& a, const auto& b) {return a.first < b.first;}
                 );
 
                 std::vector<std::pair<P, P>> result;
@@ -94,7 +96,7 @@ namespace counting_methods_2 {
                 return result;
             }
 
-            template<typename P>polynomial<P> divided_difference0_to_k(std::vector<std::pair<P, P>> Array_xy) {
+            template<typename P>polynomial<P> nuton_interpolation(std::vector<std::pair<P, P>> Array_xy) {
                 
                 Array_xy = extractUniqueY(Array_xy);
 
@@ -130,7 +132,125 @@ namespace counting_methods_2 {
                 Ans=Ans.cutbag();
                 return Ans;
             }
+
+            polynomial<int> generateRandomIntCoefficients(int min_degree = 3, int max_degree = 10, double min_c = -10, double max_c = 10) {
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::uniform_int_distribution<> dist_deg(min_degree, max_degree);
+                polynomial<int> Ans;
+                Ans.newsize(dist_deg(gen));
+
+                std::uniform_int_distribution<> dist_c(min_c, max_c);
+                for (int i = 0; i < Ans.get_deg(); ++i) {
+                    Ans[i] = (dist_c(gen));
+                }
+
+                Ans.cutbag();
+
+                return Ans;
+            }
+
+
+            //generate with polinomial function
+            template<typename T>std::vector<std::pair<T, T>> generatePointsFuncPtr(int k, T x0, T step, polynomial<T>& polynom, const std::function<T(polynomial<T>, T)>& F) {
+                std::vector<std::pair<T, T>> points;
+                for (int i = 0; i < k; ++i) {
+                    T x = x0 + i * step;
+                    points.emplace_back(x, F(polynom, x));
+                }
+                return points;
+            }
+            template<typename T, typename Func>std::vector<std::pair<T, T>> generatePoints_equally_sufficient(int k,T x0,T step,Func F) {
+                std::vector<std::pair<T, T>> points;
+                for (int i = 0; i < k; ++i) {
+                    T x = x0 + i * step;
+                    points.emplace_back(x, F(x));
+                }
+                return points;
+            }
+            
+            template<typename T, typename Func>std::vector<std::pair<T, T>> generatePoints_optimal(int n, T a, T b, Func F) {
+                std::vector<std::pair<T, T>> points;
+                for (int i = 0; i < n; ++i) {
+                    T x = (0.5)*( (b-a)*std::cos(M_PI*((2.0*i+1)/(2*(n))) )  + (b+a) );
+                    //std::cout << "\n" << x<<" F(x):"<<F(x);
+                    points.emplace_back(x, F(x));
+                }
+                return points;
+            }
+
+            //4-working function
+            template<typename P, typename Func>polynomial<P> N_n(int n, P a,P b, Func F) {
+                return nuton_interpolation(extractUniqueY(generatePoints_equally_sufficient(n, a, (b - a) / n, F)));
+            }
+            //4-working function
+            template<typename P, typename Func>polynomial<P> N_optn(int n, P a, P b, Func F) {
+                return nuton_interpolation(extractUniqueY(generatePoints_optimal(n, a, b, F)));
+            }
+            
+            //F := working function
+            template<typename P, typename Func>double RN_n(int n, P a, P b, Func F) {
+                auto table=extractUniqueY(generatePoints_equally_sufficient(n, a, (b - a) / n, F));
+                auto interpolinom = nuton_interpolation(table);
+                double Max_ans = 0;
+                for(const auto& p : table){
+                    Max_ans = std::max(Max_ans,std::abs(polynomialfunctions::f_polyn_x0_(interpolinom, p.first) - p.second));
+                }
+                return Max_ans;
+            }
+
+            template<typename P, typename Func>double RN_optn(int n, P a, P b, Func F) {
+                auto table = extractUniqueY(generatePoints_optimal(n, a, b, F));
+                auto interpolinom = nuton_interpolation(table);
+                double Max_ans = 0;
+                for (const auto& p : table) {
+                    Max_ans = std::max(Max_ans, std::abs(polynomialfunctions::f_polyn_x0_(interpolinom, p.first) - p.second));
+                }
+                return Max_ans;
+            }
+
+            //max n 
+            void show_nuton(int n = 10, int m_=10) {
+                double a = -2 * M_PI, b = 2 * M_PI;
+
+                std::cout << std::left
+                    << std::setw(20) << "(n)"
+                    << std::setw(30) << "(m)"
+                    << std::setw(25) << "RN_n"
+                    << std::setw(25) << "RNopt_n"
+                    << "\n------------------------------------------------------------\n";
+
+                for (size_t i = 1; i < n+m_; i++)
+                {
+                    
+                    auto F = [](double x) { return std::cos(x) / std::sin(x) + x * x; };
+                    auto poly = N_optn(i, a, b, F);
+
+                    // std::cout << "\nPOLINOM N_optn:" << poly;
+
+                    double rn= RN_n(i, a, b, F);
+                    double rn_opt = RN_optn(i, a, b, F);
+
+                    std::cout << std::left
+                        << std::setw(20) << i
+                        << std::setw(30) << i+m_
+                        << std::setw(25) << std::setprecision(6) << rn
+                        << std::setw(25) << std::setprecision(6) << rn_opt
+                        << "\n";
+                }
+                
+                
+
+
+            }
+
+            template<typename P, typename Func>polynomial<P> L_n(int n, P a, P b, Func F);
+
+            template<typename P, typename Func>polynomial<P> L_optn(int n, P a, P b, Func F);
         }
+
+
+
 
         namespace Lagrang {
 

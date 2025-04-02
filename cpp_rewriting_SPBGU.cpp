@@ -1,4 +1,4 @@
-#include <iostream>
+п»ї#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -12,6 +12,11 @@
 #include "file_h/counting_methods_2.h"
 
 #include <functional>
+
+#include <cmath>
+#include <corecrt_math_defines.h>
+
+
 namespace calc_computing_f
 {
 void complex_calc() {
@@ -147,8 +152,8 @@ namespace counting_methods {
         FILE* file;
         
         if (freopen_s(&file, filename, "r", stdin) != 0) {
-            std::cerr << "Ошибка при открытии файла: " << filename << std::endl;
-            return; // Завершение функции в случае ошибки
+            std::cerr << "РћС€РёР±РєР° РїСЂРё РѕС‚РєСЂС‹С‚РёРё С„Р°Р№Р»Р°: " << filename << std::endl;
+            return; // Р—Р°РІРµСЂС€РµРЅРёРµ С„СѓРЅРєС†РёРё РІ СЃР»СѓС‡Р°Рµ РѕС€РёР±РєРё
         }
 
         func();
@@ -221,7 +226,7 @@ namespace counting_methods {
     namespace nonlinear_system_with_simple_iterations {
     using Function = std::function<double(const std::vector<double>&)>;
 
-    // Функция для решения нелинейной системы уравнений методом простых итераций
+    // Р¤СѓРЅРєС†РёСЏ РґР»СЏ СЂРµС€РµРЅРёСЏ РЅРµР»РёРЅРµР№РЅРѕР№ СЃРёСЃС‚РµРјС‹ СѓСЂР°РІРЅРµРЅРёР№ РјРµС‚РѕРґРѕРј РїСЂРѕСЃС‚С‹С… РёС‚РµСЂР°С†РёР№
     std::vector<double> nonlinear_system_with_simple_iterations(
         const std::vector<Function>&functions,
         const std::vector<double>&initial_guess,
@@ -234,23 +239,23 @@ namespace counting_methods {
         for (int iteration = 0; iteration < max_iterations; ++iteration) {
             std::vector<double> next_guess(num_functions);
 
-            // Вычисляем значения для следующей итерации
+            // Р’С‹С‡РёСЃР»СЏРµРј Р·РЅР°С‡РµРЅРёСЏ РґР»СЏ СЃР»РµРґСѓСЋС‰РµР№ РёС‚РµСЂР°С†РёРё
             for (int i = 0; i < num_functions; ++i) {
                 next_guess[i] = functions[i](current_guess);
                 std::cout<<next_guess[i]<<"    ";
             }
             std::cout << "\n";
-            // Проверяем на сходимость
+            // РџСЂРѕРІРµСЂСЏРµРј РЅР° СЃС…РѕРґРёРјРѕСЃС‚СЊ
             double max_diff = 0.0;
             for (int i = 0; i < num_functions; ++i) {
                 max_diff = std::max(max_diff, std::abs(next_guess[i] - current_guess[i]));
             }
 
             if (max_diff < tolerance) {
-                return next_guess; // Возвращаем найденное решение
+                return next_guess; // Р’РѕР·РІСЂР°С‰Р°РµРј РЅР°Р№РґРµРЅРЅРѕРµ СЂРµС€РµРЅРёРµ
             }
 
-            current_guess = next_guess; // Переходим к следующей итерации
+            current_guess = next_guess; // РџРµСЂРµС…РѕРґРёРј Рє СЃР»РµРґСѓСЋС‰РµР№ РёС‚РµСЂР°С†РёРё
         }
 
         throw std::runtime_error("Maximum iterations reached without convergence");
@@ -269,7 +274,7 @@ namespace counting_methods {
             
             std::vector<double> solution = nonlinear_system_with_simple_iterations(functions1, initial_guess);
 
-            //  результат
+            //  СЂРµР·СѓР»СЊС‚Р°С‚
             std::cout << "Solution: ";
             for (double value : solution) {
                 std::cout << value << " ";
@@ -298,7 +303,7 @@ namespace counting_methods {
 
             std::vector<double> solution = nonlinear_system_with_simple_iterations(functions1, initial_guess);
 
-            //  результат
+            //  СЂРµР·СѓР»СЊС‚Р°С‚
             std::cout << "Solution: ";
             for (double value : solution) {
                 std::cout << value << " ";
@@ -322,11 +327,11 @@ namespace counting_methods {
 
     namespace nonlinear_system_with_the_tangent_method {
 
-        // Определим типы для функций и якобиана
+        // РћРїСЂРµРґРµР»РёРј С‚РёРїС‹ РґР»СЏ С„СѓРЅРєС†РёР№ Рё СЏРєРѕР±РёР°РЅР°
         using Function = std::function<double(const std::vector<double>&)>;
         using Jacobian = std::function<std::vector<std::vector<double>>(const std::vector<double>&)>;
 
-        // Функция для решения нелинейной системы уравнений методом Ньютона
+        // Р¤СѓРЅРєС†РёСЏ РґР»СЏ СЂРµС€РµРЅРёСЏ РЅРµР»РёРЅРµР№РЅРѕР№ СЃРёСЃС‚РµРјС‹ СѓСЂР°РІРЅРµРЅРёР№ РјРµС‚РѕРґРѕРј РќСЊСЋС‚РѕРЅР°
         std::vector<double> nonlinear_system_with_newton(
             const std::vector<Function>& functions,
             const Jacobian& jacobian,
@@ -338,21 +343,21 @@ namespace counting_methods {
             int num_functions = functions.size();
 
             for (int iteration = 0; iteration < max_iterations; ++iteration) {
-                // Вычисляем значения функций
+                // Р’С‹С‡РёСЃР»СЏРµРј Р·РЅР°С‡РµРЅРёСЏ С„СѓРЅРєС†РёР№
                 std::vector<double> function_values(num_functions);
                 for (int i = 0; i < num_functions; ++i) {
                     function_values[i] = functions[i](current_guess);
                 }
 
-                // Вычисляем якобиан
+                // Р’С‹С‡РёСЃР»СЏРµРј СЏРєРѕР±РёР°РЅ
                 std::vector<std::vector<double>> J = jacobian(current_guess);
 
-                // Решаем систему J * delta = -F для delta
+                // Р РµС€Р°РµРј СЃРёСЃС‚РµРјСѓ J * delta = -F РґР»СЏ delta
                 std::vector<double> delta(num_functions);
 
-                // Используем метод Гаусса или любой другой метод для решения системы
-                // Для простоты, будем использовать метод Гаусса с прямой подстановкой
-                // Здесь мы просто создаем матрицу и вектор для решения
+                // РСЃРїРѕР»СЊР·СѓРµРј РјРµС‚РѕРґ Р“Р°СѓСЃСЃР° РёР»Рё Р»СЋР±РѕР№ РґСЂСѓРіРѕР№ РјРµС‚РѕРґ РґР»СЏ СЂРµС€РµРЅРёСЏ СЃРёСЃС‚РµРјС‹
+                // Р”Р»СЏ РїСЂРѕСЃС‚РѕС‚С‹, Р±СѓРґРµРј РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РјРµС‚РѕРґ Р“Р°СѓСЃСЃР° СЃ РїСЂСЏРјРѕР№ РїРѕРґСЃС‚Р°РЅРѕРІРєРѕР№
+                // Р—РґРµСЃСЊ РјС‹ РїСЂРѕСЃС‚Рѕ СЃРѕР·РґР°РµРј РјР°С‚СЂРёС†Сѓ Рё РІРµРєС‚РѕСЂ РґР»СЏ СЂРµС€РµРЅРёСЏ
                 std::vector<std::vector<double>> augmented_matrix(num_functions, std::vector<double>(num_functions + 1));
 
                 for (int i = 0; i < num_functions; ++i) {
@@ -362,15 +367,15 @@ namespace counting_methods {
                     augmented_matrix[i][num_functions] = -function_values[i];
                 }
 
-                // Прямой ход Гаусса
+                // РџСЂСЏРјРѕР№ С…РѕРґ Р“Р°СѓСЃСЃР°
                 for (int i = 0; i < num_functions; ++i) {
-                    // Нормализация строки
+                    // РќРѕСЂРјР°Р»РёР·Р°С†РёСЏ СЃС‚СЂРѕРєРё
                     double pivot = augmented_matrix[i][i];
                     for (int j = i; j <= num_functions; ++j) {
                         augmented_matrix[i][j] /= pivot;
                     }
 
-                    // Обнуление ниже
+                    // РћР±РЅСѓР»РµРЅРёРµ РЅРёР¶Рµ
                     for (int k = i + 1; k < num_functions; ++k) {
                         double factor = augmented_matrix[k][i];
                         for (int j = i; j <= num_functions; ++j) {
@@ -379,7 +384,7 @@ namespace counting_methods {
                     }
                 }
 
-                // Обратный ход Гаусса
+                // РћР±СЂР°С‚РЅС‹Р№ С…РѕРґ Р“Р°СѓСЃСЃР°
                 for (int i = num_functions - 1; i >= 0; --i) {
                     delta[i] = augmented_matrix[i][num_functions];
                     for (int j = i + 1; j < num_functions; ++j) {
@@ -387,34 +392,34 @@ namespace counting_methods {
                     }
                 }
 
-                // Обновляем текущее приближение
+                // РћР±РЅРѕРІР»СЏРµРј С‚РµРєСѓС‰РµРµ РїСЂРёР±Р»РёР¶РµРЅРёРµ
                 for (int i = 0; i < num_functions; ++i) {
                     current_guess[i] += delta[i];
                 }
 
-                // Проверяем на сходимость
+                // РџСЂРѕРІРµСЂСЏРµРј РЅР° СЃС…РѕРґРёРјРѕСЃС‚СЊ
                 double max_diff = 0.0;
                 for (const auto& d : delta) {
                     max_diff = std::max(max_diff, std::abs(d));
                 }
 
                 if (max_diff < tolerance) {
-                    return current_guess; // Возвращаем найденное решение
+                    return current_guess; // Р’РѕР·РІСЂР°С‰Р°РµРј РЅР°Р№РґРµРЅРЅРѕРµ СЂРµС€РµРЅРёРµ
                 }
             }
 
             throw std::runtime_error("Maximum iterations reached without convergence");
         }
 
-        // Пример использования
+        // РџСЂРёРјРµСЂ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ
         int nonlinsystem_tangent_method() {
-            // Определяем функции системы уравнений
+            // РћРїСЂРµРґРµР»СЏРµРј С„СѓРЅРєС†РёРё СЃРёСЃС‚РµРјС‹ СѓСЂР°РІРЅРµРЅРёР№
             std::vector<Function> functions = {
-                [](const std::vector<double>& x) { return std::tan(x[0] * x[1] + 0.4) - x[0] * x[0]; }, // Пример: f1(x1, x2) = x1^2 + x2 - 2
-                [](const std::vector<double>& x) { return 0.8 * x[0] * x[0] + 2 * x[1] * x[1] - 1; } // Пример: f2(x1, x2) = x1 - x2^2
+                [](const std::vector<double>& x) { return std::tan(x[0] * x[1] + 0.4) - x[0] * x[0]; }, // РџСЂРёРјРµСЂ: f1(x1, x2) = x1^2 + x2 - 2
+                [](const std::vector<double>& x) { return 0.8 * x[0] * x[0] + 2 * x[1] * x[1] - 1; } // РџСЂРёРјРµСЂ: f2(x1, x2) = x1 - x2^2
             };
 
-            // Определяем якобиан системы уравнений
+            // РћРїСЂРµРґРµР»СЏРµРј СЏРєРѕР±РёР°РЅ СЃРёСЃС‚РµРјС‹ СѓСЂР°РІРЅРµРЅРёР№
             Jacobian jacobian = [](const std::vector<double>& x) {
                 return std::vector<std::vector<double>>{
                     { x[1]/(std::cos((5*x[1]*x[0]+2)/5)* std::cos((5 * x[1] * x[0] + 2) / 5)) - 2*x[0] , x[0]/ (std::cos((5 * x[1] * x[0] + 2) / 5) * std::cos((5 * x[1] * x[0] + 2) / 5)) },     // df1/dx1, df1/dx2
@@ -422,14 +427,14 @@ namespace counting_methods {
                 };
                 };
 
-            // Начальное приближение
+            // РќР°С‡Р°Р»СЊРЅРѕРµ РїСЂРёР±Р»РёР¶РµРЅРёРµ
             std::vector<double> initial_guess = {0.1, 0.1};
 
             try {
-                // Решаем систему уравнений
+                // Р РµС€Р°РµРј СЃРёСЃС‚РµРјСѓ СѓСЂР°РІРЅРµРЅРёР№
                 std::vector<double> solution = nonlinear_system_with_newton(functions, jacobian, initial_guess);
 
-                // Выводим результат
+                // Р’С‹РІРѕРґРёРј СЂРµР·СѓР»СЊС‚Р°С‚
                 std::cout << "Solution: \n";
                 for (double value : solution) {
                     std::cout << value << " presizion:   "<< std::sqrt(functions[0](solution) * functions[0](solution) + functions[1](solution)* functions[1](solution))<<"\n";
@@ -536,6 +541,7 @@ std::vector<std::pair<T, T>> generatePointsLambda(int k, T x0, T step, Func F) {
 }
 
 int main() {
+    using namespace counting_methods_2::Polynomial_interpolation::nuton2;
 #if 0
     //calc_computing_f::matrix_calc<double>();
 //C:\Users\User\source\repos\cpp_rewriting_SPBGU\input_matrix.txt
@@ -550,23 +556,20 @@ int main() {
 
     counting_methods::holechi::example();
 #endif
-#define AU_LOG 2
+#define AU_LOG 4
 #if AU_LOG==1
-    using namespace counting_methods_2::Polynomial_interpolation::nuton;
+    
     std::vector<std::pair<int, int>> Array_xy = { {1, 10}, {2, 20}, {3, 30},{1, 10}, {2, 20}, {3, 30},{1, 10}, {2, 20}, {3, 30},{1, 10}, {2, 20}, {3, 30},{1, 10}, {2, 20}, {3, 30} };
     Nuton<int> a(Array_xy);
-    a.divided_difference0_to_k(6);
-#else
-    using namespace counting_methods_2::Polynomial_interpolation::nuton2;
+    a.nuton_interpolation(6);
+#elif AU_LOG==2
    
-
-
     auto Func = [](double x) { return  1 + 10 * x + 10 * x * x + 10 * x * x * x + 10 * x * x * x * x;
         };
 
     auto Array_xy = generatePointsLambda(7, -4, 1, Func);
     
-    std::cout << divided_difference0_to_k(Array_xy)<<"\ndivided_difference0_to_k(Array_xy):"<< divided_difference0_to_k(Array_xy).get_deg() << "\n\n\n\n\n\n\n";
+    std::cout << nuton_interpolation(Array_xy)<<"\ndivided_difference0_to_k(Array_xy):"<< nuton_interpolation(Array_xy).get_deg() << "\n\n\n\n\n\n\n";
 
     /*auto Func2 = [](double x) { return -2479 - 1050 * x; };
     auto Array_xy_2 = generatePointsLambda(7, -4, 1, Func);
@@ -575,6 +578,18 @@ int main() {
 
 
     
+#elif AU_LOG==3
+
+    int n = 10;
+    double a = -2 * M_PI, b = 2 * M_PI;
+
+    auto poly = N_optn(n, a, b, [](double x) { return std::cos(x) / std::sin(x) + x * x; });
+
+    std::cout << "POLINOM:" << poly;
+    std::cout << "\nMAX:" << RN_n(n, a, b, [](double x) { return std::cos(x) / std::sin(x) + x * x; });
+
+#elif AU_LOG == 4
+    show_nuton();
 
 
 #endif
