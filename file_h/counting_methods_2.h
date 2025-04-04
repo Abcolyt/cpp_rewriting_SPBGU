@@ -22,7 +22,7 @@ namespace counting_methods_2 {
                 Nuton(const std::vector<std::pair<P, P>>& Array_xy);
                 Nuton();
                 ~Nuton();
-                P divided_difference0_to_k(uint64_t k);
+                P nuton_interpolation(uint64_t k);
             private:
                 std::vector<std::pair<P, P>> Array_xy;
 
@@ -47,7 +47,7 @@ namespace counting_methods_2 {
             {
             }
 
-            template<typename P>P Nuton<P>::divided_difference0_to_k(uint64_t k) {
+            template<typename P>P Nuton<P>::nuton_interpolation(uint64_t k) {
                 std::transform(
                     Array_xy.begin(), Array_xy.end(), // out
                     std::back_inserter(divided_difference_order_0_to_n), // in
