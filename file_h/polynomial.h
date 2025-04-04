@@ -123,7 +123,7 @@ template<typename P> output_mode polynomial<P>::default_output_mode = output_mod
 #include "../_cpp_realisation_file/polynomial.cpp"
 namespace polynomialfunctions {
 
-	template<typename P>inline polynomial<P> derivate(polynomial<P> polynom) {
+	template<typename P>inline polynomial<P> derivate(const polynomial<P>& polynom) {
 		polynomial<P> ans;
 		ans.newsize(polynom.get_deg());
 		if (polynom.get_deg() > 0) {
@@ -137,15 +137,31 @@ namespace polynomialfunctions {
 		}
 		return ans;
 	}
-	template<typename P>inline P f_polyn_x0_(polynomial<P> polynom, P x0) {
+	template<typename P>inline P f_polyn_x0_(const polynomial<P>& polynom,const P& x0) {
 		P ans(0);
 		for (uint64_t i = 0; i < polynom.get_deg(); i++) {
 			//std::cout << polynom[i] + x0 << '\n' << std::endl;
 		}
-		for (int i = polynom.get_deg() - 1; i >= 0; i--) {
+		for (uint64_t i = polynom.get_deg() - 1; i >= 0; i--) {
 			ans = polynom[i] + (ans)*x0;
 		}
 		return ans;
 	}
 
 }
+
+
+
+
+template<typename P>class counting_polinomial :public polynomial<P>
+{
+public:
+	P operator()(const P& x) const {
+		return polynomialfunctions::f_polyn_x0_(*this, x);
+	}
+
+private:
+
+};
+
+
