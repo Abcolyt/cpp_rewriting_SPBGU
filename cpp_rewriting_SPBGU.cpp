@@ -589,9 +589,31 @@ int main() {
     std::cout << "\nMAX:" << RN_n(n, a, b, [](double x) { return std::cos(x) / std::sin(x) + x * x; });
 
 #elif AU_LOG == 4
-    show_nuton();
+    //show_nuton();
+    // 
+    //int T0 = 1;
+    //std::vector<double> array{1,2,3,4,5,6,7,8,9,10};
 
-
+    //
+   
+    ////b.output_mode_set(output_mode::FULL);
+    //polynomial<int> a(1);
+    //for (uint64_t i = 0; i < array.size(); i++)
+    //{
+    //if (i!=T0){
+    //    polynomial<int> b(1);
+    //    b = 1; b = b >> 1; std::cout << b << '\n'; b = b + array[i]; std::cout << b << '\n';
+    //    
+    //    a = a * b;
+    //    std::cout << a<<'\n';
+    //    }
+    //}
+    //
+    //
+   
+    //std::cout << a;
+    std::vector<double> array={ 1,2,3,4,5,6 };
+    std::cout<<w_k0(array,1);
 #endif
     
     system("pause");
