@@ -41,7 +41,7 @@ public:
 	//DATA ACCESS
 	
     //get the degree of the polynomial
-	uint64_t get_deg() { return deg; };
+	uint64_t get_deg()const { return deg; };
 	//set the degree of the polynomial
 	void set_deg(uint64_t newdeg) { deg = newdeg; };
 
@@ -60,6 +60,20 @@ public:
 	polynomial<P> operator*(const polynomial<P>& other)const;
 	//binary polynomial multiplication by an element from the field
 	polynomial<P> operator*(const P& other)const;
+	//NEW start
+	//binary polynomial addition with an element from the field
+	polynomial<P> operator+(const P& other)const {
+		polynomial<P> ans(*this + static_cast<polynomial<P>>(other));
+		return ans;
+	}
+	friend polynomial<P> operator+(const P& scalar, const polynomial<P>& poly) { return poly + scalar; }
+
+	polynomial<P> operator-(const P& other)const {
+		polynomial<P> ans(*this - static_cast<polynomial<P>>(other));
+		return ans;
+	}
+	friend polynomial<P> operator-(const P& scalar, const polynomial<P>& poly) { return (poly - scalar)* ( - 1); }
+	//NEW end
 
 
     // I/O OPERATIONS
@@ -101,7 +115,7 @@ public:
 	//SPECIAL METHODS
 
     //the access operator to the polynomial coefficient
-	P& operator[](uint64_t index);
+	P& operator[](uint64_t index)const;
 	//equalization operator(low coefficient=other )
 	polynomial<P>& operator=(const P other);
 	//the equalization operator
@@ -153,13 +167,20 @@ namespace polynomialfunctions {
 
 
 
-template<typename P>class counting_polinomial :public polynomial<P>
+template<typename P>class counting_polynomial :public polynomial<P>
 {
 public:
 	P operator()(const P& x) const {
 		return polynomialfunctions::f_polyn_x0_(*this, x);
 	}
 
+	//ARITHMETIC OPERATORS
+	
+	//binary polynomial addition with an element from the field
+	counting_polynomial<P> operator+(const P& other)const {
+		*this = *this[0] + other;
+		return *this;
+	}
 private:
 
 };

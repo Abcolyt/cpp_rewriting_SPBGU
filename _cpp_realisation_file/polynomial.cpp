@@ -2,17 +2,18 @@
 #include"../file_h/polynomial.h"
 template<typename P>polynomial<P> polynomial<P>::operator>>(const uint64_t power)const
 {
-	polynomial result;result.newsize(deg + power);
-	for (uint64_t i = 0; i < deg; i++)
+	polynomial<P> result;result.newsize(deg + power);
+	for (uint64_t i = 0; i <= deg; i++)
 	{
 		result.ptr[i + power] = ptr[i];
+		
 	}
 	return result;
 }
 
 template<typename P>polynomial<P> polynomial<P>::operator<<(const uint64_t power)const
 {
-	polynomial result; result.newsiz(deg - power);
+	polynomial result; result.newsize(deg - power);
 	for (uint64_t i = 0; i <= (deg - power); i++)
 	{
 		result.ptr[i] = ptr[i + power];
@@ -364,7 +365,7 @@ template<typename P>bool  polynomial<P>::operator<(const polynomial<P>& other)co
 {
 	return this->deg <  other.deg;
 }
-template<typename P>P& polynomial<P>::operator[](uint64_t index) {
+template<typename P>P& polynomial<P>::operator[](uint64_t index) const {
 	if (index >= deg) {
 		throw std::out_of_range("Index out of range");
 	}
