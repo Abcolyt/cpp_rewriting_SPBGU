@@ -614,7 +614,7 @@ int main() {
     //std::cout << a;
 
     std::vector<double> array={ 1,2,3,4,5,6 };
-   std::cout<< "wk0" << w_k0(array, 1).output_mode_set(output_mode::ABBREVIATED);
+    std::cout<< "wk0" << w_k0(array, 1).output_mode_set(output_mode::ABBREVIATED);
     
     //static_cast<double(*)(double)>
     using T = double;
@@ -622,7 +622,15 @@ int main() {
     //draw_function<double(*)(double)>(std::cos);
 
     polynomial<double> pol = (w_k0(array, 1));
-    draw_function( pol);
+    std::vector<std::function<double(double)>> functions = {
+        // Лямбда с захватом
+        [k = 2.0](double x) { return k * x; },
+        static_cast<double(*)(double)>(std::sin),
+        pol
+    };
+    //draw_function([](float x) {return x * x + x * 2; },-25.0f,25.0f);
+    draw_functions(functions);
+    
     std::cout << pol(2);
 #endif
     
