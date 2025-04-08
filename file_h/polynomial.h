@@ -2,6 +2,7 @@
 #include<iostream>
 #include <sstream>
 #include <complex.h>
+
 //the degree of detail of the output
 enum class output_mode
 {
@@ -10,6 +11,10 @@ enum class output_mode
 	SHORT
 };
 template<typename P> class polynomial;
+namespace polynomialfunctions {
+	template<typename P>inline polynomial<P> derivate(const polynomial<P>& polynom);
+	template<typename P>inline P f_polyn_x0_(const polynomial<P>& polynom, const P& x0);
+}
 template<typename P> std::ostream& operator<<(std::ostream& out, const polynomial<P>& plnm);
 template<typename P> std::istream& operator>>(std::istream& in, polynomial<P>& plnm);
 template<typename P> class polynomial
@@ -127,10 +132,15 @@ public:
 	//set the output mode via a variable of type: uint64_t newmode
 	void output_mode_set(uint64_t newmode);
 	//set the output mode via a variable of type: uint64_t newmode 
-	void output_mode_set(output_mode new_outm_E);
+	polynomial<P>& output_mode_set(output_mode new_outm_E);
 	//set the output mode via a variable of type: std::string newmode
 	void output_mode_set(std::string newmode);
-
+	
+	//NEW
+	//return Pol(x0)
+	P operator()(const P& x) const {
+		return polynomialfunctions::f_polyn_x0_(*this, x);
+	}
 };
 template<typename P> output_mode polynomial<P>::default_output_mode = output_mode::SHORT;
 
@@ -153,12 +163,14 @@ namespace polynomialfunctions {
 	}
 	template<typename P>inline P f_polyn_x0_(const polynomial<P>& polynom,const P& x0) {
 		P ans(0);
-		for (uint64_t i = 0; i < polynom.get_deg(); i++) {
-			//std::cout << polynom[i] + x0 << '\n' << std::endl;
+		/*for (uint64_t i = 0; i < polynom.get_deg(); i++) {
+			std::cout << '\n' << polynom[i]   << std::endl;
+		}*/
+		for (uint64_t i = polynom.get_deg() ; i > 0; --i) {
+			//std::cout << "\n ans:" << ans<<"i=" << i - 1 << std::endl;
+			ans = polynom[i - 1] + (ans)*x0;
 		}
-		for (uint64_t i = polynom.get_deg() - 1; i >= 0; i--) {
-			ans = polynom[i] + (ans)*x0;
-		}
+		//std::cout << "\n ans:" << ans;
 		return ans;
 	}
 

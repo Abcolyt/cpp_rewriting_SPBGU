@@ -16,6 +16,7 @@
 #include <cmath>
 #include <corecrt_math_defines.h>
 
+#include "file_h/Array_xy_To_.h"
 
 namespace calc_computing_f
 {
@@ -610,10 +611,19 @@ int main() {
     //}
     //
     //
-   
     //std::cout << a;
+
     std::vector<double> array={ 1,2,3,4,5,6 };
-    std::cout<<w_k0(array,1);
+   std::cout<< "wk0" << w_k0(array, 1).output_mode_set(output_mode::ABBREVIATED);
+    
+    //static_cast<double(*)(double)>
+    using T = double;
+    //(w_k0(array, 1))
+    //draw_function<double(*)(double)>(std::cos);
+
+    polynomial<double> pol = (w_k0(array, 1));
+    draw_function( pol);
+    std::cout << pol(2);
 #endif
     
     system("pause");
