@@ -166,7 +166,7 @@ template<typename P>void polynomial<P>::output_mode_set(uint64_t newmode) {
 	default:break;
 	}
 }
-template<typename P>void polynomial<P>::output_mode_set(output_mode new_outm_E) {
+template<typename P>polynomial<P>& polynomial<P>::output_mode_set(output_mode new_outm_E) {
 	switch (new_outm_E)
 	{
 	case output_mode::FULL:			outm_E = output_mode::FULL;			break;
@@ -174,6 +174,7 @@ template<typename P>void polynomial<P>::output_mode_set(output_mode new_outm_E) 
 	case output_mode::SHORT:		outm_E = output_mode::SHORT;		break;
 	default:break;
 	}
+	return *this;
 }
 
 template<typename P>std::ostream& operator<<(std::ostream& out, const polynomial<P>& plnm)

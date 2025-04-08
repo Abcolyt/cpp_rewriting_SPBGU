@@ -255,7 +255,7 @@ namespace counting_methods_2 {
                     polynomial<P> b(1);
                     b = 1; b = b >> 1; 
                     //std::cout << b << '\n';
-                    b = b + array[i];
+                    b = b - array[i];
                     //std::cout << b << '\n';
                     a = a * b;
                     //std::cout << a << '\n';
