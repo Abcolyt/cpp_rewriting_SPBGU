@@ -266,7 +266,6 @@ namespace counting_methods_2 {
 
             template<typename P, typename Func>polynomial<P> L_n(int n, P a, P b, Func F);
 
-            template<typename P, typename Func>polynomial<P> L_optn(int n, P a, P b, Func F);
         }
 
 
