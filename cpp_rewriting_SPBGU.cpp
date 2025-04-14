@@ -3,149 +3,23 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <functional>
+#include <corecrt_math_defines.h>
+#include <cmath>
 
 #include "file_h/complex.h"
 #include "file_h/fraction.h"
 #include "file_h/polynomial.h"
 #include "file_h/matrix.h"
 
+#include "file_h/counting_methods_1.h"
 #include "file_h/counting_methods_2.h"
-
-#include <functional>
-
-#include <cmath>
-#include <corecrt_math_defines.h>
-
 #include "file_h/Array_xy_To_.h"
-
-namespace calc_computing_f
-{
-void complex_calc() {
-
-    static char L = 'E';
-    while (1) {
+#include "file_h/calc_computing_f.h"
 
 
-        Complex a, b, c;
-        std::cout << "Enter first Number \n";
-        std::cin >> a;
-        std::cout << "Enter second Number \n";
-        std::cin >> b;
-
-        std::cout << "Enter Action('-','+','/','*','E') :";
-
-        std::cin >> L;
-        if (L == 'E' || L == 'e')
-        {
-            break;
-        }
-        std::cout << std::endl;
-        switch (L)
-        {
-        case '+':c = a + b; break;
-        case '-':c = a - b; break;
-        case '*':c = a * b; break;
-        case '/':c = a / b; break;
-        default:throw std::invalid_argument("unknown symbol");
-        }
-        std::cout << c << "\n";
-    }
 
 
-}
-template<typename T>void matrix_calc() {
-
-    static char L = 'E';
-    while (1) {
-
-
-        matrix<T> a, b, ans_out;
-        T ans_out_T;
-        std::cout << "Enter first Number \n";
-
-        std::cin >> a;
-        std::cout << "\n" << a << "\n";
-        std::cout << "Enter second Number \n";
-        std::cin >> b;
-        std::cout << "\n" << b << "\n";
-        std::cout << "Enter Action('-','+','/','*','r','E','d') :\n";
-        std::cin >> L;
-        if (L == 'E' || L == 'e')
-        {
-            break;
-        }
-        std::cout << std::endl;
-        switch (L)
-        {
-        case '+':ans_out = a + b; break;
-        case '-':ans_out = a - b; break;
-        case '*':ans_out = a * b; break;
-        case '/':ans_out = a / b; break;
-        case 'd':ans_out_T = (a.determinant()); break;
-        case 'r':ans_out = a.inverse_M(); break;
-        default:throw std::invalid_argument("unknown symbol");
-        }
-        if (L == 'd') {
-            std::cout << ans_out_T << "\n";
-        }
-        else
-        {
-            std::cout << ans_out << "\n";
-        }
-
-
-    }
-
-
-}
-void main_calc_menu() {
-    std::cout << "Enter calc type \n";
-
-    std::cout << "mfpint-matrix_calc<fraction<polynomial<int>>>()\n";
-    std::cout << "mfpdouble-matrix_calc<fraction<polynomial<double>>>()\n";
-    std::cout << "mpint-matrix_calc<polynomial<int>>()\n";
-    std::cout << "mpdouble-matrix_calc<polynomial<double>>()\n";
-    std::cout << "mdouble-matrix_calc<double>()\n";
-    std::cout << "mint-matrix_calc<int>()\n";
-    std::cout << "cmpl-complex_calc()\n";
-    std::cout << "\ncalc type:";
-
-    std::string type;
-    std::cin >> type;
-
-    if (type == "complex_calc()" || type == "cmpl")complex_calc();
-    else if (type == "matrix_calc<fraction<polynomial<int>>>()" || type == "mfpint" || type == "matfrpolint") matrix_calc<fraction<polynomial<int>>>();
-    else if (type == "matrix_calc<fraction<polynomial<double>>>()" || type == "mfpdouble" || type == "matfrpoldouble") matrix_calc<fraction<polynomial<double>>>();
-    else if (type == "matrix_calc<polynomial<int>>()" || type == "mpint" || type == "matpolint") matrix_calc<polynomial<int>>();
-    else if (type == "matrix_calc<polynomial<double>>()" || type == "mpdouble" || type == "matpoldouble") matrix_calc<polynomial<double>>();
-    else if (type == "matrix_calc<double>()" || type == "mdouble" || type == "matdouble") matrix_calc<double>();
-    else if (type == "matrix_calc<int>()" || type == "mint" || type == "matint") matrix_calc<int>();
-    else throw std::invalid_argument("unknown calculator type or an error in the name");
-}
-//global computing function 
-
-void calc_global() {
-    try
-    {
-        std::string type;
-    restart:
-        main_calc_menu();
-        std::cout << "Do you want to get out?(yes/no)\n:";
-        std::cin >> type;
-        if (type == "yes" || type == "y" || !(type == "no" || type == "n"))std::exit(0);
-        if (type == "no" || type == "n")goto restart;
-
-    }
-    catch (std::exception ex)
-    {
-        std::cout << "exeption!!What:" << ex.what();
-    }
-    catch (...)
-    {
-        std::cout << "unknown error";
-    }
-}
-}
 
 namespace counting_methods {
                                                           
@@ -541,6 +415,13 @@ std::vector<std::pair<T, T>> generatePointsLambda(int k, T x0, T step, Func F) {
     return points;
 }
 
+#define SHOW_INTERPOL_STAT(func,n,m, ...) \
+    counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic(func,n,m, #func, __VA_ARGS__)
+template <typename Func, typename... Args>
+constexpr void show_wrapper(Func func,double n, double m, Args... args) {
+    SHOW_INTERPOL_STAT(func,n,m, std::forward<Args>(args)...);
+}
+
 int main() {
     using namespace counting_methods_2::Polynomial_interpolation::nuton2;
 #if 0
@@ -557,7 +438,7 @@ int main() {
 
     counting_methods::holechi::example();
 #endif
-#define AU_LOG 4
+#define AU_LOG 6
 #if AU_LOG==1
     
     std::vector<std::pair<int, int>> Array_xy = { {1, 10}, {2, 20}, {3, 30},{1, 10}, {2, 20}, {3, 30},{1, 10}, {2, 20}, {3, 30},{1, 10}, {2, 20}, {3, 30},{1, 10}, {2, 20}, {3, 30} };
@@ -565,10 +446,9 @@ int main() {
     a.nuton_interpolation(6);
 #elif AU_LOG==2
    
-    auto Func = [](double x) { return  1 + 10 * x + 10 * x * x + 10 * x * x * x + 10 * x * x * x * x;
-        };
+    auto TheTypeOfFunctionThatBeingInterpolated = [](double x) { return  1 + 10 * x + 10 * x * x + 10 * x * x * x + 10 * x * x * x * x;};
 
-    auto Array_xy = generatePointsLambda(7, -4, 1, Func);
+    auto Array_xy = generatePointsLambda(7, -4, 1, TheTypeOfFunctionThatBeingInterpolated);
     
     std::cout << nuton_interpolation(Array_xy)<<"\ndivided_difference0_to_k(Array_xy):"<< nuton_interpolation(Array_xy).get_deg() << "\n\n\n\n\n\n\n";
 
@@ -614,14 +494,14 @@ int main() {
     //std::cout << a;
 
     std::vector<double> array={ 1,2,3,4,5,6 };
-    std::cout<< "wk0" << w_k0(array, 1).output_mode_set(output_mode::ABBREVIATED);
+    std::cout<< "wk0" << w_k_T0(array, 1).output_mode_set(output_mode::ABBREVIATED);
     
     //static_cast<double(*)(double)>
     using T = double;
-    //(w_k0(array, 1))
+    //(w_k(array, 1))
     //draw_function<double(*)(double)>(std::cos);
 
-    polynomial<double> pol = (w_k0(array, 1));
+    polynomial<double> pol = (w_k_T0(array, 1));
     std::vector<std::function<double(double)>> functions = {
         // Лямбда с захватом
         [k = 2.0](double x) { return k * x; },
@@ -632,6 +512,43 @@ int main() {
     draw_functions(functions);
     
     std::cout << pol(2);
+#elif AU_LOG == 5
+
+    std::vector<double> array = { 1,2,3,4,5,6 };
+    polynomial<double> polynom = w_k_T0(array, -1);
+
+    std::cout << "wk" << w_k_T0(array, -6).output_mode_set(output_mode::ABBREVIATED);
+    std::cout << "\nwx0"<<(w_k_T0(array, 1))(1);
+
+    std::vector<std::pair<double, double>> array_xy = {
+        {0.5, polynom(0.5) },{2.5, polynom(2.5)},
+        {4.5, polynom(4.5) },{6.5, polynom(6.5)},
+        {8.5, polynom(8.5) },{10.5, polynom(10.5)}
+    };
+
+
+    auto Func = [](double x) { return  1 + 10 * x + 10 * x * x + 10 * x * x * x + 10 * x * x * x * x; };
+    auto Array_xy = generatePoints_equally_sufficient_with_step_size(7, -4.0, 1.0, Func);
+
+    std::cout <<"\nans:" << Lagrang_interpolation(Array_xy);
+#elif AU_LOG == 6
+    /*show_interpolation_statistic(nuton_interpolation,10, 10,
+        [](double x) { return std::cos(x) / std::sin(x) + x * x; },
+        -2 * M_PI, 2 * M_PI
+    );*/
+
+SHOW_INTERPOL_STAT(
+    nuton_interpolation<double>, // interpolator
+    10, 20,                      // n, m_
+    [](double x) { return std::cos(x) / std::sin(x) + x * x; },
+    -2 * M_PI, 2 * M_PI
+);
+SHOW_INTERPOL_STAT(
+    Lagrang_interpolation<double>, 
+    10, 10,                      
+    [](double x) { return std::cos(x) / std::sin(x) + x * x; },
+    -2 * M_PI, 2 * M_PI
+);
 #endif
     
     system("pause");
