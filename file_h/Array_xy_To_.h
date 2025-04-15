@@ -1,7 +1,4 @@
 #pragma once
-
-
-
 #if __has_include(<SFML/Graphics.hpp>)
 #include <SFML/Graphics.hpp>
 #include <vector>
@@ -18,6 +15,7 @@ namespace Drawing_const {
     sf::Vector2f ratio_of_modifiers_by_xy = { 16.0f,9.0f },
         offset_from_Zero_vector = { 0,0 };
     const double modifire = 1;
+    //vector (-offset_from_Zero_vector) dla sdviga sisemi koordinat
 
     const double left_border = (-1) * ((center_Window.x) / (ratio_of_modifiers_by_xy.x * modifire)),
         right_border = (Drawing_Window_Size.x - center_Window.x) / (ratio_of_modifiers_by_xy.x * modifire),
@@ -53,7 +51,7 @@ const double modifire = 1*/) {
 }
 
 //ones fun object
-template<class T>void draw_function(T f) {
+template<class T>void draw_function(T& f) {
     sf::RenderWindow window(sf::VideoMode(Drawing_Window_Size), "y(x)=");
     
     // Создаём оси координат один раз перед циклом
@@ -89,7 +87,7 @@ template<class T>void draw_function(T f) {
 }
 
 //vector fun object
-template<class T>void draw_functions(const const std::vector<std::function<T(T)>>& functions) {
+template<class T>void draw_functions(const std::vector<std::function<T(T)>>& functions) {
     sf::RenderWindow window(sf::VideoMode(Drawing_Window_Size), "y(x)=");
     sf::VertexArray axes(sf::PrimitiveType::Lines, 4);
 
