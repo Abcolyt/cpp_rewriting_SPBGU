@@ -180,12 +180,13 @@ template <typename T>T matrix<T>::determinant() const {
 
     T det;
     det = (T)(1);
-    std::cout <<"temp:\n" << temp << "\n";
+    //std::cout <<"temp:\n" << temp << "\n";
     for (uint64_t i = 0; i < rowsize; i++) {
         
         det = (det *temp[i][i]);
+        //std::cout << (temp[i][i]) << '\n';
     }
-
+    //std::cout << det <<'\n';
     return det;
 }
 
