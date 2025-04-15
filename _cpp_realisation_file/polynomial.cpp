@@ -3,7 +3,7 @@
 template<typename P>polynomial<P> polynomial<P>::operator>>(const uint64_t power)const
 {
 	polynomial<P> result;result.newsize(deg + power);
-	for (uint64_t i = 0; i <= deg; i++)
+	for (uint64_t i = 0; i < deg; i++)
 	{
 		result.ptr[i + power] = ptr[i];
 		
@@ -14,7 +14,7 @@ template<typename P>polynomial<P> polynomial<P>::operator>>(const uint64_t power
 template<typename P>polynomial<P> polynomial<P>::operator<<(const uint64_t power)const
 {
 	polynomial result; result.newsize(deg - power);
-	for (uint64_t i = 0; i <= (deg - power); i++)
+	for (uint64_t i = 0; i < (deg - power); i++)
 	{
 		result.ptr[i] = ptr[i + power];
 	}

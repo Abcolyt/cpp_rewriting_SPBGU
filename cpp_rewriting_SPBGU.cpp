@@ -162,8 +162,30 @@ SHOW_INTERPOL_STAT(
     -2 * M_PI, 2 * M_PI
 );
 #elif AU_LOG == 7
-using namespace counting_methods_2::Polynomial_interpolation::Spline;
-splinepolate();
+//using namespace counting_methods_2::Polynomial_interpolation::Spline;
+//splinepolate();
+
+polynomial<int>  a,b;
+std::cout << "\na=" << a << "\nb=" << b<<"\n";
+std::stringstream ss("3\n3\n2\n1\n4\n4\n3\n2\n1");
+ss >> a >> b;
+std::cout << "\na=" << a << "\nb=" << b << "\n";
+std::cout<<"\n b / a=" << b / a;
+std::cout << "\n b % a=" <<b%a;
+
+//
+//
+//std::stringstream ss("2\n2\n2\n1\n1\n1\n1\n2\n1\n2\n1\n1\n2\n1\n3\n1\n1\n4\n1\n2\n3\n4\n1\n1\n");
+//matrix<fraction<polynomial<int>>> mtrx;
+//ss >> mtrx;
+//std::stringstream method_ans;
+//std::cout << mtrx.determinant();
+
+//method_ans << mtrx.determinant();
+//std::string true_ans_str1 = "(Degree: 5, Coefficients: 0 + (-2)x + (-1)x^2 + 7x^3 + 4x^4) / (Degree: 1, Coefficients: 1)",
+//true_ans_str2 = "(0+(-2)x+(-1)x^2+7x^3+4x^4) / (1)",
+//true_ans_str3 = "(0 -2x -1x^2 7x^3 4x^4) / (1)";
+
 
 #endif
     
