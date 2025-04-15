@@ -43,7 +43,8 @@ namespace counting_methods {
             return { x_new, iterations };
         }
 
-        template<typename P>std::vector<std::pair<P, int>> plnm_roots(polynomial<P> plnm, P x0) {
+        template<typename P>std::vector<std::pair<P, int>> plnm_roots(polynomial<P> plnm, P x0)
+        {
             std::vector<std::pair<P, int>> ans_roots;
             polynomial<P> b;
             size_t deg = plnm.get_deg() - 1;
