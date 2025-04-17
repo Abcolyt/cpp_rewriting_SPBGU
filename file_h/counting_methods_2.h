@@ -5,7 +5,7 @@
 #include <functional>
 #include <memory>
 #include <iomanip> 
-
+#include <unordered_map>
 #include <cmath>
 #include <corecrt_math_defines.h>
 
@@ -85,24 +85,29 @@ namespace counting_methods_2 {
                 Lagrang_interpolation_double_generatePoints_optimal = 3
 
             };
-            template<typename T>const std::vector < std::pair<std::string, methodical_error>> teoretical_max_error{
-                {"nuton_interpolation<double>generatePoints_equally_sufficient_", 0}, {"nuton_interpolation<double>generatePoints_optimal", 1},
-                {"Lagrang_interpolation<double>generatePoints_equally_sufficient_",2},{"Lagrang_interpolation<double>generatePoints_optimal",3}
+            using enum methodical_error;
+            template<typename T>const std::unordered_map<std::string, int> teoretical_max_error{
+                {"nuton_interpolation<double>generatePoints_equally_sufficient_", nuton_interpolation_double_generatePoints_equally_sufficient_},
+                {"nuton_interpolation<double>generatePoints_optimal", nuton_interpolation_double_generatePoints_optimal},
+                {"Lagrang_interpolation<double>generatePoints_equally_sufficient_",Lagrang_interpolation_double_generatePoints_equally_sufficient_},
+                {"Lagrang_interpolation<double>generatePoints_optimal",Lagrang_interpolation_double_generatePoints_optimal}
             
             };
-#endif
+            constexpr uint64_t factorial(uint64_t n) { return factorial(n-1)*n; }
+
             template<typename P>P methodic_error(methodical_error type, std::vector<std::pair<P, P>>& Array_xy) {
-                switch (type )
+                using enum methodical_error;
+                switch (type)
                 {
-                default:
-                case 0:
-                case 1:
-                case 2:
-                case 3:
-                    break;
+                case nuton_interpolation_double_generatePoints_equally_sufficient_: break;
+                case nuton_interpolation_double_generatePoints_optimal:break;
+                case Lagrang_interpolation_double_generatePoints_equally_sufficient_:break;
+                case Lagrang_interpolation_double_generatePoints_optimal:break;
+               default:break;
                 }
                 return P(1);
             }
+#endif
             template<typename P>std::vector<std::pair<P, P>> extractUniqueY(std::vector<std::pair<P, P>> Array_xy) {
 
                 std::sort(
@@ -123,6 +128,7 @@ namespace counting_methods_2 {
                 }
                 return result;
             }
+
             polynomial<int> generateRandomIntCoefficients(int min_degree = 3, int max_degree = 10, double min_c = -10, double max_c = 10) {
                 std::random_device rd;
                 std::mt19937 gen(rd());
@@ -445,140 +451,140 @@ namespace counting_methods_2 {
 
 
 #if 0
-#include <stdexcept>
-#include <cstdint>
-
-
-            using namespace std;
-
-
-            // Сегмент сплайна степени m
-            struct SplineSegment {
-                vector<double> coeffs;    // a0, a1, ..., am
-                double x_left, x_right;   // Границы интервала
-            };
-
-            class Spline {
-            private:
-                vector<SplineSegment> segments;
-                int m; // Степень сплайна
-                int p; // Порядок гладкости
-
-            public:
-                Spline(int degree, int smoothness) : m(degree), p(smoothness) {
-                    if (p >= m) throw invalid_argument("Smoothness cannot exceed degree");
-                }
-
-                // Построение сплайна
-                void build(const vector<double>& x, const vector<double>& y) {
-                    const int n = x.size() - 1;    // Количество интервалов
-                    const int N = (m + 1) * n;     // Общее количество коэффициентов
-
-                    matrix<double> A(N, N);
-                    vector<double> Y(N);
-
-                    // 1. Заполнение условий интерполяции
-                    for (int i = 0; i < n; ++i) {
-                        const double h = x[i + 1] - x[i];
-
-                        // S_i(x_i) = y_i
-                        A[i * (m + 1)][i * (m + 1)] = 1.0;
-                        Y[i * (m + 1)] = y[i];
-
-                        // S_i(x_{i+1}) = y_{i+1}
-                        for (int k = 0; k <= m; ++k)
-                            A[i * (m + 1) + 1][i * (m + 1) + k] = pow(h, k);
-                        Y[i * (m + 1) + 1] = y[i + 1];
-                    }
-
-                    // 2. Условия непрерывности производных
-                    int row = 2 * n;
-                    for (int i = 1; i < n; ++i) {
-                        const double h_prev = x[i] - x[i - 1];
-
-                        for (int r = 0; r <= p; ++r) {
-                            for (int k = r; k <= m; ++k) {
-                                // Предыдущий сегмент
-                                A[row][(i - 1) * (m + 1) + k] = factorial(k) / factorial(k - r) * pow(h_prev, k - r);
-
-                                // Текущий сегмент
-                                A[row][i * (m + 1) + k] = -factorial(k) / factorial(k - r) * (k == r ? 1.0 : 0.0);
-                            }
-                            Y[row] = 0.0;
-                            ++row;
-                        }
-                    }
-
-                    // 3. Граничные условия (естественный сплайн)
-                    const double h_first = x[1] - x[0];
-                    const double h_last = x[n] - x[n - 1];
-
-                    // Левая граница
-                    for (int k = p + 1; k <= m; ++k)
-                        A[row][k] = factorial(k) / factorial(k - (p + 1)) * pow(h_first, k - (p + 1));
-                    Y[row] = 0.0;
-
-                    // Правая граница
-                    for (int k = p + 1; k <= m; ++k)
-                        A[row][(n - 1) * (m + 1) + k] = factorial(k) / factorial(k - (p + 1)) * pow(h_last, k - (p + 1));
-                    Y[row] = 0.0;
-
-                    // Решение СЛАУ
-                    vector<double> X = solveLinearSystem(A, Y);
-
-                    // Сохранение коэффициентов
-                    segments.resize(n);
-                    for (int i = 0; i < n; ++i) {
-                        segments[i].coeffs.assign(
-                            X.begin() + i * (m + 1),
-                            X.begin() + (i + 1) * (m + 1)
-                        );
-                        segments[i].x_left = x[i];
-                        segments[i].x_right = x[i + 1];
-                    }
-                }
-
-                // Интерполяция значения
-                double interpolate(double x) const {
-                    auto it = lower_bound(segments.begin(), segments.end(), x,
-                        [](const SplineSegment& s, double val) { return s.x_right < val; });
-
-                    if (it == segments.end()) it = prev(segments.end());
-
-                    const auto& s = *it;
-                    const double dx = x - s.x_left;
-                    double result = 0.0;
-
-                    for (int k = 0; k <= m; ++k)
-                        result += s.coeffs[k] * pow(dx, k);
-
-                    return result;
-                }
-
-            private:
-                static double factorial(int n) {
-                    static const double precomputed[] = { 1, 1, 2, 6, 24, 120, 720, 5040 };
-                    return (n < 8) ? precomputed[n] : exp(lgamma(n + 1));
-                }
-
-                // Решение СЛАУ (сигнатура)
-                static vector<double> solveLinearSystem(matrix<double>& A, const vector<double>& Y) {
-                    // Реализация метода (Гаусс, LU-разложение и т.д.)
-                    // Возвращаем вектор решения
-                    return vector<double>(Y.size(), 0.0);
-                }
-            };
-
-            // Пример использования
-            int splinepolate() {
-                vector<double> x = { 0.0, 1.0, 2.0, 3.0 };
-                vector<double> y = { 0.0, 1.0, 0.5, 0.2 };
-
-                Spline spline(3, 2); // Кубический сплайн с C² гладкостью
-                spline.build(x, y);
-
-                cout << spline.interpolate(0.5) << endl;
-                return 0;
+//#include <stdexcept>
+//#include <cstdint>
+//
+//
+//            using namespace std;
+//
+//
+//            // Сегмент сплайна степени m
+//            struct SplineSegment {
+//                vector<double> coeffs;    // a0, a1, ..., am
+//                double x_left, x_right;   // Границы интервала
+//            };
+//
+//            class Spline {
+//            private:
+//                vector<SplineSegment> segments;
+//                int m; // Степень сплайна
+//                int p; // Порядок гладкости
+//
+//            public:
+//                Spline(int degree, int smoothness) : m(degree), p(smoothness) {
+//                    if (p >= m) throw invalid_argument("Smoothness cannot exceed degree");
+//                }
+//
+//                // Построение сплайна
+//                void build(const vector<double>& x, const vector<double>& y) {
+//                    const int n = x.size() - 1;    // Количество интервалов
+//                    const int N = (m + 1) * n;     // Общее количество коэффициентов
+//
+//                    matrix<double> A(N, N);
+//                    vector<double> Y(N);
+//
+//                    // 1. Заполнение условий интерполяции
+//                    for (int i = 0; i < n; ++i) {
+//                        const double h = x[i + 1] - x[i];
+//
+//                        // S_i(x_i) = y_i
+//                        A[i * (m + 1)][i * (m + 1)] = 1.0;
+//                        Y[i * (m + 1)] = y[i];
+//
+//                        // S_i(x_{i+1}) = y_{i+1}
+//                        for (int k = 0; k <= m; ++k)
+//                            A[i * (m + 1) + 1][i * (m + 1) + k] = pow(h, k);
+//                        Y[i * (m + 1) + 1] = y[i + 1];
+//                    }
+//
+//                    // 2. Условия непрерывности производных
+//                    int row = 2 * n;
+//                    for (int i = 1; i < n; ++i) {
+//                        const double h_prev = x[i] - x[i - 1];
+//
+//                        for (int r = 0; r <= p; ++r) {
+//                            for (int k = r; k <= m; ++k) {
+//                                // Предыдущий сегмент
+//                                A[row][(i - 1) * (m + 1) + k] = factorial(k) / factorial(k - r) * pow(h_prev, k - r);
+//
+//                                // Текущий сегмент
+//                                A[row][i * (m + 1) + k] = -factorial(k) / factorial(k - r) * (k == r ? 1.0 : 0.0);
+//                            }
+//                            Y[row] = 0.0;
+//                            ++row;
+//                        }
+//                    }
+//
+//                    // 3. Граничные условия (естественный сплайн)
+//                    const double h_first = x[1] - x[0];
+//                    const double h_last = x[n] - x[n - 1];
+//
+//                    // Левая граница
+//                    for (int k = p + 1; k <= m; ++k)
+//                        A[row][k] = factorial(k) / factorial(k - (p + 1)) * pow(h_first, k - (p + 1));
+//                    Y[row] = 0.0;
+//
+//                    // Правая граница
+//                    for (int k = p + 1; k <= m; ++k)
+//                        A[row][(n - 1) * (m + 1) + k] = factorial(k) / factorial(k - (p + 1)) * pow(h_last, k - (p + 1));
+//                    Y[row] = 0.0;
+//
+//                    // Решение СЛАУ
+//                    vector<double> X = solveLinearSystem(A, Y);
+//
+//                    // Сохранение коэффициентов
+//                    segments.resize(n);
+//                    for (int i = 0; i < n; ++i) {
+//                        segments[i].coeffs.assign(
+//                            X.begin() + i * (m + 1),
+//                            X.begin() + (i + 1) * (m + 1)
+//                        );
+//                        segments[i].x_left = x[i];
+//                        segments[i].x_right = x[i + 1];
+//                    }
+//                }
+//
+//                // Интерполяция значения
+//                double interpolate(double x) const {
+//                    auto it = lower_bound(segments.begin(), segments.end(), x,
+//                        [](const SplineSegment& s, double val) { return s.x_right < val; });
+//
+//                    if (it == segments.end()) it = prev(segments.end());
+//
+//                    const auto& s = *it;
+//                    const double dx = x - s.x_left;
+//                    double result = 0.0;
+//
+//                    for (int k = 0; k <= m; ++k)
+//                        result += s.coeffs[k] * pow(dx, k);
+//
+//                    return result;
+//                }
+//
+//            private:
+//                static double factorial(int n) {
+//                    static const double precomputed[] = { 1, 1, 2, 6, 24, 120, 720, 5040 };
+//                    return (n < 8) ? precomputed[n] : exp(lgamma(n + 1));
+//                }
+//
+//                // Решение СЛАУ (сигнатура)
+//                static vector<double> solveLinearSystem(matrix<double>& A, const vector<double>& Y) {
+//                    // Реализация метода (Гаусс, LU-разложение и т.д.)
+//                    // Возвращаем вектор решения
+//                    return vector<double>(Y.size(), 0.0);
+//                }
+//            };
+//
+//            // Пример использования
+//            int splinepolate() {
+//                vector<double> x = { 0.0, 1.0, 2.0, 3.0 };
+//                vector<double> y = { 0.0, 1.0, 0.5, 0.2 };
+//
+//                Spline spline(3, 2); // Кубический сплайн с C² гладкостью
+//                spline.build(x, y);
+//
+//                cout << spline.interpolate(0.5) << endl;
+//                return 0;
             }
 #endif
         }
