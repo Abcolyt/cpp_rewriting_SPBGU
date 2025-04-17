@@ -4,7 +4,7 @@
 #include <complex.h>
 #include <vector>
 
-#include "counting_methods_1.h"
+#include "../file_h/counting_methods_1.h"
 //the degree of detail of the output
 enum class output_mode
 {

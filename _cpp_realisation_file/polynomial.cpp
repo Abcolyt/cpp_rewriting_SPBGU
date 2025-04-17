@@ -1,7 +1,9 @@
+#include "../file_h/counting_methods_1.h"
 #pragma once
 #include"../file_h/polynomial.h"
 
-#include "counting_methods_1.h"
+
+
 template<typename P>polynomial<P> polynomial<P>::operator>>(const uint64_t power)const
 {
 	polynomial<P> result;result.newsize(deg + power);
@@ -399,7 +401,12 @@ template<typename P>void polynomial<P>::the_root_constructor(const std::vector<P
 	*this = a;
 }
 
-template<typename P>P maximum(P a, P b) {
-	auto pol this->get_first_derrivate();
-	std::max(counting_methods:: plnm_roots())
-}
+//template<typename P>P maximum(P a, P b) {
+//	P max_ans
+//	for (auto& i : counting_methods::polinomial::plnm_roots(this->get_first_derrivate()))
+//	{
+//		std::max(i, max_ans);
+//	}
+//	
+//	return 0;
+//}
