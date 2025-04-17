@@ -6,8 +6,11 @@
 #include <memory>
 #include <iomanip> 
 #include <unordered_map>
+#include <map>
 #include <cmath>
 #include <corecrt_math_defines.h>
+
+#include <numeric>
 
 #include "file_h/polynomial.h"
 #include "file_h/Array_xy_To_.h"
@@ -76,39 +79,72 @@ namespace counting_methods_2 {
         }
 
         namespace nuton2 {
-#if 1
+
             enum class methodical_error
             {
                 nuton_interpolation_double_generatePoints_equally_sufficient_ = 0,
                 nuton_interpolation_double_generatePoints_optimal = 1,
                 Lagrang_interpolation_double_generatePoints_equally_sufficient_ = 2,
-                Lagrang_interpolation_double_generatePoints_optimal = 3
+                Lagrang_interpolation_double_generatePoints_optimal = 3,
+                Alternativ_Lagrang_interpolation_double_generatePoints_equally_sufficient_=4,
+                Alternativ_Lagrang_interpolation_double_generatePoints_optimal=5
+
 
             };
             using enum methodical_error;
-            template<typename T>const std::unordered_map<std::string, int> teoretical_max_error{
+            const std::map<std::string, enum class methodical_error> teoretical_max_error{
                 {"nuton_interpolation<double>generatePoints_equally_sufficient_", nuton_interpolation_double_generatePoints_equally_sufficient_},
                 {"nuton_interpolation<double>generatePoints_optimal", nuton_interpolation_double_generatePoints_optimal},
-                {"Lagrang_interpolation<double>generatePoints_equally_sufficient_",Lagrang_interpolation_double_generatePoints_equally_sufficient_},
-                {"Lagrang_interpolation<double>generatePoints_optimal",Lagrang_interpolation_double_generatePoints_optimal}
-            
-            };
-            constexpr uint64_t factorial(uint64_t n) { return factorial(n-1)*n; }
 
-            template<typename P>P methodic_error(methodical_error type, std::vector<std::pair<P, P>>& Array_xy) {
+                {"Lagrang_interpolation<double>generatePoints_equally_sufficient_",Lagrang_interpolation_double_generatePoints_equally_sufficient_},
+                {"Lagrang_interpolation<double>generatePoints_optimal",Lagrang_interpolation_double_generatePoints_optimal},
+
+                {"Alternativ_Lagrang_interpolation<double>generatePoints_equally_sufficient_",Alternativ_Lagrang_interpolation_double_generatePoints_equally_sufficient_},
+                { "Alternativ_Lagrang_interpolation<double>generatePoints_optimal",Alternativ_Lagrang_interpolation_double_generatePoints_optimal }
+            };
+
+
+            uint64_t factorial(uint64_t n) { 
+                return n>=1?factorial(n-1)*n:1; 
+            }
+
+            template<class T>
+            inline constexpr T pow(const T base, unsigned const exponent)
+            {
+                return (exponent == 0) ? 1 : (base * pow(base, exponent - 1));
+            }
+
+            template<typename P>P methodic_error(enum methodical_error type, const std::vector<std::pair<P, P>>& Array_xy) {
                 using enum methodical_error;
-                switch (type)
+                
+                polynomial<P> pol;
+                std::vector < P> array_x;
+                
+                std::transform(Array_xy.begin(), Array_xy.end(),
+                    std::back_inserter(array_x),
+                    [](const auto& pair) { return pair.first; });
+                        pol.the_root_constructor(array_x);
+                auto min = *std::min_element(array_x.begin(), array_x.end());
+                auto max = *std::max_element(array_x.begin(), array_x.end());
+                switch(type)
                 {
-                case nuton_interpolation_double_generatePoints_equally_sufficient_: break;
-                case nuton_interpolation_double_generatePoints_optimal:break;
-                case Lagrang_interpolation_double_generatePoints_equally_sufficient_:break;
-                case Lagrang_interpolation_double_generatePoints_optimal:break;
-               default:break;
+                case Alternativ_Lagrang_interpolation_double_generatePoints_equally_sufficient_:
+                    return (pol.maximum(min, max) / factorial(Array_xy.size() + 1));
+                    break;
+                case Alternativ_Lagrang_interpolation_double_generatePoints_optimal:
+                    return 2 * (std::pow((max - min) / 4, Array_xy.size() + 1)) / factorial(Array_xy.size() + 1) ;
+                    break;
+
+                case Lagrang_interpolation_double_generatePoints_equally_sufficient_:      break;
+                case Lagrang_interpolation_double_generatePoints_optimal:                  break;
+                case nuton_interpolation_double_generatePoints_equally_sufficient_:        break;
+                case nuton_interpolation_double_generatePoints_optimal:                    break;
+                
                 }
                 return P(1);
             }
-#endif
-            template<typename P>std::vector<std::pair<P, P>> extractUniqueY(std::vector<std::pair<P, P>> Array_xy) {
+
+            template<typename P>std::vector<std::pair<P, P>> filter_by_unique_x(std::vector<std::pair<P, P>> Array_xy) {
 
                 std::sort(
                     Array_xy.begin(),
@@ -129,7 +165,8 @@ namespace counting_methods_2 {
                 return result;
             }
 
-            polynomial<int> generateRandomIntCoefficients(int min_degree = 3, int max_degree = 10, double min_c = -10, double max_c = 10) {
+            polynomial<int> generateRandomIntCoefficients(int min_degree = 3, int max_degree = 10, double min_c = -10, double max_c = 10)
+            {
                 std::random_device rd;
                 std::mt19937 gen(rd());
                 std::uniform_int_distribution<> dist_deg(min_degree, max_degree);
@@ -145,10 +182,9 @@ namespace counting_methods_2 {
 
                 return Ans;
             }
-
             template<typename P>polynomial<P> nuton_interpolation(std::vector<std::pair<P, P>> Array_xy) {
 
-                Array_xy = extractUniqueY(Array_xy);
+                Array_xy = filter_by_unique_x(Array_xy);
 
                 //#define LOGS  for (uint64_t i = 0; i < Array_xy.size(); i++) \
                 //{                                                         \
@@ -222,20 +258,18 @@ namespace counting_methods_2 {
                 return points;
             }
             //==========
-
-            
             //4-working function
             template<typename P, typename Func>polynomial<P> N_n(int n, P a, P b, Func F) {
-                return nuton_interpolation(extractUniqueY(generatePoints_equally_sufficient_with_step_size(n, a, (b - a) / n, F)));
+                return nuton_interpolation(filter_by_unique_x(generatePoints_equally_sufficient_with_step_size(n, a, (b - a) / n, F)));
             }
             //4-working function
             template<typename P, typename Func>polynomial<P> N_optn(int n, P a, P b, Func F) {
-                return nuton_interpolation(extractUniqueY(generatePoints_optimal(n, a, b, F)));
+                return nuton_interpolation(filter_by_unique_x(generatePoints_optimal(n, a, b, F)));
             }
 
             //F := working function
             template<typename P, typename Func>double RN_n(int n, P a, P b, Func F) {
-                auto table = extractUniqueY(generatePoints_equally_sufficient_with_step_size(n, a, (b - a) / n, F));
+                auto table = filter_by_unique_x(generatePoints_equally_sufficient_with_step_size(n, a, (b - a) / n, F));
                 auto interpolinom = nuton_interpolation(table);
                 double Max_ans = 0;
                 for (const auto& p : table) {
@@ -245,7 +279,7 @@ namespace counting_methods_2 {
             }
 
             template<typename P, typename Func>double RN_optn(int n, P a, P b, Func F) {
-                auto table = extractUniqueY(generatePoints_optimal(n, a, b, F));
+                auto table = filter_by_unique_x(generatePoints_optimal(n, a, b, F));
                 auto interpolinom = nuton_interpolation(table);
                 double Max_ans = 0;
                 for (const auto& p : table) {
@@ -286,7 +320,7 @@ namespace counting_methods_2 {
             }
 
             template<typename P>polynomial<P> Lagrang_interpolation(std::vector<std::pair<P, P>> Array_xy) {
-                Array_xy = extractUniqueY(Array_xy);
+                Array_xy = filter_by_unique_x(Array_xy);
                 polynomial<double> ans(0);
                 for (uint64_t i = 0; i < Array_xy.size(); i++)
                 {
@@ -295,17 +329,45 @@ namespace counting_methods_2 {
                 }
                 return ans;
             }
+            
+            template<typename P>polynomial<P> Alternativ_Lagrang_interpolation(std::vector<std::pair<P, P>> Array_xy) {
+                Array_xy = filter_by_unique_x(Array_xy);
+                
+                matrix<P> A(Array_xy.size()),B(Array_xy.size(),1);
+                
+                for (uint64_t i = 0; i < Array_xy.size(); i++)
+                {
+                    P el = Array_xy[i].first, el_= 1;
+                    for (size_t j = 0; j < Array_xy.size(); j++)
+                    {
+                        A[i][j] = el_ ;
+                        el_ = el_ * el;
+                    }
+                    B[i][0] = Array_xy[i].second;
+                }
+                A = (A.inverse_M()) * B;
+                std::cout << A << '\n';
+                polynomial<P> ans(0);
+                ans.set_deg(A.getcol()) ;
+                for (uint64_t i = 0; i < A.getcol()-1; i++)
+                {
+                    ans[i] = A[i][0];
+                    //std::cout << A[i][0] << '\n';
+                }
+                return ans;
+                
+            }
 #if 0
             template<typename P, typename Func>polynomial<P> L_n(int n, P a, P b, Func F) {
-                return Lagrang_interpolation(extractUniqueY(generatePoints_equally_sufficient_with_step_size(n, a, (b - a) / n, F)));
+                return Lagrang_interpolation(filter_by_unique_x(generatePoints_equally_sufficient_with_step_size(n, a, (b - a) / n, F)));
             
             }
             template<typename P, typename Func>polynomial<P> L_optn(int n, P a, P b, Func F) {
-                return Lagrang_interpolation(extractUniqueY(generatePoints_optimal(n, a, b, F)));
+                return Lagrang_interpolation(filter_by_unique_x(generatePoints_optimal(n, a, b, F)));
             }
 
             template<typename P, typename Func>double RL_n(int n, P a, P b, Func F) {
-                auto table = extractUniqueY(generatePoints_equally_sufficient_with_step_size(n, a, (b - a) / n, F));
+                auto table = filter_by_unique_x(generatePoints_equally_sufficient_with_step_size(n, a, (b - a) / n, F));
                 auto interpolinom = Lagrang_interpolation(table);
                 double Max_ans = 0;
                 for (const auto& p : table) {
@@ -314,7 +376,7 @@ namespace counting_methods_2 {
                 return Max_ans;
             }
             template<typename P, typename Func>double RL_optn(int n, P a, P b, Func F) {
-                auto table = extractUniqueY(generatePoints_optimal(n, a, b, F));
+                auto table = filter_by_unique_x(generatePoints_optimal(n, a, b, F));
                 auto interpolinom = Lagrang_interpolation(table);
                 double Max_ans = 0;
                 for (const auto& p : table) {
@@ -370,11 +432,11 @@ namespace counting_methods_2 {
                 TypeOfInterpolationFunc interpolation,
                 TypeFuncOfPointGeneration point_generation) //five parameter is type of point generation function on the interval [a;b]
             {
-                auto table = extractUniqueY(point_generation(n+m, a, b, F));
+                auto table = filter_by_unique_x(point_generation(n+m, a, b, F));
 
                 auto interpolinom = interpolation(
                     //std::vector<std::pair<P, P>>(table.begin(), table.begin() + std::min(m, table.size()))
-                    extractUniqueY(point_generation(n, a, b, F))
+                    filter_by_unique_x(point_generation(n, a, b, F))
                 );
 
                 double Max_ans = 0;
@@ -394,8 +456,13 @@ namespace counting_methods_2 {
             ) {
                 
                 std::stringstream Ans;
-                int s1 = std::max(std::toupper(log10(n)),3),s2= std::max(std::toupper(log10(n+m_)), 3),s3= 2 + interpolation_name.size() + 2;
+                int s1 = std::max(std::toupper(log10(n)), 3), s2 = std::max(std::toupper(log10(n + m_)), 3), s3 = 2 + interpolation_name.size() + 2, s4 = std::string{"R_teoretical_n" + interpolation_name }.size(),s5 = std::string{ "R_teoretical_opt__n"+ interpolation_name }.size();
                 Ans << std::left
+                    << "+" + (std::string(s1, '-') + "+") + (std::string(s2, '-') + "+") + (std::string(s3, '-') + "+") + (std::string(s3 + 5, '-') + "+") + (std::string(s4, '-') + "+") + (std::string(s5, '-'))
+                    << "+" << "\n"
+                    
+                    << std::left
+                    << std::setw(1) << "|"
                     << std::setw(s1) << "(n)"
                     << std::setw(1)<<"|"
                     << std::setw(s2) << "(m)"
@@ -403,7 +470,16 @@ namespace counting_methods_2 {
                     << std::setw(s3) << "R_" + interpolation_name+ "_n"
                     << std::setw(1) << "|"
                     << std::setw(s3+5) << "R_" + interpolation_name + "_opt__n"
-                    << "\n" +(std::string(s1, '-') +"+") + (std::string(s2, '-') + "+") + (std::string(s3, '-') + "+") + "\n";
+                   
+
+                    << std::setw(1) << "|"
+                    << std::setw(s4) << "R_" + interpolation_name + "teoretical_n"
+                    << std::setw(1) << "|"
+                    << std::setw(s5) << "R_" + interpolation_name + "teoretical_opt__n"
+                    << std::setw(1) << "|"
+
+                    << "\n+" + (std::string(s1, '-') + "+") + (std::string(s2, '-') + "+") + (std::string(s3, '-') + "+") + (std::string(s3 + 5, '-') + "+") + (std::string(s4, '-') + "+") + (std::string(s5, '-'))
+                    << "+" << "\n";
 
                 std::vector<std::function<P(P)>> functions_n, functions_opt;
                 functions_n.reserve(n + 1); 
@@ -414,13 +490,16 @@ namespace counting_methods_2 {
                 
                 for (uint64_t i = 1; i <= n ; i++)
                 {
-                    auto poly = N_optn(i, a, b, F);
+                    //auto poly = N_optn(i, a, b, F);
                     auto rn = error_of_the_interpolation_function(i, m_, a, b, F, func_interpolation, generatePoints_equally_sufficient_);
                     functions_n.push_back(rn.second);
+
                     auto rn_opt = error_of_the_interpolation_function(i,m_, a, b, F, func_interpolation, generatePoints_optimal);
                     functions_opt.push_back(rn_opt.second);
 
+
                     Ans << std::left
+                        << std::setw(1) << "|"
                         << std::setw(s1) << i
                         << std::setw(1) << "|"
                         << std::setw(s2) << i + m_
@@ -428,9 +507,16 @@ namespace counting_methods_2 {
                         << std::setw(s3) << std::setprecision(12) << rn.first
                         << std::setw(1) << "|"
                         << std::setw(s3+5) << std::setprecision(12) << rn_opt.first
+
+                        <<std::setw(1 )<<"|"
+                        << std::setw(s4) << std::setprecision(12) << methodic_error( teoretical_max_error.at(interpolation_name + "generatePoints_equally_sufficient_"), generatePoints_equally_sufficient_(i, a, b, F) )
+                        <<std::setw(1 )<<"|"
+                        << std::setw(s5) << std::setprecision(12) << methodic_error(teoretical_max_error.at(interpolation_name + "generatePoints_optimal"), generatePoints_optimal(i, a, b, F))
+                        << std::setw(1) << "|"
                         << "\n";
                 }
-
+                Ans<< "+" + (std::string(s1, '-') + "+") + (std::string(s2, '-') + "+") + (std::string(s3, '-') + "+") + (std::string(s3 + 5, '-') + "+") + (std::string(s4, '-') + "+") + (std::string(s5, '-'))
+                    << "+" << "\n";
                 std::cout << Ans.str();
 #if __has_include(<SFML/Graphics.hpp>)
                 draw_functions(functions_n);
@@ -444,153 +530,16 @@ namespace counting_methods_2 {
             }
             
 }
-
-        namespace Spline {
-            
-
-
-
-#if 0
-//#include <stdexcept>
-//#include <cstdint>
-//
-//
-//            using namespace std;
-//
-//
-//            // Сегмент сплайна степени m
-//            struct SplineSegment {
-//                vector<double> coeffs;    // a0, a1, ..., am
-//                double x_left, x_right;   // Границы интервала
-//            };
-//
-//            class Spline {
-//            private:
-//                vector<SplineSegment> segments;
-//                int m; // Степень сплайна
-//                int p; // Порядок гладкости
-//
-//            public:
-//                Spline(int degree, int smoothness) : m(degree), p(smoothness) {
-//                    if (p >= m) throw invalid_argument("Smoothness cannot exceed degree");
-//                }
-//
-//                // Построение сплайна
-//                void build(const vector<double>& x, const vector<double>& y) {
-//                    const int n = x.size() - 1;    // Количество интервалов
-//                    const int N = (m + 1) * n;     // Общее количество коэффициентов
-//
-//                    matrix<double> A(N, N);
-//                    vector<double> Y(N);
-//
-//                    // 1. Заполнение условий интерполяции
-//                    for (int i = 0; i < n; ++i) {
-//                        const double h = x[i + 1] - x[i];
-//
-//                        // S_i(x_i) = y_i
-//                        A[i * (m + 1)][i * (m + 1)] = 1.0;
-//                        Y[i * (m + 1)] = y[i];
-//
-//                        // S_i(x_{i+1}) = y_{i+1}
-//                        for (int k = 0; k <= m; ++k)
-//                            A[i * (m + 1) + 1][i * (m + 1) + k] = pow(h, k);
-//                        Y[i * (m + 1) + 1] = y[i + 1];
-//                    }
-//
-//                    // 2. Условия непрерывности производных
-//                    int row = 2 * n;
-//                    for (int i = 1; i < n; ++i) {
-//                        const double h_prev = x[i] - x[i - 1];
-//
-//                        for (int r = 0; r <= p; ++r) {
-//                            for (int k = r; k <= m; ++k) {
-//                                // Предыдущий сегмент
-//                                A[row][(i - 1) * (m + 1) + k] = factorial(k) / factorial(k - r) * pow(h_prev, k - r);
-//
-//                                // Текущий сегмент
-//                                A[row][i * (m + 1) + k] = -factorial(k) / factorial(k - r) * (k == r ? 1.0 : 0.0);
-//                            }
-//                            Y[row] = 0.0;
-//                            ++row;
-//                        }
-//                    }
-//
-//                    // 3. Граничные условия (естественный сплайн)
-//                    const double h_first = x[1] - x[0];
-//                    const double h_last = x[n] - x[n - 1];
-//
-//                    // Левая граница
-//                    for (int k = p + 1; k <= m; ++k)
-//                        A[row][k] = factorial(k) / factorial(k - (p + 1)) * pow(h_first, k - (p + 1));
-//                    Y[row] = 0.0;
-//
-//                    // Правая граница
-//                    for (int k = p + 1; k <= m; ++k)
-//                        A[row][(n - 1) * (m + 1) + k] = factorial(k) / factorial(k - (p + 1)) * pow(h_last, k - (p + 1));
-//                    Y[row] = 0.0;
-//
-//                    // Решение СЛАУ
-//                    vector<double> X = solveLinearSystem(A, Y);
-//
-//                    // Сохранение коэффициентов
-//                    segments.resize(n);
-//                    for (int i = 0; i < n; ++i) {
-//                        segments[i].coeffs.assign(
-//                            X.begin() + i * (m + 1),
-//                            X.begin() + (i + 1) * (m + 1)
-//                        );
-//                        segments[i].x_left = x[i];
-//                        segments[i].x_right = x[i + 1];
-//                    }
-//                }
-//
-//                // Интерполяция значения
-//                double interpolate(double x) const {
-//                    auto it = lower_bound(segments.begin(), segments.end(), x,
-//                        [](const SplineSegment& s, double val) { return s.x_right < val; });
-//
-//                    if (it == segments.end()) it = prev(segments.end());
-//
-//                    const auto& s = *it;
-//                    const double dx = x - s.x_left;
-//                    double result = 0.0;
-//
-//                    for (int k = 0; k <= m; ++k)
-//                        result += s.coeffs[k] * pow(dx, k);
-//
-//                    return result;
-//                }
-//
-//            private:
-//                static double factorial(int n) {
-//                    static const double precomputed[] = { 1, 1, 2, 6, 24, 120, 720, 5040 };
-//                    return (n < 8) ? precomputed[n] : exp(lgamma(n + 1));
-//                }
-//
-//                // Решение СЛАУ (сигнатура)
-//                static vector<double> solveLinearSystem(matrix<double>& A, const vector<double>& Y) {
-//                    // Реализация метода (Гаусс, LU-разложение и т.д.)
-//                    // Возвращаем вектор решения
-//                    return vector<double>(Y.size(), 0.0);
-//                }
-//            };
-//
-//            // Пример использования
-//            int splinepolate() {
-//                vector<double> x = { 0.0, 1.0, 2.0, 3.0 };
-//                vector<double> y = { 0.0, 1.0, 0.5, 0.2 };
-//
-//                Spline spline(3, 2); // Кубический сплайн с C² гладкостью
-//                spline.build(x, y);
-//
-//                cout << spline.interpolate(0.5) << endl;
-//                return 0;
-            }
-#endif
-        }
+            };
+namespace Spline {
 
 
 
-    }
-    namespace Spline_interpolation {}
+
+
+
+
+
+}
+
 }
