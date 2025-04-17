@@ -4,6 +4,7 @@
 #include "file_h/polynomial.h"
 #include "file_h/matrix.h"
 
+class Polynomial;
 
 namespace counting_methods {
 
@@ -26,52 +27,12 @@ namespace counting_methods {
     namespace polinomial {
 
 
-        template<typename P>P abs(P arg) {
-            if (arg < 0) { arg = arg * (-1); }
-            return arg;
-        }
-
-        template<typename P>std::pair<P, int> solve_tangents(polynomial<P> plnm, P x0, double e,uint64_t max_iter_number=1'000'000 ) {
-            int iterations = 0;
-            P x_old = 5, x_new = x0;
-            auto derivate =polynomialfunctions::derivate(plnm);
-            while (abs(x_new - x_old) > e and iterations < max_iter_number) {
-                auto T = abs(x_new - x_old);
-                x_old = x_new;
-                x_new = x_old + (polynomialfunctions::f_polyn_x0_<P>(plnm, x_old) / (polynomialfunctions::f_polyn_x0_<P>(derivate, x_old))) * (-1);
-                iterations++;
-             }
-            return { x_new, iterations };
-        }
-
-        template<typename P>std::vector<std::pair<P, int>> plnm_roots(polynomial<P> plnm, P x0)
-        {
-            std::vector<std::pair<P, int>> ans_roots;
-            polynomial<P> b;
-            size_t deg = plnm.get_deg() -1 ;
-            //std::cout << plnm << "  deg" << plnm.get_deg() << "\n";
-
-            for (size_t i = 0; i < deg; i++)
-            {
-                //std::cout << "plnm:" << plnm << "\nnew plnm" << b << "\nnew iter" << "'" << i << "' \n";
-                auto ans = solve_tangents<P>(plnm, x0, LDBL_EPSILON);
-                //std::cout << "ans" << solve_tangents<P>(plnm, x0, LDBL_EPSILON).first << "\n";
-                //std::cout <<"root["<<i<<"]=" << ans.first << '\n';
-                b.newsize(2);
-                b[1] = 1;
-                b[0] = (ans.first) * (-1);
-
-                plnm = (plnm / b);
-                //std::cout << "plnm after:" << plnm<<"\n";
-                ans_roots.push_back(ans);
-            }
-            return ans_roots;
-        }
 
 
         void polynomial_test() {
             polynomial<Complex> plnm, b;
             std::cin >> plnm;
+            using namespace polynomialfunctions;
             auto ans = plnm_roots<Complex>(plnm, Complex(LDBL_EPSILON, LDBL_EPSILON));
             for (size_t i = 0; i < ans.size(); i++)
             {

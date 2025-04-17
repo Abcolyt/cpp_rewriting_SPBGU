@@ -49,7 +49,7 @@ int main() {
 
     counting_methods::holechi::example();
 #endif
-#define AU_LOG 6
+#define AU_LOG 7
 
 #if AU_LOG==1
     
@@ -172,15 +172,16 @@ polynomial<double>a;
 //std::cout << polynomialfunctions::derivate(a);
 std::vector < double> roots{1,3,0.5,0.6,12};
 a.the_root_constructor(roots);
-std::cout << a <<"  deg"<<a.get_deg() << "\n";
+std::cout << a <<"  deg"<<a.get_deg() <<"  "<<a.maximum() <<"\n";
+
 //counting_methods::polinomial::plnm_roots(polynomialfunctions::derivate(a), LDBL_EPSILON);
 double in = 0;
-while (true)
+while (false)
 {
 
     std::cin >> in;
     //(counting_methods::polinomial::plnm_roots(polynomialfunctions::derivate(a), in))
-    auto roots= (counting_methods::polinomial::plnm_roots(a, in));
+    auto roots= (polynomialfunctions::plnm_roots(a, in));
     for (auto i : roots)
     {
         std::cout << '\n' << i.first << "  " << i.second << '\n';
