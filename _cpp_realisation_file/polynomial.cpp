@@ -1,7 +1,7 @@
 #pragma once
 #include"../file_h/polynomial.h"
 
-#include "file_h/counting_methods_1.h"
+#include "counting_methods_1.h"
 template<typename P>polynomial<P> polynomial<P>::operator>>(const uint64_t power)const
 {
 	polynomial<P> result;result.newsize(deg + power);

@@ -76,7 +76,7 @@ namespace counting_methods_2 {
         }
 
         namespace nuton2 {
-#if 1
+#if 0
             enum class methodical_error
             {
                 nuton_interpolation_double_generatePoints_equally_sufficient_ = 0,
@@ -90,7 +90,7 @@ namespace counting_methods_2 {
                 {"Lagrang_interpolation<double>generatePoints_equally_sufficient_",2},{"Lagrang_interpolation<double>generatePoints_optimal",3}
             
             };
-#endif
+
             template<typename P>P methodic_error(methodical_error type, std::vector<std::pair<P, P>>& Array_xy) {
                 switch (type )
                 {
@@ -103,6 +103,7 @@ namespace counting_methods_2 {
                 }
                 return P(1);
             }
+#endif
             template<typename P>std::vector<std::pair<P, P>> extractUniqueY(std::vector<std::pair<P, P>> Array_xy) {
 
                 std::sort(
