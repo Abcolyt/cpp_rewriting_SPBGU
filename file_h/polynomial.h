@@ -2,7 +2,9 @@
 #include<iostream>
 #include <sstream>
 #include <complex.h>
+#include <vector>
 
+#include "file_h/counting_methods_1.h"
 //the degree of detail of the output
 enum class output_mode
 {
@@ -141,6 +143,10 @@ public:
 	P operator()(const P& x) const {
 		return polynomialfunctions::f_polyn_x0_(*this, x);
 	}
+	void the_root_constructor(const std::vector<P>& array_xy);
+	polynomial<P> get_first_derrivate()const { return derivate(*this); }
+	P maximum(P a, P b);
+	
 };
 template<typename P> output_mode polynomial<P>::default_output_mode = output_mode::SHORT;
 

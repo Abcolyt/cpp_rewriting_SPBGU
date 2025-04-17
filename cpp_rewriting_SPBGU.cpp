@@ -49,7 +49,7 @@ int main() {
 
     counting_methods::holechi::example();
 #endif
-#define AU_LOG 7
+#define AU_LOG 6
 
 #if AU_LOG==1
     
@@ -163,40 +163,30 @@ SHOW_INTERPOL_STAT(
 );
 #elif AU_LOG == 7
 
-std::stringstream ss("2\n2\n2\n1\n1\n1\n1\n2\n1\n2\n1\n1\n2\n1\n3\n1\n1\n4\n1\n2\n3\n4\n1\n1\n");
-matrix<fraction<polynomial<float>>> mtrx;
-ss >> mtrx;
-std::cout << mtrx << "\n";
-std::stringstream method_ans;
-method_ans << mtrx.determinant();
-std::string true_ans_str1 = "(Degree: 5, Coefficients: 0 + (-2)x + (-1)x^2 + 7x^3 + 4x^4) / (Degree: 1, Coefficients: 1)",
-true_ans_str2 = "(0+(-2)x+(-1)x^2+7x^3+4x^4) / (1)",
-true_ans_str3 = "(0 -2x -1x^2 7x^3 4x^4) / (1)";
-
-std::cout << mtrx << "\n";
-std::cout << mtrx.determinant();
-
-
-//polynomial<int>  a,b;
-//std::cout << "\na=" << a << "\nb=" << b<<"\n";
-//std::stringstream ss("3\n3\n2\n1\n4\n4\n3\n2\n1");
-//ss >> a >> b;
-//std::cout << "\na=" << a << "\nb=" << b << "\n";
-//std::cout<<"\n b / a=" << b / a;
-//std::cout << "\n b % a=" <<b%a;
 
 //using namespace counting_methods_2::Polynomial_interpolation::Spline;
 //splinepolate();
-//std::stringstream ss("2\n2\n2\n1\n1\n1\n1\n2\n1\n2\n1\n1\n2\n1\n3\n1\n1\n4\n1\n2\n3\n4\n1\n1\n");
-//matrix<fraction<polynomial<int>>> mtrx;
-//ss >> mtrx;
-//std::stringstream method_ans;
-//std::cout << mtrx.determinant();
 
-//method_ans << mtrx.determinant();
-//std::string true_ans_str1 = "(Degree: 5, Coefficients: 0 + (-2)x + (-1)x^2 + 7x^3 + 4x^4) / (Degree: 1, Coefficients: 1)",
-//true_ans_str2 = "(0+(-2)x+(-1)x^2+7x^3+4x^4) / (1)",
-//true_ans_str3 = "(0 -2x -1x^2 7x^3 4x^4) / (1)";
+polynomial<double>a;
+
+//std::cout << polynomialfunctions::derivate(a);
+std::vector < double> roots{1,3,0.5,0.6,12};
+a.the_root_constructor(roots);
+std::cout << a <<"  deg"<<a.get_deg() << "\n";
+//counting_methods::polinomial::plnm_roots(polynomialfunctions::derivate(a), LDBL_EPSILON);
+double in = 0;
+while (true)
+{
+
+    std::cin >> in;
+    //(counting_methods::polinomial::plnm_roots(polynomialfunctions::derivate(a), in))
+    auto roots= (counting_methods::polinomial::plnm_roots(a, in));
+    for (auto i : roots)
+    {
+        std::cout << '\n' << i.first << "  " << i.second << '\n';
+    }
+
+}
 #endif
     
     system("pause");
