@@ -76,7 +76,33 @@ namespace counting_methods_2 {
         }
 
         namespace nuton2 {
+#if 1
+            enum class methodical_error
+            {
+                nuton_interpolation_double_generatePoints_equally_sufficient_ = 0,
+                nuton_interpolation_double_generatePoints_optimal = 1,
+                Lagrang_interpolation_double_generatePoints_equally_sufficient_ = 2,
+                Lagrang_interpolation_double_generatePoints_optimal = 3
 
+            };
+            template<typename T>const std::vector < std::pair<std::string, methodical_error>> teoretical_max_error{
+                {"nuton_interpolation<double>generatePoints_equally_sufficient_", 0}, {"nuton_interpolation<double>generatePoints_optimal", 1},
+                {"Lagrang_interpolation<double>generatePoints_equally_sufficient_",2},{"Lagrang_interpolation<double>generatePoints_optimal",3}
+            
+            };
+#endif
+            template<typename P>P methodic_error(methodical_error type, std::vector<std::pair<P, P>>& Array_xy) {
+                switch (type )
+                {
+                default:
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                    break;
+                }
+                return P(1);
+            }
             template<typename P>std::vector<std::pair<P, P>> extractUniqueY(std::vector<std::pair<P, P>> Array_xy) {
 
                 std::sort(
@@ -88,7 +114,7 @@ namespace counting_methods_2 {
                 std::vector<std::pair<P, P>> result;
                 result.push_back(Array_xy[0]);
                 for (size_t i = 1; i < Array_xy.size(); ++i) {
-                    // Пропускаем пары, где x совпадает с предыдущим
+                   
                     if (Array_xy[i].first == Array_xy[i - 1].first) {
 
                         continue;
@@ -96,6 +122,22 @@ namespace counting_methods_2 {
                     result.push_back(Array_xy[i]);
                 }
                 return result;
+            }
+            polynomial<int> generateRandomIntCoefficients(int min_degree = 3, int max_degree = 10, double min_c = -10, double max_c = 10) {
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::uniform_int_distribution<> dist_deg(min_degree, max_degree);
+                polynomial<int> Ans;
+                Ans.newsize(dist_deg(gen));
+
+                std::uniform_int_distribution<> dist_c(min_c, max_c);
+                for (int i = 0; i < Ans.get_deg(); ++i) {
+                    Ans[i] = (dist_c(gen));
+                }
+
+                Ans.cutbag();
+
+                return Ans;
             }
 
             template<typename P>polynomial<P> nuton_interpolation(std::vector<std::pair<P, P>> Array_xy) {
@@ -132,23 +174,6 @@ namespace counting_methods_2 {
                     //LOGS
                 }
                 Ans = Ans.cutbag();
-                return Ans;
-            }
-
-            polynomial<int> generateRandomIntCoefficients(int min_degree = 3, int max_degree = 10, double min_c = -10, double max_c = 10) {
-                std::random_device rd;
-                std::mt19937 gen(rd());
-                std::uniform_int_distribution<> dist_deg(min_degree, max_degree);
-                polynomial<int> Ans;
-                Ans.newsize(dist_deg(gen));
-
-                std::uniform_int_distribution<> dist_c(min_c, max_c);
-                for (int i = 0; i < Ans.get_deg(); ++i) {
-                    Ans[i] = (dist_c(gen));
-                }
-
-                Ans.cutbag();
-
                 return Ans;
             }
 
@@ -415,7 +440,11 @@ namespace counting_methods_2 {
 }
 
         namespace Spline {
+            
 
+
+
+#if 0
 #include <stdexcept>
 #include <cstdint>
 
@@ -551,7 +580,7 @@ namespace counting_methods_2 {
                 cout << spline.interpolate(0.5) << endl;
                 return 0;
             }
-
+#endif
         }
 
 
