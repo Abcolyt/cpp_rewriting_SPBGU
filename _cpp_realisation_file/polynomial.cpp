@@ -78,6 +78,17 @@ namespace polynomialfunctions {
 		return ans_roots;
 	}
 
+	template<typename P>polynomial<P> filter_large_epsilon(polynomial<P> pol, P eps) {
+		for (uint64_t i = 0; i < pol.get_deg(); i++)
+		{
+				if (-eps < pol[i] && pol[i] < eps){
+					pol[i] = 0;
+			}
+		}
+		return pol.cutbag();
+
+	}
+
 }
 
 template<typename P>polynomial<P> polynomial<P>::operator>>(const uint64_t power)const
@@ -227,17 +238,17 @@ template<typename P>std::istream& operator>>(std::istream& in, polynomial<P>& pl
 
 	return in;
 }
-
-template<typename P>void polynomial<P>::output_mode_set(std::string newmode) {
-	switch (newmode)
-	{
-	case "FULL": outm_E = output_mode::FULL;			 break;
-	case "ABBREVIATED":outm_E = output_mode::ABBREVIATED;break;
-	case "SHORT": outm_E = output_mode::SHORT;			 break;
-	default:break;
-	}
-}
-template<typename P>void polynomial<P>::output_mode_set(uint64_t newmode) {
+//
+//template<typename P>polynomial<P> polynomial<P>::output_mode_set(std::string newmode) {
+//	switch (newmode)
+//	{
+//	case "FULL": outm_E = output_mode::FULL;			 break;
+//	case "ABBREVIATED":outm_E = output_mode::ABBREVIATED;break;
+//	case "SHORT": outm_E = output_mode::SHORT;			 break;
+//	default:break;
+//	}
+//}
+template<typename P>polynomial<P> polynomial<P>::output_mode_set(uint64_t newmode) {
 	switch (newmode)
 	{
 	case 0: outm_E = output_mode::FULL;			break;
@@ -245,6 +256,7 @@ template<typename P>void polynomial<P>::output_mode_set(uint64_t newmode) {
 	case 2: outm_E = output_mode::SHORT;		break;
 	default:break;
 	}
+	return *this;
 }
 template<typename P>polynomial<P>& polynomial<P>::output_mode_set(output_mode new_outm_E) {
 	switch (new_outm_E)
@@ -478,25 +490,28 @@ template<typename P>void polynomial<P>::the_root_constructor(const std::vector<P
 }
 
 template<typename P>P polynomial<P>::maximum(P a, P b) const {
+	using namespace polynomialfunctions;
 	P ans_max = 0;
-	auto V = polynomialfunctions::plnm_roots(this->get_first_derrivate(), DBL_EPSILON);
+	std::vector<std::pair<P, int>> V = polynomialfunctions::plnm_roots(this->get_first_derrivate(), DBL_EPSILON);
 	for (auto& i : V)
 	{
 		if (a < i.first && i.first < b) {
-			ans_max = polynomialfunctions::max(ans_max, polynomialfunctions::abs((*this)(i.first) ));
+			std::cout << i.first << " \n";
+			ans_max = polynomialfunctions::max(ans_max,abs((*this)(i.first) ));
 		}
-		
 	}
+	ans_max =max(ans_max, polynomialfunctions::abs((*this)(a)));
+	ans_max =max(ans_max, polynomialfunctions::abs((*this)(b)));
+	return ans_max;
+}
 
-	return ans_max;
-}
-template<typename P>P polynomial<P>::maximum()const {
-	P ans_max = 0;
-	for (auto& i : polynomialfunctions::plnm_roots(this->get_first_derrivate()) )
-	{
-		ans_max = polynomialfunctions::max(ans_max, polynomialfunctions::abs((*this)(i.first)));
-		std::cout << "\n" << i.first << " f(i.first) " << (*this)(i.first) << "\n";
-	}
-	
-	return ans_max;
-}
+//template<typename P>P polynomial<P>::maximum()const {
+//	P ans_max = 0;
+//	for (auto& i : polynomialfunctions::plnm_roots(this->get_first_derrivate()) )
+//	{
+//		ans_max = polynomialfunctions::max(ans_max, polynomialfunctions::abs((*this)(i.first)));
+//		std::cout << "\n" << i.first << " f(i.first) " << (*this)(i.first) << "\n";
+//	}
+//	
+//	return ans_max;
+//}

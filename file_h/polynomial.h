@@ -20,6 +20,7 @@ namespace polynomialfunctions {
 	template<typename P>P max(P arg1,P arg2);
 	template<typename P>std::pair<P, int> solve_tangents(polynomial<P> plnm, P x0, double e, uint64_t max_iter_number = 1'000'000);
 	template<typename P>std::vector<std::pair<P, int>> plnm_roots(polynomial<P> plnm, P x0 = FLT_EPSILON);
+	template<typename P>polynomial<P> filter_large_epsilon(polynomial<P>, P eps);
 }
 template<typename P> std::ostream& operator<<(std::ostream& out, const polynomial<P>& plnm);
 template<typename P> std::istream& operator>>(std::istream& in, polynomial<P>& plnm);
@@ -145,11 +146,11 @@ public:
 	//reallocate memory with zeros (old data is not saved)
 	void newsize(uint64_t size);
 	//set the output mode via a variable of type: uint64_t newmode
-	void output_mode_set(uint64_t newmode);
+	polynomial<P> output_mode_set(uint64_t newmode);
 	//set the output mode via a variable of type: uint64_t newmode 
 	polynomial<P>& output_mode_set(output_mode new_outm_E);
 	//set the output mode via a variable of type: std::string newmode
-	void output_mode_set(std::string newmode);
+	polynomial<P> output_mode_set(std::string newmode);
 	
 	//NEW
 	//return Pol(x0)
