@@ -87,7 +87,10 @@ namespace counting_methods_2 {
                 Lagrang_interpolation_double_generatePoints_equally_sufficient_ = 2,
                 Lagrang_interpolation_double_generatePoints_optimal = 3,
                 Alternativ_Lagrang_interpolation_double_generatePoints_equally_sufficient_=4,
-                Alternativ_Lagrang_interpolation_double_generatePoints_optimal=5
+                Alternativ_Lagrang_interpolation_double_generatePoints_optimal=5,
+                Alternativ_nuton_interpolation_double_generatePoints_equally_sufficient_ = 6,
+                Alternativ_nuton_interpolation_double_generatePoints_optimal = 7,
+                
 
 
             };
@@ -100,7 +103,10 @@ namespace counting_methods_2 {
                 {"Lagrang_interpolation<double>generatePoints_optimal",Lagrang_interpolation_double_generatePoints_optimal},
 
                 {"Alternativ_Lagrang_interpolation<double>generatePoints_equally_sufficient_",Alternativ_Lagrang_interpolation_double_generatePoints_equally_sufficient_},
-                { "Alternativ_Lagrang_interpolation<double>generatePoints_optimal",Alternativ_Lagrang_interpolation_double_generatePoints_optimal }
+                { "Alternativ_Lagrang_interpolation<double>generatePoints_optimal",Alternativ_Lagrang_interpolation_double_generatePoints_optimal },
+
+                {"Alternativ_nuton_interpolation<double>generatePoints_equally_sufficient_",Alternativ_nuton_interpolation_double_generatePoints_equally_sufficient_},
+                { "Alternativ_nuton_interpolation<double>generatePoints_optimal",Alternativ_nuton_interpolation_double_generatePoints_equally_sufficient_ }
             };
 
 
@@ -114,17 +120,20 @@ namespace counting_methods_2 {
                 return (exponent == 0) ? 1 : (base * pow(base, exponent - 1));
             }
 
-            template<typename P>P methodic_error(enum methodical_error type, const std::vector<std::pair<P, P>>& Array_xy) {
+            template<typename P, typename FuncInterpolation>P methodic_error(enum methodical_error type, const std::vector<std::pair<P, P>>& Array_xy,FuncInterpolation func_interpolation) {
                 using enum methodical_error;
                 
-                polynomial<P> pol;
+                polynomial<P> pol= func_interpolation(Array_xy);
                 std::vector < P> array_x;
                 
                 std::transform(Array_xy.begin(), Array_xy.end(),
                     std::back_inserter(array_x),
                     [](const auto& pair) { return pair.first; });
-                        pol.the_root_constructor(array_x);
+                pol.the_root_constructor(array_x);
+                /*for (auto& i : Array_xy){ array_x.push_back(i.first); }*/
+                           
                 auto min = *std::min_element(array_x.begin(), array_x.end());
+                //std::cout << " " << (pol) <<"  "<< (min)<<"  (" << pol(min) << " )";
                 auto max = *std::max_element(array_x.begin(), array_x.end());
                 switch(type)
                 {
@@ -135,11 +144,16 @@ namespace counting_methods_2 {
                     return 2 * (std::pow((max - min) / 4, Array_xy.size() + 1)) / factorial(Array_xy.size() + 1) ;
                     break;
 
-                case Lagrang_interpolation_double_generatePoints_equally_sufficient_:      break;
-                case Lagrang_interpolation_double_generatePoints_optimal:                  break;
+                case Lagrang_interpolation_double_generatePoints_equally_sufficient_:      
+                    return (pol.maximum(min, max) / factorial(Array_xy.size() + 1));
+                    break;
+                case Lagrang_interpolation_double_generatePoints_optimal:
+                    return 2 * (std::pow((max - min) / 4, Array_xy.size() + 1)) / factorial(Array_xy.size() + 1);
+                    break;
+
                 case nuton_interpolation_double_generatePoints_equally_sufficient_:        break;
                 case nuton_interpolation_double_generatePoints_optimal:                    break;
-                
+                default:return P(1);
                 }
                 return P(1);
             }
@@ -185,38 +199,52 @@ namespace counting_methods_2 {
             template<typename P>polynomial<P> nuton_interpolation(std::vector<std::pair<P, P>> Array_xy) {
 
                 Array_xy = filter_by_unique_x(Array_xy);
-
-                //#define LOGS  for (uint64_t i = 0; i < Array_xy.size(); i++) \
-                //{                                                         \
-                //    std::cout << Array_xy[i].first<<"  "<< Array_xy[i].second <<"\n";     \
-                //} 
-
-                //LOGS;
-
                 polynomial<P> Ans = 0, w_k = 1;
 
                 for (size_t i = 1; i < Array_xy.size(); i++)
                 {
-                    /*if ((Array_xy[0].second) == 0)
-                    {
-                        return Ans;
-                    }*/
 
-                    // std::cout << "Ans:" << Ans << " (Array_xy[0].second)=( " << (Array_xy[0].second) << ")*w_k " << w_k << '\n';
                     Ans = Ans + w_k * (Array_xy[0].second);
                     for (size_t j = 0; j < Array_xy.size() - i; j++)
                     {
                         Array_xy[j].second = (Array_xy[j + 1].second - Array_xy[j].second) / (Array_xy[j + i].first - Array_xy[j].first);
                     }
 
-
-                    //std::cout << "Ans:" << Ans << "\n";
                     w_k = w_k * ((static_cast<polynomial<P>>(1) >> 1) - Array_xy[i - 1].first);
-                    //std::cout << "i"<< i<< '\n';
-                    //LOGS
                 }
                 Ans = Ans.cutbag();
                 return Ans;
+            }
+
+            template<typename P>polynomial<P> Alternativ_nuton_interpolation(std::vector<std::pair<P, P>> Array_xy) {
+                Array_xy = filter_by_unique_x(Array_xy);
+                polynomial<P> Ans = 0, w_k = 1;
+                size_t n = Array_xy.size();
+
+                for (size_t i = 0; i < n; ++i) {
+                    
+                    P diff = 0;
+                    for (size_t j = 0; j <= i; ++j) {
+                        
+                        P denominator = 1;
+                        for (size_t k = 0; k <= i; ++k) {
+                            if (k != j) {
+                                denominator *= (Array_xy[j].first - Array_xy[k].first);
+                            }
+                        }
+                        diff += Array_xy[j].second / denominator;
+                    }
+
+                    
+                    Ans = Ans + w_k * diff;
+
+                    
+                    if (i < n - 1) {
+                        w_k = w_k * ((static_cast<polynomial<P>>(1) >> 1) - Array_xy[i].first);
+                    }
+                }
+
+                return Ans.cutbag();
             }
 
             //generate with points for interpolinomial function
@@ -321,7 +349,7 @@ namespace counting_methods_2 {
 
             template<typename P>polynomial<P> Lagrang_interpolation(std::vector<std::pair<P, P>> Array_xy) {
                 Array_xy = filter_by_unique_x(Array_xy);
-                polynomial<double> ans(0);
+                polynomial<P> ans(0);
                 for (uint64_t i = 0; i < Array_xy.size(); i++)
                 {
                     auto pl = w_k_T0(Array_xy, i);
@@ -346,7 +374,7 @@ namespace counting_methods_2 {
                     B[i][0] = Array_xy[i].second;
                 }
                 A = (A.inverse_M()) * B;
-                std::cout << A << '\n';
+                //std::cout << A << '\n';
                 polynomial<P> ans(0);
                 ans.set_deg(A.getcol()) ;
                 for (uint64_t i = 0; i < A.getcol()-1; i++)
@@ -456,8 +484,9 @@ namespace counting_methods_2 {
             ) {
                 
                 std::stringstream Ans;
-                int s1 = std::max(std::toupper(log10(n)), 3), s2 = std::max(std::toupper(log10(n + m_)), 3), s3 = 2 + interpolation_name.size() + 2, s4 = std::string{"R_teoretical_n" + interpolation_name }.size(),s5 = std::string{ "R_teoretical_opt__n"+ interpolation_name }.size();
-                Ans << std::left
+                int s1 = std::max(std::toupper(log10(n)), 3), s2 = std::max(std::toupper(log10(n + m_)), 3), s3 = 2 + interpolation_name.size() + 2, s4 = std::string{"R_teoretical_n"  }.size()+6,s5 = std::string{ "R_teoretical_opt__n" }.size()+6;
+                Ans << "\n"
+                    << std::left
                     << "+" + (std::string(s1, '-') + "+") + (std::string(s2, '-') + "+") + (std::string(s3, '-') + "+") + (std::string(s3 + 5, '-') + "+") + (std::string(s4, '-') + "+") + (std::string(s5, '-'))
                     << "+" << "\n"
                     
@@ -473,9 +502,9 @@ namespace counting_methods_2 {
                    
 
                     << std::setw(1) << "|"
-                    << std::setw(s4) << "R_" + interpolation_name + "teoretical_n"
+                    << std::setw(s4) << "R_teoretical_n/M_n+1"
                     << std::setw(1) << "|"
-                    << std::setw(s5) << "R_" + interpolation_name + "teoretical_opt__n"
+                    << std::setw(s5) << "R_teoretical_opt__n/M_n+1"
                     << std::setw(1) << "|"
 
                     << "\n+" + (std::string(s1, '-') + "+") + (std::string(s2, '-') + "+") + (std::string(s3, '-') + "+") + (std::string(s3 + 5, '-') + "+") + (std::string(s4, '-') + "+") + (std::string(s5, '-'))
@@ -502,21 +531,21 @@ namespace counting_methods_2 {
                         << std::setw(1) << "|"
                         << std::setw(s1) << i
                         << std::setw(1) << "|"
-                        << std::setw(s2) << i + m_
+                        << std::setw(s2) << m_
                         << std::setw(1) << "|"
                         << std::setw(s3) << std::setprecision(12) << rn.first
                         << std::setw(1) << "|"
                         << std::setw(s3+5) << std::setprecision(12) << rn_opt.first
 
+                        <<std::setw(1 )<<"|" 
+                        << std::setw(s4) << std::setprecision(12) << methodic_error(teoretical_max_error.at(interpolation_name + "generatePoints_equally_sufficient_"), generatePoints_equally_sufficient_(i, a, b, F), func_interpolation)
                         <<std::setw(1 )<<"|"
-                        << std::setw(s4) << std::setprecision(12) << methodic_error( teoretical_max_error.at(interpolation_name + "generatePoints_equally_sufficient_"), generatePoints_equally_sufficient_(i, a, b, F) )
-                        <<std::setw(1 )<<"|"
-                        << std::setw(s5) << std::setprecision(12) << methodic_error(teoretical_max_error.at(interpolation_name + "generatePoints_optimal"), generatePoints_optimal(i, a, b, F))
+                        << std::setw(s5) << std::setprecision(12) <<methodic_error(teoretical_max_error.at(interpolation_name + "generatePoints_optimal"), generatePoints_optimal(i, a, b, F), func_interpolation)
                         << std::setw(1) << "|"
                         << "\n";
                 }
-                Ans<< "+" + (std::string(s1, '-') + "+") + (std::string(s2, '-') + "+") + (std::string(s3, '-') + "+") + (std::string(s3 + 5, '-') + "+") + (std::string(s4, '-') + "+") + (std::string(s5, '-'))
-                    << "+" << "\n";
+                Ans<< "+" + (std::string(s1, '-') + "+") + (std::string(s2, '-') + "+") + (std::string(s3, '-') + "+") + (std::string(s3 + 5, '-') + "+") + (std::string(s4, '-') + "+") + (std::string(s5, '-')) << "+"
+                    << "\n";
                 std::cout << Ans.str();
 #if __has_include(<SFML/Graphics.hpp>)
                 draw_functions(functions_n);
