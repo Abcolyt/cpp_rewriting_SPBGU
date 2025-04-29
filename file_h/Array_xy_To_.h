@@ -14,7 +14,7 @@ namespace Drawing_const {
     
     sf::Vector2f ratio_of_modifiers_by_xy = { 16.0f,9.0f },
         offset_from_Zero_vector = { 0,0 };
-    const double modifire = 1;
+    const double modifire = 5;
     //vector (-offset_from_Zero_vector) dla sdviga sisemi koordinat
 
     const double left_border = (-1) * ((center_Window.x) / (ratio_of_modifiers_by_xy.x * modifire)),
@@ -105,12 +105,13 @@ template<class T>void draw_functions(const std::vector<std::function<T(T)>>& fun
     }
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>() ||
-                (event->is<sf::Event::KeyPressed>() &&
-                    event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape))
+            if (event->is<sf::Event::Closed>() ||(event->is<sf::Event::KeyPressed>() && event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape))
             {
                 window.close();
             }
+
+
+
         }
         window.clear(sf::Color::White);
         window.draw(axes);
