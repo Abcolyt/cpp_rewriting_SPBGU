@@ -166,6 +166,7 @@
     <ClInclude Include="file_h\fraction.h" />
     <ClInclude Include="file_h\matrix.h" />
     <ClInclude Include="file_h\polynomial.h" />
+    <ClInclude Include="file_h\Spline.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
