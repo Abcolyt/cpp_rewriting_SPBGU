@@ -95,8 +95,8 @@ template<typename T, size_t Size>
 Spline<T, Size>::~Spline()
 {
 }
-template<uint64_t M, uint64_t P, typename T>
-void Spline_build(const std::vector<std::pair<T,T>> Array_xy) {
+
+template<uint64_t M, uint64_t P, typename T>void Spline_build(const std::vector<std::pair<T,T>> Array_xy) {
     //using N = Array_xy.size();
     Spline<T, Array_xy.size()> spline(convert_pairs_to_vector(Array_xy));
     matrix<double> a;
