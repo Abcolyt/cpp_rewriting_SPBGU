@@ -115,6 +115,13 @@ public:
 
     matrix<T> cholesky() const;
     
+    matrix<T> zeros(uint64_t colsize, uint64_t rowsize)
+    {
+        this->colsize = colsize;
+        this->rowsize = rowsize;
+        this->allocateMemory();
+        return *this;
+    }
 
    
 

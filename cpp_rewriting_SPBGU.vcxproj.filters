@@ -89,5 +89,8 @@
     <ClInclude Include="file_h\counting_methods_1.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="file_h\Spline.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

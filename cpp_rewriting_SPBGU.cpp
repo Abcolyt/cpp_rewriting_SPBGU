@@ -7,7 +7,7 @@
 #include <corecrt_math_defines.h>
 #include <cmath>
 
-#include <boost/safe_numerics/safe_integer.hpp>
+//#include <boost/safe_numerics/safe_integer.hpp>
 
 #include "file_h/complex.h"
 #include "file_h/fraction.h"
@@ -18,6 +18,7 @@
 #include "file_h/counting_methods_2.h"
 #include "file_h/Array_xy_To_.h"
 #include "file_h/calc_computing_f.h"
+#include "file_h/Spline.h"
 
 template<typename T, typename Func>
 std::vector<std::pair<T, T>> generatePointsLambda(int k, T x0, T step, Func F) {
@@ -48,7 +49,7 @@ int main() {
 
     counting_methods::holechi::example();
 #endif
-#define AU_LOG 6
+#define AU_LOG 7
 
 #if AU_LOG==1
     
@@ -143,94 +144,66 @@ int main() {
 
     std::cout <<"\nans:" << Lagrang_interpolation(Array_xy);
 #elif AU_LOG == 6
-    polynomial<double>a;a.outm_E = output_mode::FULL;
-    polynomial<double>b;
-    std::vector <double> roots{ 1,3,0.5,0.6,12 };
-    a.the_root_constructor(roots); 
-    auto V = (polynomialfunctions::plnm_roots(a.get_first_derrivate(), DBL_EPSILON));
-    std::cout << a << "max|F(x)|=";
-        for (auto& i:V)
-        {
-          
-                std::cout << i.first << '\n';
-        }
-        
-    std::cout << '\n';
-    std::cout << (a) << "max|F(x)|=" << a.maximum(-1111., +1111.) << '\n';
-    b = nuton_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
-    b= polynomialfunctions::filter_large_epsilon(b, 1e-9);
-    std::cout << '\n' << b<< "max|F(x)|="<<b.maximum(-1111., +1111.);
-    b = Lagrang_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
-    b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
-    std::cout << '\n' << b << "max|F(x)|=" << b.maximum(-1111., +1111.);
-    b = Alternativ_nuton_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
-    b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
-    std::cout << '\n' << b << "max|F(x)|=" << b.maximum(-1111., +1111.);
-    b = Alternativ_Lagrang_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
-    b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
-    std::cout << '\n' << b << "max|F(x)|=" << b.maximum(-1111., +1111.);
+    {
+        polynomial<double>a; a.outm_E = output_mode::FULL;
+        polynomial<double>b;
+        std::vector <double> roots{ 1,3,0.5,0.6,12 };
+        a.the_root_constructor(roots);
+        auto V = (polynomialfunctions::plnm_roots(a.get_first_derrivate(), DBL_EPSILON));
+        std::cout << a << "max|F(x)|=";
+        std::cout << '\n';
+        std::cout << (a) << "max|F(x)|=" << a.maximum_abs(-1111., +1111.) << '\n';
+        b = nuton_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
+        std::cout << '\n' << b << "max|F(x)|=" << b.maximum_abs(-1111., +1111.);
+        b = Lagrang_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
+        std::cout << '\n' << b << "max|F(x)|=" << b.maximum_abs(-1111., +1111.);
+        b = Alternativ_nuton_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
+        std::cout << '\n' << b << "max|F(x)|=" << b.maximum_abs(-1111., +1111.);
+        b = Alternativ_Lagrang_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
+        std::cout << '\n' << b << "max|F(x)|=" << b.maximum_abs(-1111., +1111.);
 
 #define identifier (x-std::sin(x) - 0.25)
-    //x-std::sin(x) - 0.25
-SHOW_INTERPOL_STAT(
-    nuton_interpolation<double>, // interpolator
-    10, 20,                      // n, m_
-    [](double x) { return identifier; },
-     -M_PI/4,  M_PI/4
-);
-SHOW_INTERPOL_STAT(
-    Lagrang_interpolation<double>, 
-    10, 10,                      
-    [](double x) { return identifier; },
-    -M_PI / 4, M_PI / 4
-);
-SHOW_INTERPOL_STAT(
-    Alternativ_nuton_interpolation<double>, // interpolator
-    10, 20,                      // n, m_
-    [](double x) { return identifier; },
-    -M_PI / 4, M_PI / 4
-);
-SHOW_INTERPOL_STAT(
-    Alternativ_Lagrang_interpolation<double>, // interpolator
-    10, 20,                      // n, m_
-    [](double x) { return identifier; },
-    -M_PI / 4, M_PI / 4
-);
+        //x-std::sin(x) - 0.25
+        SHOW_INTERPOL_STAT(
+            nuton_interpolation<double>, // interpolator
+            10, 20,                      // n, m_
+            [](double x) { return identifier; },
+            -M_PI / 4, M_PI / 4
+        );
+        SHOW_INTERPOL_STAT(
+            Lagrang_interpolation<double>,
+            10, 10,
+            [](double x) { return identifier; },
+            -M_PI / 4, M_PI / 4
+        );
+        SHOW_INTERPOL_STAT(
+            Alternativ_nuton_interpolation<double>, // interpolator
+            10, 20,                      // n, m_
+            [](double x) { return identifier; },
+            -M_PI / 4, M_PI / 4
+        );
+        SHOW_INTERPOL_STAT(
+            Alternativ_Lagrang_interpolation<double>, // interpolator
+            10, 20,                      // n, m_
+            [](double x) { return identifier; },
+            -M_PI / 4, M_PI / 4
+        );
+
+
+
+    }
+    
 
 #elif AU_LOG == 7
-//splinepolate();
 
+    Spline<double, 10> a(-5,5);
+    std::cout << a;
 
-//std::cout << polynomialfunctions::derivate(a);
-polynomial<double>a;
-std::vector < double> roots{1,3,0.5,0.6,12};
-a.the_root_constructor(roots);
-std::cout << a<<'\n';
-std::cout<< '\n'<< nuton_interpolation(generatePoints_equally_sufficient_(13, -12.0l, 12.0l, a));
-std::cout << '\n' << Lagrang_interpolation(generatePoints_equally_sufficient_(13, -12.0l, 12.0l, a));
-std::cout << '\n' << Alternativ_nuton_interpolation(generatePoints_equally_sufficient_(13, -12.0l, 12.0l, a));
-std::cout << '\n' << Alternativ_Lagrang_interpolation(generatePoints_equally_sufficient_(13, -12.0l, 12.0l, a));
-
-//Alternativ_Lagrang_interpolation(generatePoints_equally_sufficient_(13,-12.0l,12.0l, a));
-
-
-//std::cout << a <<"  deg"<<a.get_deg() <<"  "<<a.maximum() <<"\n";
-//
-////counting_methods::polinomial::plnm_roots(polynomialfunctions::derivate(a), LDBL_EPSILON);
-//double in = 0;
-//while (false)
-//{
-//
-//    std::cin >> in;
-//    //(counting_methods::polinomial::plnm_roots(polynomialfunctions::derivate(a), in))
-//    auto roots= (polynomialfunctions::plnm_roots(a, in));
-//    for (auto i : roots)
-//    {
-//        std::cout << '\n' << i.first << "  " << i.second << '\n';
-//    }
-//
-//}
-
+    
 #endif
     
     system("pause");

@@ -159,7 +159,7 @@ public:
 	}
 	void the_root_constructor(const std::vector<P>& array_xy);
 	polynomial<P> get_first_derrivate()const { return polynomialfunctions::derivate(*this); }
-	P maximum(P a, P b)const;
+	P maximum_abs(P a, P b)const;
 	P maximum()const;
 };
 template<typename P> output_mode polynomial<P>::default_output_mode = output_mode::SHORT;

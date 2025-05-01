@@ -36,10 +36,10 @@ namespace polynomialfunctions {
 	}
 	template<typename P>P max(P arg1, P arg2) {
 		if (arg1 <= arg2) {
-			return arg1;
+			return arg2;
 		}
 		else
-			return arg2;
+			return arg1;
 	}
 	template<typename P>std::pair<P, int> solve_tangents(polynomial<P> plnm, P x0, double e, uint64_t max_iter_number) {
 		int iterations = 0;
@@ -489,23 +489,25 @@ template<typename P>void polynomial<P>::the_root_constructor(const std::vector<P
 	*this = a;
 }
 
-template<typename P>P polynomial<P>::maximum(P a, P b) const {
+template<typename P>P polynomial<P>::maximum_abs(P a, P b) const {
 	using namespace polynomialfunctions;
 	P ans_max = 0;
 	std::vector<std::pair<P, int>> V = polynomialfunctions::plnm_roots(this->get_first_derrivate(), DBL_EPSILON);
+	//std::cout << this<<" " << *this << '\n';
 	for (auto& i : V)
 	{
 		if (a < i.first && i.first < b) {
-			std::cout << i.first << " \n";
+			//std::cout << "i.first:" << i.first << " (*this)(i.first): " << ((*this)(i.first)) << "abs:" << polynomialfunctions::abs((*this)(i.first))<< " \n";
 			ans_max = polynomialfunctions::max(ans_max,abs((*this)(i.first) ));
 		}
 	}
 	ans_max =max(ans_max, polynomialfunctions::abs((*this)(a)));
 	ans_max =max(ans_max, polynomialfunctions::abs((*this)(b)));
+	//std::cout <<"ans_max:" << ans_max << '\n';
 	return ans_max;
 }
 
-//template<typename P>P polynomial<P>::maximum()const {
+//template<typename P>P polynomial<P>::maximum_abs()const {
 //	P ans_max = 0;
 //	for (auto& i : polynomialfunctions::plnm_roots(this->get_first_derrivate()) )
 //	{

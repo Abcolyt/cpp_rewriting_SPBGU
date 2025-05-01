@@ -135,17 +135,18 @@ namespace counting_methods_2 {
                 auto min = *std::min_element(array_x.begin(), array_x.end());
                 //std::cout << " " << (pol) <<"  "<< (min)<<"  (" << pol(min) << " )";
                 auto max = *std::max_element(array_x.begin(), array_x.end());
+                //std::cout << (int)type << "\n";
                 switch(type)
                 {
                 case Alternativ_Lagrang_interpolation_double_generatePoints_equally_sufficient_:
-                    return (pol.maximum(min, max) / factorial(Array_xy.size() + 1));
+                    return (pol.maximum_abs(min, max) / factorial(Array_xy.size() + 1));
                     break;
                 case Alternativ_Lagrang_interpolation_double_generatePoints_optimal:
                     return 2 * (std::pow((max - min) / 4, Array_xy.size() + 1)) / factorial(Array_xy.size() + 1) ;
                     break;
 
                 case Lagrang_interpolation_double_generatePoints_equally_sufficient_:      
-                    return (pol.maximum(min, max) / factorial(Array_xy.size() + 1));
+                    return (pol.maximum_abs(min, max) / factorial(Array_xy.size() + 1));
                     break;
                 case Lagrang_interpolation_double_generatePoints_optimal:
                     return 2 * (std::pow((max - min) / 4, Array_xy.size() + 1)) / factorial(Array_xy.size() + 1);
