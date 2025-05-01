@@ -200,8 +200,21 @@ int main() {
 
 #elif AU_LOG == 7
 
+    std::vector<double> array = { 1,2,3,4,5,6 };
+    polynomial<double> polynom = w_k_T0(array, -1);
+
+    std::cout << "wk" << w_k_T0(array, -6).output_mode_set(output_mode::ABBREVIATED);
+    std::cout << "\nwx0" << (w_k_T0(array, 1))(1);
+
+    std::vector<std::pair<double, double>> array_xy = {
+        {0.5, polynom(0.5) },{2.5, polynom(2.5)},
+        {4.5, polynom(4.5) },{6.5, polynom(6.5)},
+        {8.5, polynom(8.5) },{10.5, polynom(10.5)}
+    };
+
     Spline<double, 10> a(-5,5);
     std::cout << a;
+    Spline_build<1,1>(array_xy);
 
     
 #endif
