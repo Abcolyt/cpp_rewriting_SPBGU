@@ -190,17 +190,40 @@ template <typename T>T matrix<T>::determinant() const {
     return det;
 }
 
-template<typename T> std::ostream& operator<<(std::ostream& out, const matrix<T>& mtrx)
-{
-    out << "sizex:" << mtrx.getcol() << "sizey:" << mtrx.getrow() << "\n";
-    for (uint64_t i = 0; i < mtrx.getcol(); i++)
-    {
-        for (uint64_t j = 0; j < mtrx.getrow(); j++)
-        {
-            out << "[" << i << "][" << j << "] = \t" << mtrx[i][j] << "\t | ";
-        }
-        out << "\n";
+template<typename T>
+std::ostream& operator<<(std::ostream& out, const matrix<T>& mtrx) {
+    const auto mode= mtrx.get_output_mode();
+    if (mode != output_mode::SHORT) {
+        out << "cols: " << mtrx.getcol() << ", rows: " << mtrx.getrow() << "\n";
     }
+
+    switch (mode) {
+    case output_mode::FULL: {
+        for (uint64_t i = 0; i < mtrx.getcol(); ++i) {
+            for (uint64_t j = 0; j < mtrx.getrow(); ++j) {
+                out << "[" << i << "][" << j << "] = \t" << mtrx[i][j] << "\t | ";
+            }
+            out << "\n";
+        }
+        break;
+    }
+
+    case output_mode::ABBREVIATED: {
+        for (uint64_t i = 0; i < mtrx.getcol(); ++i) {
+            for (uint64_t j = 0; j < mtrx.getrow(); ++j) {
+                out << mtrx[i][j] << " ";
+            }
+            out << "\n";
+        }
+        break;
+    }
+
+    case output_mode::SHORT: {
+        out << "Matrix[" << mtrx.getcol() << "x" << mtrx.getrow() << "]";
+        break;
+    }
+    }
+
     return out;
 }
 
