@@ -2,6 +2,8 @@
 #include<iostream>
 #include <sstream>
 
+extern enum class output_mode;
+
 // //
 //  logic of the apply Method To Elements method using SFINAE to check for the presence of a 
 // method with a parameter for a matrix element and to call it if it exists
@@ -21,6 +23,8 @@ template<typename T> std::istream& operator>>(std::istream& in, matrix<T>& plnm)
 template <typename T> class matrix
 {
 private:
+    //output_mode out_mode 
+    output_mode out_mode = output_mode::FULL;
 
     //an array with T elements
     T* ptr;
@@ -46,11 +50,13 @@ public:
 
 
     //DATA ACCESS
-
+        
     uint64_t getcol()const { return colsize; }
     uint64_t getrow()const { return rowsize; }
     void setcol(uint64_t colsize) { this->colsize = colsize; this->allocateMemory(); }
     void setrow(uint64_t rowsize) { this->rowsize = rowsize; this->allocateMemory(); }
+    void set_output_mode(output_mode mode) { out_mode = mode; }
+    enum class output_mode get_output_mode()const { return this->out_mode; }
     //to index1 row access operator
     T* operator[](const uint64_t index1) const { return ptr + index1 * rowsize; }
 
@@ -65,6 +71,7 @@ public:
     matrix<T> operator-(const matrix<T>& other) const;
     // binary matrix multiplication
     matrix<T> operator*(const matrix<T>& other) const; 
+    
     // binary matrix division(if not a singular matrix on the left)
     matrix<T> operator/(const matrix<T>& other) const;
     // binary matrix multiplication by  an element from the field

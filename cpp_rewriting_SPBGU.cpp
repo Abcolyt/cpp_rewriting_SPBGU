@@ -211,10 +211,11 @@ int main() {
         {4.5, polynom(4.5) },{6.5, polynom(6.5)},
         {8.5, polynom(8.5) },{10.5, polynom(10.5)}
     };
-
-    Spline<double, 10> a(-5,5);
+    
+    Spline<double> a(-5,5,10);
     std::cout << a;
-    Spline_build<1,1>(array_xy);
+    Spline_build<2,1>(array_xy);
+
 
     
 #endif

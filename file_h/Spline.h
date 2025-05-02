@@ -5,6 +5,15 @@
 #include "../file_h/polynomial.h"
 #include "../file_h/matrix.h"
 
+uint64_t factorial(const int n)
+{
+    uint64_t f = 1;
+    for (int i = 1; i <= n; ++i)
+        f *= i;
+    return f;
+}
+
+extern enum class output_mode;
 template<typename T>
 std::vector<T> convert_pairs_to_vector(
     const std::vector<std::pair<T, T>>& input,
@@ -28,25 +37,26 @@ std::vector<T> convert_pairs_to_vector(
     return output;
 }
 
-template<typename T, size_t Size>
+template<typename T>
 class Spline {
 private:
-    std::array<T, Size> sections;
-    std::array<polynomial<T>, Size - 1> polinoms; // Интервалов: Size-1
+    std::vector<T> sections;
+    std::vector<polynomial<T>> polinoms; // Интервалов: sections.size()-1
 
 public:
-
-    // Определите конструктор и деструктор
-    Spline(T left_border, T right_border);
+    
+    Spline(T left_border, T right_border, size_t num_sections);
     Spline(const std::vector<T>& vec);
     ~Spline();
-
+    uint64_t sections_size()const {
+        return sections.size();
+    }
     const T& operator[](size_t index) const {
         return sections[index];
     }
 
     T operator()(const T& x) const {
-        for (size_t i = 0; i < Size - 1; ++i) {
+        for (size_t i = 0; i < sections.size() - 1; ++i) {
             if (x >= sections[i] && x < sections[i + 1]) {
                 return polinoms[i](x);
             }
@@ -59,30 +69,34 @@ public:
     }
 
 
-    template<typename U, size_t N>
-    friend std::ostream& operator<<(std::ostream& os, const Spline<U, N>& spline);
+    template<typename U>
+    friend std::ostream& operator<<(std::ostream& os, const Spline<U>& spline);
 };
-template<typename T, size_t Size>
-Spline<T,Size>::Spline(T left_border, T right_border) {
-    static_assert(Size >= 2, "Spline requires at least 2 sections"); // Проверка на этапе компиляции
-
+template<typename T>
+Spline<T>::Spline(T left_border, T right_border, size_t num_sections) {
+    sections.resize(num_sections);
+    polinoms.resize(num_sections-1);
+    
     if (left_border >= right_border) {
         throw std::invalid_argument("Left border must be less than right border");
     }
     sections[0] = left_border;
-    sections[Size - 1] = right_border;
+    sections[num_sections - 1] = right_border;
 }
 
-template<typename T, size_t Size>
-Spline<T, Size>::Spline(const std::vector<T>& vec) {
-    static_assert(Size >= 1, "Spline requires at least 1 section");
+template<typename T>
+Spline<T>::Spline(const std::vector<T>& vec) {
+    uint64_t Size = vec.size();
 
-    if (vec.size() != Size) {
+    sections.resize(Size);
+    polinoms.resize(Size);
+    
+    if (vec.size() <=0 ) {
         throw std::invalid_argument("Vector size must match the number of sections");
     }
 
 
-    for (size_t i = 1; i < vec.size(); ++i) {
+    for (size_t i = 1; i < Size; ++i) {
         if (vec[i] <= vec[i - 1]) {
             throw std::invalid_argument("Sections must be in ascending order");
         }
@@ -91,32 +105,43 @@ Spline<T, Size>::Spline(const std::vector<T>& vec) {
     std::copy(vec.begin(), vec.end(), sections.begin());
 }
 
-template<typename T, size_t Size>
-Spline<T, Size>::~Spline()
+template<typename T>Spline<T>::~Spline()
 {
 }
 
-template<uint64_t M, uint64_t P, typename T>void Spline_build(const std::vector<std::pair<T,T>> Array_xy) {
-    //using N = Array_xy.size();
-    Spline<T, Array_xy.size()> spline(convert_pairs_to_vector(Array_xy));
-    matrix<double> a;
-    a.zeros(Array_xy.size(), Array_xy.size());
-    for (uint64_t i = 0; i < 0; i++)
-    {
-
-    }
-
-    std::cout << a;
-    
-}
-
-template<typename T, size_t Size>
-std::ostream& operator<<(std::ostream& os, const Spline<T, Size>& spline) {
-    os << "Spline with " << Size << " sections:\n";
-    for (size_t i = 0; i < Size - 1; ++i) {
+template<typename T>
+std::ostream& operator<<(std::ostream& os, const Spline<T>& spline) {
+    os << "Spline with " << spline.sections_size() << " intervals:\n";
+    for (size_t i = 0; i < spline.sections_size() -1; ++i) {
         os << "  Interval [" << spline.sections[i]
             << ", " << spline.sections[i + 1] << "): "
             << spline.polinoms[i] << "\n";
     }
     return os;
+}
+
+template<uint64_t M, uint64_t P, typename T>void Spline_build(const std::vector<std::pair<T,T>> Array_xy) {
+    //using N = Array_xy.size();
+    Spline<T> spline(convert_pairs_to_vector(Array_xy));
+    matrix<double> a;
+    a.set_output_mode(output_mode::ABBREVIATED);
+    a.zeros(M*Array_xy.size(), M*Array_xy.size());
+    for(uint64_t i0 = 0; i0 < M*Array_xy.size(); i0+=2)
+    {
+        for (uint64_t i = 0; i < Array_xy.size(); i++)
+        {
+            if (i0 * M + i < M*Array_xy.size()) {
+                a[i0][i0*M+i] = factorial() ;
+            }
+            
+        }
+    }
+
+    std::cout << a;
+    matrix<double> b(Array_xy.size(), 1);
+    for(uint64_t i = 0; i < Array_xy.size(); i++)
+    {
+        b[i][0] = Array_xy[i].second;
+    }
+    std::cout << b;
 }
