@@ -214,7 +214,15 @@ int main() {
     
     Spline<double> a(-5,5,10);
     std::cout << a;
-    Spline_build<2,1>(array_xy);
+    const uint64_t m=3, p=1;
+    
+    std::cout << "<m=" << m << ",p=" << p << ">=\n";
+    Spline_build<m,p>(array_xy);
+    Spline_build<3, 2>(array_xy);
+    std::cout << "<m=" << 4 << ",p=" << 1 << ">=\n";
+    Spline_build<4, 1>(array_xy);
+    Spline_build<4, 2>(array_xy);
+    Spline_build<4, 3>(array_xy);
 
 
     

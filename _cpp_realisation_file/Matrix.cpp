@@ -189,9 +189,10 @@ template <typename T>T matrix<T>::determinant() const {
     //std::cout << det <<'\n';
     return det;
 }
+//rezerved
+/*
 
-template<typename T>
-std::ostream& operator<<(std::ostream& out, const matrix<T>& mtrx) {
+template<typename T>std::ostream& operator<<(std::ostream& out, const matrix<T>& mtrx) {
     const auto mode= mtrx.get_output_mode();
     if (mode != output_mode::SHORT) {
         out << "cols: " << mtrx.getcol() << ", rows: " << mtrx.getrow() << "\n";
@@ -226,6 +227,65 @@ std::ostream& operator<<(std::ostream& out, const matrix<T>& mtrx) {
 
     return out;
 }
+*/
+
+template<typename T>std::ostream& operator<<(std::ostream& out, const matrix<T>& mtrx) {
+    const auto mode = mtrx.get_output_mode();
+    const uint64_t cols = mtrx.getcol();
+    const uint64_t rows = mtrx.getrow();
+
+    // Определяем максимальную ширину для каждого столбца
+    std::vector<size_t> col_widths(rows, 0);
+    if (mode != output_mode::SHORT) {
+        for (uint64_t j = 0; j < rows; ++j) { // Идем по столбцам матрицы
+            size_t max_width = 0;
+            for (uint64_t i = 0; i < cols; ++i) { // Идем по строкам матрицы
+                std::ostringstream oss;
+                oss << mtrx[i][j]; // Элемент [i][j] - строка i, столбец j
+                max_width = std::max(max_width, oss.str().size());
+            }
+            col_widths[j] = max_width + 1; // Добавляем пробел для разделения
+        }
+    }
+
+    // Вывод размеров матрицы
+    if (mode != output_mode::SHORT) {
+        out << "cols: " << cols << ", rows: " << rows << "\n";
+    }
+
+    // Вывод содержимого
+    switch (mode) {
+    case output_mode::FULL: {
+        for (uint64_t i = 0; i < cols; ++i) {
+            for (uint64_t j = 0; j < rows; ++j) {
+                out << "[" << std::setw(2) << i << "]["
+                    << std::setw(2) << j << "] = "
+                    << std::setw(col_widths[j]) << mtrx[i][j] << " | ";
+            }
+            out << "\n";
+        }
+        break;
+    }
+
+    case output_mode::ABBREVIATED: {
+        for (uint64_t i = 0; i < cols; ++i) {
+            for (uint64_t j = 0; j < rows; ++j) {
+                out << std::setw(col_widths[j]) << mtrx[i][j];
+            }
+            out << "\n";
+        }
+        break;
+    }
+
+    case output_mode::SHORT: {
+        out << "Matrix[" << cols << "x" << rows << "]";
+        break;
+    }
+    }
+
+    return out;
+}
+
 
 template<typename T>std::istream& operator>>(std::istream& in, matrix<T>& mtrx)
 {
