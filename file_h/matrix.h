@@ -1,7 +1,8 @@
 #pragma once
 #include<iostream>
 #include <sstream>
-
+#include <iomanip>
+#include <vector>
 extern enum class output_mode;
 
 // //
