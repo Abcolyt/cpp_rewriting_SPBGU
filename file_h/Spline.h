@@ -440,20 +440,22 @@ void Spline_build(const std::vector<std::pair<T, T>>& Array_xy) {
     }
 
     // 3. Граничные условия (производные от 1 до P на концах)
-    if (boundary_eq > 0) {
-        // Левая граница (вторая производная = 0)
+    for (size_t p = 1; p <= P; ++p) {
+        // Левая граница
         const double x_start = Array_xy[0].first;
-        for (size_t j = 2; j < M; ++j) {
-            a[eq][0 * M + j] = j * (j - 1) * std::pow(x_start, j - 2);
+        for (size_t j = p; j < M; ++j) {
+            const double deriv_coeff = factorial(j) / factorial(j - p);
+            a[eq][0 * M + j] = deriv_coeff * std::pow(x_start, j - p);
         }
-        b[eq][0] = 0;
+       // b[eq][0] = 0;
         eq++;
 
-        // Правая граница (вторая производная = 0)
+        // Правая граница
         const double x_end = Array_xy.back().first;
         const size_t last_segment = segments - 1;
-        for (size_t j = 2; j < M; ++j) {
-            a[eq][last_segment * M + j] = j * (j - 1) * std::pow(x_end, j - 2);
+        for (size_t j = p; j < M; ++j) {
+            const double deriv_coeff = factorial(j) / factorial(j - p);
+            a[eq][last_segment * M + j] = deriv_coeff * std::pow(x_end, j - p);
         }
         b[eq][0] = 0;
         eq++;
@@ -461,7 +463,9 @@ void Spline_build(const std::vector<std::pair<T, T>>& Array_xy) {
     a.set_output_mode(output_mode::ABBREVIATED);
     std::cout << a << "\nzer good\n";
     //std::cout << a.determinant() << "\nzer good\n";
-    //// Решение системы
-    //matrix<double> x = a.inverse_M() * b;
-    //std::cout << "Coefficients:\n" << x;
+    // Решение системы
+    matrix<double> x = a.to_upper_triangular();
+    std::cout << "Coefficients:\n" << x;
+    //std::cout << "Coefficients:\n" << a.inverse_M() * b;
+
 }

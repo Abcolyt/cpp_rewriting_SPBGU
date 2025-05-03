@@ -92,6 +92,7 @@ template<typename T>matrix<T> matrix<T>::to_uptrng(matrix<T>& other)const
 {
     if ((this->colsize == this->rowsize) && (this->colsize == (other.colsize)) && ((other.colsize) == other.rowsize))
     {
+        std::cout << "std::invalid_argument(the matrix is irreducible to the triangular form)\n";
 
 
 
@@ -143,6 +144,8 @@ template<typename T>matrix<T> matrix<T>::to_uptrng()const
             while (temp[i][i] == 0 && temp[j][i] == 0) {
                 j++;
                 if (j >= rowsize) {
+                    std::cout << "std::invalid_argument(the matrix is irreducible to the triangular form)\n";
+
                     throw std::invalid_argument("the matrix is irreducible to the triangular form");
 
 
@@ -166,6 +169,40 @@ template<typename T>matrix<T> matrix<T>::to_uptrng()const
     for (uint64_t i = 0; i < rowsize - 1; i++) {        
         temp[0][i] = (temp[0][i]) * det;
 
+    }
+    return temp;
+}
+
+template<typename T>matrix<T> matrix<T>::to_upper_triangular() const {
+    std::cout << *this;
+    matrix<T> temp;temp= ((*this));
+    const uint64_t n = std::min(rowsize, colsize);
+
+    for (uint64_t i = 0; i < n; ++i) {
+        // Поиск первого ненулевого элемента в столбце i
+        uint64_t pivot_row = i;
+        while (pivot_row < rowsize && temp[pivot_row][i] == 0) {
+            ++pivot_row;
+        }
+
+        if (pivot_row >= rowsize) continue;
+
+        // Перестановка строк вручную
+        if (pivot_row != i) {
+            for (uint64_t col = 0; col < colsize; ++col) {
+                std::swap(temp[i][col], temp[pivot_row][col]);
+            }
+        }
+
+        // Исключение элементов ниже ведущего
+        for (uint64_t j = i + 1; j < rowsize; ++j) {
+            if (temp[i][i] == 0) continue; // Защита от деления на ноль
+
+            T factor = temp[j][i] / temp[i][i];
+            for (uint64_t k = i; k < colsize; ++k) {
+                temp[j][k] -= factor * temp[i][k];
+            }
+        }
     }
     return temp;
 }
@@ -235,7 +272,7 @@ template<typename T>std::ostream& operator<<(std::ostream& out, const matrix<T>&
     const uint64_t rows = mtrx.getrow();
 
     // Определяем максимальную ширину для каждого столбца
-    std::vector<size_t> col_widths(rows, 0);
+    std::vector<size_t> col_widths(rows, 1);
     if (mode != output_mode::SHORT) {
         for (uint64_t j = 0; j < rows; ++j) { // Идем по столбцам матрицы
             size_t max_width = 0;

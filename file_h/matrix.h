@@ -91,6 +91,8 @@ public:
 
     //SPECIAL METHODS
     
+    matrix<T> to_upper_triangular() const;
+
     //return of the upper triangular matrix after transformations
     matrix to_uptrng()const;
     //bringing to the upper triangular view together with the "other" matrix
