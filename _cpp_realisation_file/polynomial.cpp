@@ -1,19 +1,22 @@
 #pragma once
 #include"../file_h/polynomial.h"
+
+#include "file_h/counting_methods_1.h"
 template<typename P>polynomial<P> polynomial<P>::operator>>(const uint64_t power)const
 {
-	polynomial result;result.newsize(deg + power);
+	polynomial<P> result;result.newsize(deg + power);
 	for (uint64_t i = 0; i < deg; i++)
 	{
 		result.ptr[i + power] = ptr[i];
+		
 	}
 	return result;
 }
 
 template<typename P>polynomial<P> polynomial<P>::operator<<(const uint64_t power)const
 {
-	polynomial result; result.newsiz(deg - power);
-	for (uint64_t i = 0; i <= (deg - power); i++)
+	polynomial result; result.newsize(deg - power);
+	for (uint64_t i = 0; i < (deg - power); i++)
 	{
 		result.ptr[i] = ptr[i + power];
 	}
@@ -165,7 +168,7 @@ template<typename P>void polynomial<P>::output_mode_set(uint64_t newmode) {
 	default:break;
 	}
 }
-template<typename P>void polynomial<P>::output_mode_set(output_mode new_outm_E) {
+template<typename P>polynomial<P>& polynomial<P>::output_mode_set(output_mode new_outm_E) {
 	switch (new_outm_E)
 	{
 	case output_mode::FULL:			outm_E = output_mode::FULL;			break;
@@ -173,6 +176,7 @@ template<typename P>void polynomial<P>::output_mode_set(output_mode new_outm_E) 
 	case output_mode::SHORT:		outm_E = output_mode::SHORT;		break;
 	default:break;
 	}
+	return *this;
 }
 
 template<typename P>std::ostream& operator<<(std::ostream& out, const polynomial<P>& plnm)
@@ -364,7 +368,7 @@ template<typename P>bool  polynomial<P>::operator<(const polynomial<P>& other)co
 {
 	return this->deg <  other.deg;
 }
-template<typename P>P& polynomial<P>::operator[](uint64_t index) {
+template<typename P>P& polynomial<P>::operator[](uint64_t index) const {
 	if (index >= deg) {
 		throw std::out_of_range("Index out of range");
 	}
@@ -383,3 +387,19 @@ template<typename P>polynomial<P> polynomial<P>::cutbag() const {
 	return new_poly;
 }
 
+template<typename P>void polynomial<P>::the_root_constructor(const std::vector<P>& array_xy) {
+	polynomial<P> a(1);
+	for (uint64_t i = 0; i < array_xy.size(); i++)
+	{
+		polynomial<P> b(1);
+		b = 1; b = b >> 1;
+		b = b - array_xy[i];
+		a = a * b;
+	}
+	*this = a;
+}
+
+template<typename P>P maximum(P a, P b) {
+	auto pol this->get_first_derrivate();
+	std::max(counting_methods:: plnm_roots())
+}
