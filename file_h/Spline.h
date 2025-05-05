@@ -71,6 +71,9 @@ public:
 
     template<typename U>
     friend std::ostream& operator<<(std::ostream& os, const Spline<U>& spline);
+
+    template<uint64_t M_, uint64_t P, typename T>
+    friend void Spline_build(const std::vector<std::pair<T, T>>& Array_xy)
 };
 template<typename T>
 Spline<T>::Spline(T left_border, T right_border, size_t num_sections) {
@@ -386,7 +389,6 @@ void Spline_build(const std::vector<std::pair<T, T>>& Array_xy) {
 template<uint64_t M_, uint64_t P, typename T>
 void Spline_build(const std::vector<std::pair<T, T>>& Array_xy) {
     const uint64_t M = M_+1; 
-
     const size_t N = Array_xy.size();
     const size_t segments = N - 1;
     const size_t coefficients = (M) * segments;
@@ -394,7 +396,7 @@ void Spline_build(const std::vector<std::pair<T, T>>& Array_xy) {
     // Расчет общего количества уравнений
     const size_t interpolation_eq = 2 * segments;
     const size_t smoothness_eq = P * (segments - 1);
-    const size_t boundary_eq = 2 * P;
+    const size_t boundary_eq = /*2 **/ P;
     const size_t equations = interpolation_eq + smoothness_eq + boundary_eq;
 
     matrix<double> a(equations, coefficients);
@@ -449,7 +451,7 @@ void Spline_build(const std::vector<std::pair<T, T>>& Array_xy) {
         }
        // b[eq][0] = 0;
         eq++;
-
+#if 0
         // Правая граница
         const double x_end = Array_xy.back().first;
         const size_t last_segment = segments - 1;
@@ -457,15 +459,25 @@ void Spline_build(const std::vector<std::pair<T, T>>& Array_xy) {
             const double deriv_coeff = factorial(j) / factorial(j - p);
             a[eq][last_segment * M + j] = deriv_coeff * std::pow(x_end, j - p);
         }
-        b[eq][0] = 0;
+        //b[eq][0] = 0;
         eq++;
+#endif            
     }
     a.set_output_mode(output_mode::ABBREVIATED);
     std::cout << a << "\nzer good\n";
     //std::cout << a.determinant() << "\nzer good\n";
     // Решение системы
     matrix<double> x = a.to_upper_triangular();
-    std::cout << "Coefficients:\n" << x;
-    //std::cout << "Coefficients:\n" << a.inverse_M() * b;
+    // std::cout << "Coefficients:\n" << x;
+    std::cout << "Coefficients:\n" << a.inverse_M() * b;
+
+    Spline<double> ans(convert_pairs_to_vector(Array_xy));
+    for (uint64_t i = 0; i < matrix.getcol() / M; i++) {
+        for (uint64_t j = 0; j < M; j++) {
+            ans.
+        }
+
+    }
+
 
 }

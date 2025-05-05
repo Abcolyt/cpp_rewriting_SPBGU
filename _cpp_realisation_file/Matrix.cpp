@@ -174,7 +174,7 @@ template<typename T>matrix<T> matrix<T>::to_uptrng()const
 }
 
 template<typename T>matrix<T> matrix<T>::to_upper_triangular() const {
-    std::cout << *this;
+    //std::cout << *this;
     matrix<T> temp;temp= ((*this));
     const uint64_t n = std::min(rowsize, colsize);
 
