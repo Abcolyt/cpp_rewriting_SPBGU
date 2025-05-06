@@ -217,13 +217,16 @@ int main() {
     const uint64_t m=3, p=2;
     
     std::cout << "<m=" << m << ",p=" << p << ">=\n";
-    Spline_build<m,p>(array_xy);
+   
 
-    //Spline_build<3, 2>(array_xy);
+    draw_function<double>(Spline_interpolator<m, p>(array_xy));
+    draw_function<double>(polynom);
+    draw_function<double>(Spline_interpolator<m, p>(array_xy));
+    //Spline_interpolator<3, 2>(array_xy);
     //std::cout << "<m=" << 4 << ",p=" << 1 << ">=\n";
-    //Spline_build<4, 1>(array_xy);
-    //Spline_build<4, 2>(array_xy);
-    //Spline_build<4, 3>(array_xy);
+    //Spline_interpolator<4, 1>(array_xy);
+    //Spline_interpolator<4, 2>(array_xy);
+    //Spline_interpolator<4, 3>(array_xy);
 
 
     
