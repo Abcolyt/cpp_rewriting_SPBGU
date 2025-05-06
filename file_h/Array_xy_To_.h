@@ -32,7 +32,7 @@ namespace Drawing_const {
     void update_borders() {
         left_border = (-1) * ((center_Window.x) / (ratio_of_modifiers_by_xy.x * modifire));
         right_border = (Drawing_Window_Size.x - center_Window.x) / (ratio_of_modifiers_by_xy.x * modifire);
-        step_by_x = 0.1 / modifire;
+        step_by_x = 0.1 /( modifire * ratio_of_modifiers_by_xy.x);
     }
 
 }
@@ -65,41 +65,6 @@ const double modifire = 1*/) {
     return graph;
 }
 
-//ones fun object
-template<class T>void draw_function(T& f) {
-    sf::RenderWindow window(sf::VideoMode(Drawing_Window_Size), "y(x)=");
-    
-    // Создаём оси координат один раз перед циклом
-    sf::VertexArray axes(sf::PrimitiveType::Lines, 4);
-
-    // Ось X (горизонтальная линия)
-    axes.append({ sf::Vertex{ sf::Vector2f(         0         , center_Window.y), sf::Color::Black } });
-    axes.append({ sf::Vertex{ sf::Vector2f(Drawing_Window_Size.x, center_Window.y), sf::Color::Black } });
-
-    // Ось Y (вертикальная линия)
-    axes.append({ sf::Vertex{ sf::Vector2f(center_Window.x ,          0         ), sf::Color::Black } });
-    axes.append({ sf::Vertex{ sf::Vector2f(center_Window.x , Drawing_Window_Size.y), sf::Color::Black } });
-
-    auto drawning_function = funct(f);
-    while (window.isOpen()) {
-
-        while (const std::optional event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>() ||
-                (event->is<sf::Event::KeyPressed>() &&
-                    event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape))
-            {
-                window.close();
-            }
-        }
-
-        window.clear(sf::Color::White);
-
-        window.draw(axes);
-        window.draw(drawning_function);
-        window.display();
-    }
-
-}
 
 //vector fun object
 template<class T>void draw_functions(const std::vector<std::function<T(T)>>& functions) {
@@ -135,7 +100,7 @@ template<class T>void draw_functions(const std::vector<std::function<T(T)>>& fun
             {
                 window.close();
             }
-
+                 
             if ( event->is<sf::Event::KeyPressed>() ) {
                 #define MAKRO_SHIFT(a,b) Drawing_const::offset_from_Zero_vector = Drawing_const::offset_from_Zero_vector +  sf::Vector2f{ a/modifire,b/modifire };Drawing_const::update_borders();
                 #define MAKRO_ZOOM(k) modifire = modifire * k;Drawing_const::step_by_x*=k;Drawing_const::update_borders();
@@ -143,18 +108,25 @@ template<class T>void draw_functions(const std::vector<std::function<T(T)>>& fun
                 switch (event->getIf<sf::Event::KeyPressed>()->code)
                 {
                 case Key::Escape:window.close(); break;
-                case Key::A:MAKRO_SHIFT(1,0); break;
-                case Key::D:MAKRO_SHIFT(-1, 0); break;
-                case Key::W:MAKRO_SHIFT(0,1); break;
-                case Key::S:MAKRO_SHIFT(0,-1); break;
+                case Key::A:MAKRO_SHIFT(16/ ratio_of_modifiers_by_xy.x,0); break;
+                case Key::D:MAKRO_SHIFT(-16 / ratio_of_modifiers_by_xy.x, 0); break;
+                case Key::W:MAKRO_SHIFT(0,9 / ratio_of_modifiers_by_xy.y); break;
+                case Key::S:MAKRO_SHIFT(0,-9 / ratio_of_modifiers_by_xy.y); break;
                 case Key::Space: MAKRO_ZOOM(3/2); break;
                 case Key::LAlt: MAKRO_ZOOM(2/3); break;
+                case Key::Left:   ratio_of_modifiers_by_xy.x = ratio_of_modifiers_by_xy.x * (2. / 3.); break;
+                case Key::Right:  ratio_of_modifiers_by_xy.x = ratio_of_modifiers_by_xy.x * (3. / 2.); break;
+                case Key::Down:   ratio_of_modifiers_by_xy.y = ratio_of_modifiers_by_xy.y * (2. / 3.); break;
+                case Key::Up:     ratio_of_modifiers_by_xy.y = ratio_of_modifiers_by_xy.y * (3. / 2.); break;
+
                 case Key::Tab:
                     std::cout <<"current rendering parameters:\n"
                               << "l:" << left_border << "\n"
                               << "r:" << right_border << "\n"
                               << "m:" << modifire << "\n"
-                              << "s:" << step_by_x << ";\n"; break;
+                              << "s:" << step_by_x << ";\n"
+                              <<"camera:("<< -offset_from_Zero_vector.x<<";"<< offset_from_Zero_vector.y << ")\n"
+                              <<"ratio_:{"<< ratio_of_modifiers_by_xy.x<<":"<< ratio_of_modifiers_by_xy.y << "}\n"; break;
                 case Key::F1:
                     std::cout << "rendering keys\n"
                         << "A:MAKRO_SHIFT(1,0)\n"
@@ -163,6 +135,10 @@ template<class T>void draw_functions(const std::vector<std::function<T(T)>>& fun
                         << "S:MAKRO_SHIFT(0,-1)\n"
                         << "Space: MAKRO_ZOOM(3/2) \n"
                         << "LAlt: MAKRO_ZOOM(2 / 3) \n"
+                        << "Left:graph compression by x\n"
+                        << "Right:graph decompression by x\n"
+                        << "Down:graph compression by y\n"
+                        << "Up:graph decompression by y\n"
                         << "Tab:current rendering parameters (l:left_border ,r:right_border,m:modifire)\n"; break;
                 default:std::cout << "error: there is no fixed behavior\n";
 
@@ -183,6 +159,48 @@ template<class T>void draw_functions(const std::vector<std::function<T(T)>>& fun
     }
 }
 
+#if 0
+//ones fun object
+template<class T>void draw_function(T& f) {
+    sf::RenderWindow window(sf::VideoMode(Drawing_Window_Size), "y(x)=");
+
+    // Создаём оси координат один раз перед циклом
+    sf::VertexArray axes(sf::PrimitiveType::Lines, 4);
+
+    // Ось X (горизонтальная линия)
+    axes.append({ sf::Vertex{ sf::Vector2f(0         , center_Window.y), sf::Color::Black } });
+    axes.append({ sf::Vertex{ sf::Vector2f(Drawing_Window_Size.x, center_Window.y), sf::Color::Black } });
+
+    // Ось Y (вертикальная линия)
+    axes.append({ sf::Vertex{ sf::Vector2f(center_Window.x ,          0), sf::Color::Black } });
+    axes.append({ sf::Vertex{ sf::Vector2f(center_Window.x , Drawing_Window_Size.y), sf::Color::Black } });
+
+    auto drawning_function = funct(f);
+    while (window.isOpen()) {
+
+        while (const std::optional event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>() ||
+                (event->is<sf::Event::KeyPressed>() &&
+                    event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape))
+            {
+                window.close();
+            }
+        }
+
+        window.clear(sf::Color::White);
+
+        window.draw(axes);
+        window.draw(drawning_function);
+        window.display();
+    }
+
+}
+#endif
+
+template<class T, typename F>
+void draw_function(F&& func) {
+    draw_functions<T>({ std::function<T(T)>(std::forward<F>(func)) });
+}
 
 #else
     #pragma message("SFML not found: Skipping related code")

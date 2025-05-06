@@ -48,6 +48,10 @@ public:
     Spline(T left_border, T right_border, size_t num_sections);
     Spline(const std::vector<T>& vec);
     ~Spline();
+
+    polynomial<T> getpol(uint64_t index) const{ return polinoms[index]; }
+    Spline setpol(uint64_t index, polynomial<T> pol) { polinoms[index] = pol; return *this; }
+
     uint64_t sections_size()const {
         return sections.size();
     }
@@ -62,18 +66,20 @@ public:
             }
         }
         
-        if (x == sections.back()) {
+        if (x >= sections.back()) {
             return polinoms.back()(x);
+        }
+        if (x <= sections.front() ) {
+            return polinoms.front()(x);
         }
         throw std::out_of_range("x is outside the spline range");
     }
-
 
     template<typename U>
     friend std::ostream& operator<<(std::ostream& os, const Spline<U>& spline);
 
     template<uint64_t M_, uint64_t P, typename T>
-    friend void Spline_build(const std::vector<std::pair<T, T>>& Array_xy)
+    friend void Spline_interpolator(const std::vector<std::pair<T, T>>& Array_xy);
 };
 template<typename T>
 Spline<T>::Spline(T left_border, T right_border, size_t num_sections) {
@@ -124,7 +130,7 @@ std::ostream& operator<<(std::ostream& os, const Spline<T>& spline) {
 }
 //rezerved
 /*
-template<uint64_t M, uint64_t P, typename T>void Spline_build(const std::vector<std::pair<T,T>> Array_xy) {
+template<uint64_t M, uint64_t P, typename T>void Spline_interpolator(const std::vector<std::pair<T,T>> Array_xy) {
     //using N = Array_xy.size();
     Spline<T> spline(convert_pairs_to_vector(Array_xy));
     matrix<double> a;
@@ -156,7 +162,7 @@ template<uint64_t M, uint64_t P, typename T>void Spline_build(const std::vector<
 //rezerved_2
 /*
 template<uint64_t M, uint64_t P, typename T>
-void Spline_build(const std::vector<std::pair<T, T>>& Array_xy) {
+void Spline_interpolator(const std::vector<std::pair<T, T>>& Array_xy) {
     const size_t N = Array_xy.size();
     const size_t total_coeffs = M * (N - 1); // Коэффициенты для каждого интервала
     const size_t equations = M * (N - 1);     // Общее количество уравнений
@@ -236,7 +242,7 @@ void Spline_build(const std::vector<std::pair<T, T>>& Array_xy) {
 
 //main rezerved
 /*
-template<uint64_t M, uint64_t P, typename T>void Spline_build(const std::vector<std::pair<T, T>>& Array_xy) {
+template<uint64_t M, uint64_t P, typename T>void Spline_interpolator(const std::vector<std::pair<T, T>>& Array_xy) {
     const size_t N = Array_xy.size();
     const size_t segments = N - 1;
     const size_t coefficients = M * segments;
@@ -319,7 +325,7 @@ template<uint64_t M, uint64_t P, typename T>void Spline_build(const std::vector<
 //rezerv_ XZ
 /*
 template<uint64_t M, uint64_t P, typename T>
-void Spline_build(const std::vector<std::pair<T, T>>& Array_xy) {
+void Spline_interpolator(const std::vector<std::pair<T, T>>& Array_xy) {
     const size_t N = Array_xy.size();
     const size_t segments = N - 1;
     const size_t coefficients = M * segments;
@@ -386,9 +392,10 @@ void Spline_build(const std::vector<std::pair<T, T>>& Array_xy) {
 }
 */
 
-template<uint64_t M_, uint64_t P, typename T>
-void Spline_build(const std::vector<std::pair<T, T>>& Array_xy) {
+template<uint64_t M_, uint64_t P_= M_ - 1, typename T>
+Spline<T> Spline_interpolator(const std::vector<std::pair<T, T>>& Array_xy) {
     const uint64_t M = M_+1; 
+    const uint64_t P = M_ - 1;
     const size_t N = Array_xy.size();
     const size_t segments = N - 1;
     const size_t coefficients = (M) * segments;
@@ -399,8 +406,8 @@ void Spline_build(const std::vector<std::pair<T, T>>& Array_xy) {
     const size_t boundary_eq = /*2 **/ P;
     const size_t equations = interpolation_eq + smoothness_eq + boundary_eq;
 
-    matrix<double> a(equations, coefficients);
-    matrix<double> b(equations, 1);
+    matrix<T> a(equations, coefficients);
+    matrix<T> b(equations, 1);
 
     size_t eq = 0;
 
@@ -426,12 +433,12 @@ void Spline_build(const std::vector<std::pair<T, T>>& Array_xy) {
 
     // 2. Условия гладкости (производные от 1 до P)
     for (size_t i = 1; i < segments; ++i) {
-        const double x = Array_xy[i].first;
+        const T x = Array_xy[i].first;
 
         for (size_t p = 1; p <= P; ++p) {
             for (size_t j = p; j < M; ++j) {
-                const double deriv_coeff = factorial(j) / factorial(j - p);
-                const double deriv_value = deriv_coeff * std::pow(x, j - p);
+                const T deriv_coeff = factorial(j) / factorial(j - p);
+                const T deriv_value = deriv_coeff * std::pow(x, j - p);
 
                 a[eq][(i - 1) * M + j] = deriv_value;
                 a[eq][i * M + j] = -deriv_value;
@@ -443,16 +450,16 @@ void Spline_build(const std::vector<std::pair<T, T>>& Array_xy) {
 
     // 3. Граничные условия (производные от 1 до P на концах)
     for (size_t p = 1; p <= P; ++p) {
-        // Левая граница
-        const double x_start = Array_xy[0].first;
+        // left border
+        const T x_start = Array_xy[0].first;
         for (size_t j = p; j < M; ++j) {
-            const double deriv_coeff = factorial(j) / factorial(j - p);
+            const T deriv_coeff = factorial(j) / factorial(j - p);
             a[eq][0 * M + j] = deriv_coeff * std::pow(x_start, j - p);
         }
        // b[eq][0] = 0;
         eq++;
 #if 0
-        // Правая граница
+        // right border
         const double x_end = Array_xy.back().first;
         const size_t last_segment = segments - 1;
         for (size_t j = p; j < M; ++j) {
@@ -467,17 +474,20 @@ void Spline_build(const std::vector<std::pair<T, T>>& Array_xy) {
     std::cout << a << "\nzer good\n";
     //std::cout << a.determinant() << "\nzer good\n";
     // Решение системы
-    matrix<double> x = a.to_upper_triangular();
+    matrix<T> x = a.inverse_M() * b;
     // std::cout << "Coefficients:\n" << x;
     std::cout << "Coefficients:\n" << a.inverse_M() * b;
 
-    Spline<double> ans(convert_pairs_to_vector(Array_xy));
-    for (uint64_t i = 0; i < matrix.getcol() / M; i++) {
+    Spline<T> ans(convert_pairs_to_vector(Array_xy));
+    for (uint64_t i = 0; i < x.getcol() / M; i++) {
+        polynomial<T> pol; pol.newsize(M);
         for (uint64_t j = 0; j < M; j++) {
-            ans.
+            
+            pol[j]=x[M*i+j][0];
         }
-
+        std::cout << "\n" << pol << "\n";
+        ans.setpol(i,pol);
     }
-
-
+    std::cout << "\n" << ans << "\n";
+    return ans;
 }
