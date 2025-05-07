@@ -104,6 +104,7 @@ template<class T>void draw_functions(const std::vector<std::function<T(T)>>& fun
             if ( event->is<sf::Event::KeyPressed>() ) {
                 #define MAKRO_SHIFT(a,b) Drawing_const::offset_from_Zero_vector = Drawing_const::offset_from_Zero_vector +  sf::Vector2f{ a/modifire,b/modifire };Drawing_const::update_borders();
                 #define MAKRO_ZOOM(k) modifire = modifire * k;Drawing_const::step_by_x*=k;Drawing_const::update_borders();
+                #define RATIO_MODIFIRE(mx,my)   ratio_of_modifiers_by_xy = ratio_of_modifiers_by_xy.cross<float>( sf::Vector2f{mx,my});Drawing_const::update_borders();
                 using namespace sf::Keyboard;
                 switch (event->getIf<sf::Event::KeyPressed>()->code)
                 {
@@ -114,10 +115,10 @@ template<class T>void draw_functions(const std::vector<std::function<T(T)>>& fun
                 case Key::S:MAKRO_SHIFT(0,-9 / ratio_of_modifiers_by_xy.y); break;
                 case Key::Space: MAKRO_ZOOM(3/2); break;
                 case Key::LAlt: MAKRO_ZOOM(2/3); break;
-                case Key::Left:   ratio_of_modifiers_by_xy.x = ratio_of_modifiers_by_xy.x * (2. / 3.); break;
-                case Key::Right:  ratio_of_modifiers_by_xy.x = ratio_of_modifiers_by_xy.x * (3. / 2.); break;
-                case Key::Down:   ratio_of_modifiers_by_xy.y = ratio_of_modifiers_by_xy.y * (2. / 3.); break;
-                case Key::Up:     ratio_of_modifiers_by_xy.y = ratio_of_modifiers_by_xy.y * (3. / 2.); break;
+                case Key::Left:   RATIO_MODIFIRE(2. / 3. ,1); break;
+                case Key::Right:  RATIO_MODIFIRE(3. / 2. ,1); break;
+                case Key::Down:   RATIO_MODIFIRE(1, 2. / 3.); break;
+                case Key::Up:     RATIO_MODIFIRE(1, 3. / 2.); break;
 
                 case Key::Tab:
                     std::cout <<"current rendering parameters:\n"
