@@ -163,6 +163,7 @@
     <ClInclude Include="file_h\complex.h" />
     <ClInclude Include="file_h\counting_methods_1.h" />
     <ClInclude Include="file_h\counting_methods_2.h" />
+    <ClInclude Include="file_h\eigenvalues.h" />
     <ClInclude Include="file_h\fraction.h" />
     <ClInclude Include="file_h\matrix.h" />
     <ClInclude Include="file_h\polynomial.h" />

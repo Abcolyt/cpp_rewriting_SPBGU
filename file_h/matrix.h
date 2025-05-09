@@ -3,7 +3,18 @@
 #include <sstream>
 #include <iomanip>
 #include <vector>
+#include <random>
+
 extern enum class output_mode;
+template<typename T> class matrix;
+
+namespace matrixfunction {
+    template<typename T>T power_method(const matrix<T>& A, const matrix<T>& Vec0, double epsilon = 1e-6, int max_iter = 1000);
+
+    template<typename T>T power_method(const matrix<T>& A, double epsilon = 1e-6, int max_iter = 1000) {
+        return matrixfunction::power_method(A, matrix<T>::ones(A.getcol(), 1), epsilon, max_iter);
+    }
+}
 
 // //
 //  logic of the apply Method To Elements method using SFINAE to check for the presence of a 
@@ -18,7 +29,7 @@ template <typename T, typename Param>
 struct HasMethodWithParam<T, Param, std::void_t<decltype(std::declval<T>().output_mode_set(std::declval<Param>()))>> : std::true_type {};
 // //
 
-template<typename T> class matrix;
+
 template<typename T> std::ostream& operator<<(std::ostream& out, const matrix<T>& plnm);
 template<typename T> std::istream& operator>>(std::istream& in, matrix<T>& plnm);
 template <typename T> class matrix
@@ -102,7 +113,7 @@ public:
     // finding the determinant if there is one
     T determinant() const;
     //return of the square matrix from 1 to the lower diagonal
-    //  <-----S---->s
+    //  <-----S---->
     //  0 0  ..  0 1     |
     //  0 0  ..  1 0     |
     //  . ..   ...  .. ..     S                    
@@ -124,17 +135,62 @@ public:
     
 
     matrix<T> cholesky() const;
-    
-    matrix<T> zeros(uint64_t colsize, uint64_t rowsize)
-    {
-        this->colsize = colsize;
-        this->rowsize = rowsize;
-        this->allocateMemory();
-        return *this;
+    //replacement by a matrix of zero T elements
+    static matrix<T> zeros(uint64_t colsize, uint64_t rowsize) {
+        matrix<T> mat;
+        mat.colsize = colsize;
+        mat.rowsize = rowsize;
+        mat.allocateMemory();
+        return mat;
     }
 
+    //replacement by a matrix of single T elements
+    static matrix<T> ones(uint64_t colsize, uint64_t rowsize) {
+        matrix<T> mat;
+        mat.colsize = colsize;
+        mat.rowsize = rowsize;
+        mat.ptr = new T[colsize * rowsize];
+        for (uint64_t i = 0; i < colsize * rowsize; i++) {
+            mat.ptr[i] = 1;
+        }
+        return mat;
+    }
    
 
+    // Method for calculating the maximum eigenvalue
+    T max_eigenvalue(double epsilon = 1e-6, int max_iter = 1000) const {
+        if (colsize != rowsize) {
+            throw std::invalid_argument("Matrix must be square.");
+        }
+        return matrixfunction::power_method(*this, matrix<T>::ones(colsize, 1), epsilon, max_iter);
+    }
+    // Method for calculating the maximum eigenvalue with initial vector
+    T max_eigenvalue(const matrix<T>& initial_vec, double epsilon = 1e-6, int max_iter = 1000) const {
+        return matrixfunction::power_method(*this, initial_vec, epsilon, max_iter);
+    }
 
+    static matrix<T> random(size_t rows, size_t cols, T min, T max) {
+        matrix<T> m(rows, cols);
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<T> dist(min, max);
+
+        for (size_t i = 0; i < rows * cols; ++i) {
+            m.ptr[i] = dist(gen);
+        }
+        return m;
+    }
+
+    static matrix<T> randomDiagonal(size_t n, T min, T max) {
+        matrix<T> m(n, n);
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<T> dist(min, max);
+
+        for (size_t i = 0; i < n; ++i) {
+            m[i][i] = dist(gen);
+        }
+        return m;
+    }
 };
 #include "../_cpp_realisation_file/matrix.cpp"
