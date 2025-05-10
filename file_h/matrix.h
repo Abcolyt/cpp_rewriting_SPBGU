@@ -193,6 +193,16 @@ public:
         return m;
     }
 
+    static matrix<T> eye(uint64_t n) {
+        matrix<T> mat(n, n);
+        for (uint64_t i = 0; i < n; ++i) {
+            for (uint64_t j = 0; j < n; ++j) {
+                mat[i][j] = 0; // Явное обнуление
+            }
+            mat[i][i] = 1; // Заполнение диагонали
+        }
+        return mat;
+    }
     // Метод для перестановки строк матрицы
     void swap_rows(size_t i, size_t j) {
         for (size_t col = 0; col < rowsize; ++col) {
@@ -207,22 +217,11 @@ public:
     };
 
     LUResult lu() const {
-        if (colsize != rowsize) {
-            throw std::invalid_argument("LU decomposition requires square matrix");
-        }
-
-        const size_t n = colsize;
         LUResult result;
+        const size_t n = colsize;
         result.L = matrix<T>::zeros(n, n);
-        result.U = *this; // Копируем исходную матрицу
-        result.P = matrix<T>::zeros(n, n); // Инициализируем P как единичную матрицу
-        for (size_t i = 0; i < n; ++i) {
-            result.P[i][i] = 1; // Начальная матрица перестановок — единичная
-        }
-
-        // Вектор для отслеживания перестановок
-        std::vector<size_t> piv(n);
-        for (size_t i = 0; i < n; ++i) piv[i] = i;
+        result.U = *this;
+        result.P = matrix<T>::eye(n); // Единичная матрица
 
         for (size_t k = 0; k < n; ++k) {
             // Частичный выбор ведущего элемента
@@ -238,10 +237,7 @@ public:
             // Перестановка строк в U и P
             if (max_row != k) {
                 result.U.swap_rows(k, max_row);
-                std::swap(piv[k], piv[max_row]);
-
-                // Обновляем матрицу перестановок P
-                result.P.swap_rows(k, max_row);
+                result.P.swap_rows(k, max_row); // Синхронизируем P
             }
 
             // Заполнение L и U

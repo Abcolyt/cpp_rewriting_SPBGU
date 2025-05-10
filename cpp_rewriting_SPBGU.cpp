@@ -55,8 +55,8 @@ int main() {
 
 #if AU_LOG==1
 
-    matrix<double> A(2, 2), T= matrix<double>::random(5, 5, -100, 100.), L=T.lu().L,U= T.lu().U;
-    std::cout << T << "\n" <<L*U << "\n"<<U*L<<"\nP:"<< T.lu().P<< T.lu().P.inverse_M() <<"\n";
+    matrix<double> A(2, 2), T= matrix<double>::random(5, 5, -100, 100.), L=T.lu().L,U= T.lu().U,P= T.lu().P;
+    std::cout << T << "\nL:"<<L<<"\nU:"<<U<<"\nP:" <<P<< "\nL*U:" <<L*U <<"\n"<<"\nP*A:"<<P*T;
     std::cout << matrix<double>::randomDiagonal(5,-100000.,100000.);
     
     std::cin >> A;
