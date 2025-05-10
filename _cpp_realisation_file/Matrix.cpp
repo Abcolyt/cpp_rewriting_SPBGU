@@ -519,3 +519,57 @@ template<typename T>matrix<T> matrix<T>::cholesky() const
 
     return L;
 }
+
+
+namespace matrixfunction {
+    template<typename T>T power_method(const matrix<T>& A, const matrix<T>& Vec0, double epsilon, int max_iter ) {
+
+        if (A.getcol() != A.getrow()) {
+            throw std::invalid_argument("Matrix must be square for power method.");
+        }
+        int n = A.getcol();
+
+        T eigenvalue_prev = 0;
+        T eigenvalue = 0;
+        matrix<T> eigenvector = Vec0;
+
+        for (int iter = 0; iter < max_iter; ++iter) {
+            matrix<T> Ab = A * eigenvector;
+#if 0
+            std::cout << iter << "\n";
+#endif
+            // Finding the maximum modulo element
+            eigenvalue = Ab[0][0];
+            for (int i = 0; i < n; ++i) {
+                if (std::abs(Ab[i][0]) > std::abs(eigenvalue)) {
+                    eigenvalue = Ab[i][0];
+                }
+            }
+
+            if (((eigenvalue) < 0 ? (eigenvalue) * (-1) : (eigenvalue)) < epsilon) {
+                throw std::runtime_error("Matrix may be singular (zero eigenvalue detected).");
+            }
+
+            //Normalization of the vector
+            eigenvector = Ab;
+#if 0
+            std::cout << "eigenvector:\n" << eigenvector << "\n";
+            std::cout << "eigenvalue_prev:\n" << eigenvalue_prev << "\n";
+#endif
+            for (int i = 0; i < n; ++i) {
+                eigenvector[i][0] /= eigenvalue;
+            }
+
+            // Проверка сходимости
+            if (((eigenvalue - eigenvalue_prev) < 0 ? (eigenvalue - eigenvalue_prev) * (-1) : (eigenvalue - eigenvalue_prev)) < epsilon) {
+                return  eigenvalue;
+            }
+
+            eigenvalue_prev = eigenvalue;
+        }
+
+        throw std::runtime_error("Power method did not converge within the specified iterations.");
+    }
+
+
+}

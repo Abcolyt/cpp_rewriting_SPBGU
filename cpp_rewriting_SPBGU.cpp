@@ -19,6 +19,7 @@
 #include "file_h/Array_xy_To_.h"
 #include "file_h/calc_computing_f.h"
 #include "file_h/Spline.h"
+#include "file_h/eigenvalues.h"
 
 template<typename T, typename Func>
 std::vector<std::pair<T, T>> generatePointsLambda(int k, T x0, T step, Func F) {
@@ -49,28 +50,25 @@ int main() {
 
     counting_methods::holechi::example();
 #endif
-#define AU_LOG 7
+
+#define AU_LOG 1
 
 #if AU_LOG==1
+
+    matrix<double> A(2, 2), T= matrix<double>::random(5, 5, -100, 100.);
+    std::cout << T << "\n" <<T.cholesky() << "\n";
+    std::cout << matrix<double>::randomDiagonal(5,-100000.,100000.);
     
-    std::vector<std::pair<int, int>> Array_xy = { {1, 10}, {2, 20}, {3, 30},{1, 10}, {2, 20}, {3, 30},{1, 10}, {2, 20}, {3, 30},{1, 10}, {2, 20}, {3, 30},{1, 10}, {2, 20}, {3, 30} };
-    Nuton<int> a(Array_xy);
-    a.nuton_interpolation(6);
+    std::cin >> A;
+
+    try {
+        std::cout << "Eigenvalue: " << A.max_eigenvalue();
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+
 #elif AU_LOG==2
-   
-    auto TheTypeOfFunctionThatBeingInterpolated = [](double x) { return  1 + 10 * x + 10 * x * x + 10 * x * x * x + 10 * x * x * x * x;};
-
-    auto Array_xy = generatePointsLambda(7, -4, 1, TheTypeOfFunctionThatBeingInterpolated);
-    
-    std::cout << nuton_interpolation(Array_xy)<<"\ndivided_difference0_to_k(Array_xy):"<< nuton_interpolation(Array_xy).get_deg() << "\n\n\n\n\n\n\n";
-
-    /*auto Func2 = [](double x) { return -2479 - 1050 * x; };
-    auto Array_xy_2 = generatePointsLambda(7, -4, 1, Func);
-
-    std::cout << divided_difference0_to_k(Array_xy_2);*/
-
-
-    
 #elif AU_LOG==3
 
     int n = 10;
