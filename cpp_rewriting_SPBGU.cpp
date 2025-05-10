@@ -51,7 +51,7 @@ int main() {
     counting_methods::holechi::example();
 #endif
 
-#define AU_LOG 1
+#define AU_LOG 7
 
 #if AU_LOG==1
 
