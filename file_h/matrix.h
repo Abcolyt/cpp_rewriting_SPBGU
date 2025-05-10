@@ -216,11 +216,16 @@ public:
         matrix<T> P; // Матрица перестановок
     };
 
-    LUResult lu() const {
-        LUResult result;
+    template <typename T>
+    typename matrix<T>::LUResult matrix<T>::lu() const {
+        if (colsize != rowsize) {
+            throw std::invalid_argument("LU decomposition requires square matrix");
+        }
+
         const size_t n = colsize;
+        LUResult result;
         result.L = matrix<T>::zeros(n, n);
-        result.U = *this;
+        result.U = *this; // Копируем исходную матрицу
         result.P = matrix<T>::eye(n); // Единичная матрица
 
         for (size_t k = 0; k < n; ++k) {
@@ -237,7 +242,14 @@ public:
             // Перестановка строк в U и P
             if (max_row != k) {
                 result.U.swap_rows(k, max_row);
-                result.P.swap_rows(k, max_row); // Синхронизируем P
+                result.P.swap_rows(k, max_row);
+
+                // Перестановка строк в L (только уже вычисленные элементы)
+                if (k > 0) {
+                    for (size_t j = 0; j < k; ++j) {
+                        std::swap(result.L[k][j], result.L[max_row][j]);
+                    }
+                }
             }
 
             // Заполнение L и U
