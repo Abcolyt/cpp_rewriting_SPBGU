@@ -192,5 +192,69 @@ public:
         }
         return m;
     }
+
+    // Метод для перестановки строк матрицы
+    void swap_rows(size_t i, size_t j) {
+        for (size_t col = 0; col < rowsize; ++col) {
+            std::swap((*this)[i][col], (*this)[j][col]);
+        }
+    }
+    // Структура для возврата LU-разложения с матрицей перестановок
+    struct LUResult {
+        matrix<T> L;
+        matrix<T> U;
+        matrix<T> P; // Матрица перестановок
+    };
+
+    LUResult lu() const {
+        if (colsize != rowsize) {
+            throw std::invalid_argument("LU decomposition requires square matrix");
+        }
+
+        const size_t n = colsize;
+        LUResult result;
+        result.L = matrix<T>::zeros(n, n);
+        result.U = *this; // Копируем исходную матрицу
+        result.P = matrix<T>::zeros(n, n); // Инициализируем P как единичную матрицу
+        for (size_t i = 0; i < n; ++i) {
+            result.P[i][i] = 1; // Начальная матрица перестановок — единичная
+        }
+
+        // Вектор для отслеживания перестановок
+        std::vector<size_t> piv(n);
+        for (size_t i = 0; i < n; ++i) piv[i] = i;
+
+        for (size_t k = 0; k < n; ++k) {
+            // Частичный выбор ведущего элемента
+            size_t max_row = k;
+            T max_val = std::abs(result.U[k][k]);
+            for (size_t i = k + 1; i < n; ++i) {
+                if (std::abs(result.U[i][k]) > max_val) {
+                    max_val = std::abs(result.U[i][k]);
+                    max_row = i;
+                }
+            }
+
+            // Перестановка строк в U и P
+            if (max_row != k) {
+                result.U.swap_rows(k, max_row);
+                std::swap(piv[k], piv[max_row]);
+
+                // Обновляем матрицу перестановок P
+                result.P.swap_rows(k, max_row);
+            }
+
+            // Заполнение L и U
+            result.L[k][k] = 1;
+            for (size_t i = k + 1; i < n; ++i) {
+                result.L[i][k] = result.U[i][k] / result.U[k][k];
+                for (size_t j = k; j < n; ++j) {
+                    result.U[i][j] -= result.L[i][k] * result.U[k][j];
+                }
+            }
+        }
+
+        return result;
+    }
 };
 #include "../_cpp_realisation_file/matrix.cpp"

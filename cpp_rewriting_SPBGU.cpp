@@ -51,12 +51,12 @@ int main() {
     counting_methods::holechi::example();
 #endif
 
-#define AU_LOG 7
+#define AU_LOG 1
 
 #if AU_LOG==1
 
-    matrix<double> A(2, 2), T= matrix<double>::random(5, 5, -100, 100.);
-    std::cout << T << "\n" <<T.cholesky() << "\n";
+    matrix<double> A(2, 2), T= matrix<double>::random(5, 5, -100, 100.), L=T.lu().L,U= T.lu().U;
+    std::cout << T << "\n" <<L*U << "\n"<<U*L<<"\nP:"<< T.lu().P<< T.lu().P.inverse_M() <<"\n";
     std::cout << matrix<double>::randomDiagonal(5,-100000.,100000.);
     
     std::cin >> A;
