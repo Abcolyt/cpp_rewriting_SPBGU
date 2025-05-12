@@ -69,7 +69,7 @@ namespace matrixfunction {
         matrix<T> x = backward_substitution(lup.U, y);
         return x;
     }
-
+#if 0
     // 3. Модифицированный обратный степенной метод
     template<typename T>
     std::pair<T, matrix<T>> inverse_power_method(
@@ -159,6 +159,67 @@ namespace matrixfunction {
         }
         return eigen_pairs;
     }
+#else
+    template <typename T>
+    std::pair<T, matrix<T>> inverse_power_method(
+        const matrix<T>& A,
+        T sigma,
+        const matrix<T>& y0,
+        double epsilon = 1e-6,
+        int max_iter = 1000
+    ) {
+        size_t n = A.getrow();
+        matrix<T> y = y0;
+        T lambda = sigma;
+
+        // Нормировка начального вектора
+        T norm = y.norm();
+        if (norm < 1e-10) throw std::runtime_error("Initial vector is zero.");
+        y = y * (1.0 / norm);
+
+        for (int iter = 0; iter < max_iter; ++iter) {
+            // 1. Формируем матрицу (A - σI) с регуляризацией
+            matrix<T> B = A - matrix<T>::eye(n) * lambda + matrix<T>::eye(n) * 1e-8;
+
+            // 2. Решаем систему B * y_new = y (явно для диагональной матрицы)
+            matrix<T> y_new(n, 1);
+            for (size_t i = 0; i < n; ++i) {
+                y_new[i][0] = y[i][0] / B[i][i];
+            }
+
+            // 3. Нормируем новый вектор
+            T new_norm = y_new.norm();
+            if (new_norm < 1e-10) {
+                y_new = matrix<T>::random(n, 1, -1.0, 1.0); // Переинициализация при нулевом векторе
+                new_norm = y_new.norm();
+            }
+            y_new = y_new * (1.0 / new_norm);
+
+            // 4. Вычисляем μ по максимальной компоненте
+            size_t max_idx = 0;
+            T max_val = std::abs(y_new[0][0]);
+            for (size_t i = 1; i < n; ++i) {
+                if (std::abs(y_new[i][0]) > max_val) {
+                    max_val = std::abs(y_new[i][0]);
+                    max_idx = i;
+                }
+            }
+            T mu = y[max_idx][0] / y_new[max_idx][0];
+            T lambda_new = lambda + mu;
+
+            // 5. Проверка сходимости
+            if (std::abs(lambda_new - lambda) < epsilon) {
+                return { lambda_new, y_new };
+            }
+
+            lambda = lambda_new;
+            y = y_new;
+        }
+
+        throw std::runtime_error("Method did not converge.");
+    }
+    #endif
+
 #endif
 }
 
@@ -213,7 +274,7 @@ public:
     uint64_t getrow()const { return rowsize; }
     void setcol(uint64_t colsize) { this->colsize = colsize; this->allocateMemory(); }
     void setrow(uint64_t rowsize) { this->rowsize = rowsize; this->allocateMemory(); }
-    matrix<T>& set_output_mode(output_mode mode) { this->out_mode = mode; std::cout << (int)out_mode; return *this; }
+    matrix<T>& set_output_mode(output_mode mode) { this->out_mode = mode; return *this; }
     enum class output_mode get_output_mode()const { return (this->out_mode); }
     //to index1 row access operator
     T* operator[](const uint64_t index1) const { return ptr + index1 * rowsize; }
@@ -325,7 +386,7 @@ public:
 
     //applyMethodToElements function using SFINAE to check for a method with a parameter and call it
     //for example:
-    //Matrix<ExampleClass> matrix;
+    //matrix<ExampleClass> matrix;
     //matrix.applyMethodToElements(&ExampleClass::output_mode_set, 2);
     //a method that applies a method( output_mode_set(M) ) of class T to each element of the matrix
     //(Not tested. Everything worked in the simplified code) 

@@ -257,7 +257,7 @@ template<typename T>std::ostream& operator<<(std::ostream& out, const matrix<T>&
     }
 
     case output_mode::SHORT: {
-        out << "Matrix[" << mtrx.getcol() << "x" << mtrx.getrow() << "]";
+        out << "matrix[" << mtrx.getcol() << "x" << mtrx.getrow() << "]";
         break;
     }
     }
