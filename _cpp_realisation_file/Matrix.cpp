@@ -172,40 +172,40 @@ template<typename T>matrix<T> matrix<T>::to_uptrng()const
     }
     return temp;
 }
-
-template<typename T>matrix<T> matrix<T>::to_upper_triangular() const {
-    //std::cout << *this;
-    matrix<T> temp;temp= ((*this));
-    const uint64_t n = std::min(rowsize, colsize);
-
-    for (uint64_t i = 0; i < n; ++i) {
-        // Поиск первого ненулевого элемента в столбце i
-        uint64_t pivot_row = i;
-        while (pivot_row < rowsize && temp[pivot_row][i] == 0) {
-            ++pivot_row;
-        }
-
-        if (pivot_row >= rowsize) continue;
-
-        // Перестановка строк вручную
-        if (pivot_row != i) {
-            for (uint64_t col = 0; col < colsize; ++col) {
-                std::swap(temp[i][col], temp[pivot_row][col]);
-            }
-        }
-
-        // Исключение элементов ниже ведущего
-        for (uint64_t j = i + 1; j < rowsize; ++j) {
-            if (temp[i][i] == 0) continue; // Защита от деления на ноль
-
-            T factor = temp[j][i] / temp[i][i];
-            for (uint64_t k = i; k < colsize; ++k) {
-                temp[j][k] -= factor * temp[i][k];
-            }
-        }
-    }
-    return temp;
-}
+//
+//template<typename T>matrix<T> matrix<T>::to_upper_triangular() const {
+//    //std::cout << *this;
+//    matrix<T> temp;temp= ((*this));
+//    const uint64_t n = std::min(rowsize, colsize);
+//
+//    for (uint64_t i = 0; i < n; ++i) {
+//        // Поиск первого ненулевого элемента в столбце i
+//        uint64_t pivot_row = i;
+//        while (pivot_row < rowsize && temp[pivot_row][i] == 0) {
+//            ++pivot_row;
+//        }
+//
+//        if (pivot_row >= rowsize) continue;
+//
+//        // Перестановка строк вручную
+//        if (pivot_row != i) {
+//            for (uint64_t col = 0; col < colsize; ++col) {
+//                std::swap(temp[i][col], temp[pivot_row][col]);
+//            }
+//        }
+//
+//        // Исключение элементов ниже ведущего
+//        for (uint64_t j = i + 1; j < rowsize; ++j) {
+//            if (temp[i][i] == 0) continue; // Защита от деления на ноль
+//
+//            T factor = temp[j][i] / temp[i][i];
+//            for (uint64_t k = i; k < colsize; ++k) {
+//                temp[j][k] -= factor * temp[i][k];
+//            }
+//        }
+//    }
+//    return temp;
+//}
 
 template <typename T>T matrix<T>::determinant() const {
     if (rowsize != colsize) {
@@ -519,7 +519,100 @@ template<typename T>matrix<T> matrix<T>::cholesky() const
 
     return L;
 }
+template<typename T>LUResult<T> matrix<T>::LUP() const {
+    if (colsize != rowsize) {
+        throw std::invalid_argument("LU decomposition requires square matrix");
+    }
 
+    const size_t n = colsize;
+    LUResult<T> result;
+    result.L = matrix<T>::zeros(n, n);
+    result.U = *this; // Копируем исходную матрицу
+    result.P = matrix<T>::eye(n); // Единичная матрица
+
+    for (size_t k = 0; k < n; ++k) {
+        // Частичный выбор ведущего элемента
+        size_t max_row = k;
+        T max_val = std::abs(result.U[k][k]);
+        for (size_t i = k + 1; i < n; ++i) {
+            if (std::abs(result.U[i][k]) > max_val) {
+                max_val = std::abs(result.U[i][k]);
+                max_row = i;
+            }
+        }
+
+        // Перестановка строк в U и P
+        if (max_row != k) {
+            result.U.swap_rows(k, max_row);
+            result.P.swap_rows(k, max_row);
+
+            // Перестановка строк в L (только уже вычисленные элементы)
+            if (k > 0) {
+                for (size_t j = 0; j < k; ++j) {
+                    std::swap(result.L[k][j], result.L[max_row][j]);
+                }
+            }
+        }
+
+        // Заполнение L и U
+        result.L[k][k] = 1;
+        for (size_t i = k + 1; i < n; ++i) {
+            result.L[i][k] = result.U[i][k] / result.U[k][k];
+            for (size_t j = k; j < n; ++j) {
+                result.U[i][j] -= result.L[i][k] * result.U[k][j];
+            }
+        }
+    }
+
+    return result;
+}
+
+
+
+template<typename T>
+ matrix<T> matrix<T>::zeros(uint64_t colsize, uint64_t rowsize) {
+    matrix<T> mat;
+    mat.colsize = colsize;
+    mat.rowsize = rowsize;
+    mat.allocateMemory();
+    return mat;
+}
+
+template<typename T>
+ matrix<T> matrix<T>::ones(uint64_t colsize, uint64_t rowsize) {
+    matrix<T> mat;
+    mat.colsize = colsize;
+    mat.rowsize = rowsize;
+    mat.ptr = new T[colsize * rowsize];
+    for (uint64_t i = 0; i < colsize * rowsize; i++) {
+        mat.ptr[i] = 1;
+    }
+    return mat;
+}
+ 
+ template<typename T>
+ matrix<T> matrix<T>::eye(uint64_t S) {
+     matrix<T> mat(S, S);
+     for (uint64_t i = 0; i < S; ++i) {
+         mat[i][i] = 1;
+     }
+     return mat;
+ }
+
+
+ // Method for calculating the maximum eigenvalue
+ template<typename T>
+ T matrix<T>::max_eigenvalue(double epsilon , int max_iter) const {
+     if (colsize != rowsize) {
+         throw std::invalid_argument("Matrix must be square.");
+     }
+     return matrixfunction::power_method(*this, matrix<T>::ones(colsize, 1), epsilon, max_iter);
+ }
+ // Method for calculating the maximum eigenvalue with initial vector
+ template<typename T>
+ T matrix<T>::max_eigenvalue(const matrix<T>& initial_vec, double epsilon , int max_iter ) const {
+     return matrixfunction::power_method(*this, initial_vec, epsilon, max_iter);
+ }
 
 namespace matrixfunction {
     template<typename T>T power_method(const matrix<T>& A, const matrix<T>& Vec0, double epsilon, int max_iter ) {
@@ -571,5 +664,42 @@ namespace matrixfunction {
         throw std::runtime_error("Power method did not converge within the specified iterations.");
     }
 
+    template <typename T>bool is_equal(const matrix<T>& a, const matrix<T>& b, T epsilon) {
+        if (a.getcol() != b.getcol() || a.getrow() != b.getrow()) {
+            return false;
+        }
 
+        for (uint64_t i = 0; i < a.getcol(); ++i) {
+            for (uint64_t j = 0; j < a.getrow(); ++j) {
+                T diff = (a[i][j] > b[i][j]) ?
+                    (a[i][j] - b[i][j]) :
+                    (b[i][j] - a[i][j]);
+
+                if (diff > epsilon) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
+    template <typename T>    matrix<int> elementwise_equal_matrix(const matrix<T>& a, const matrix<T>& b, T epsilon) {
+        if (a.getcol() != b.getcol() || a.getrow() != b.getrow()) {
+            throw std::invalid_argument("Matrices must have the same dimensions");
+        }
+
+        matrix<int> result = matrix<int>::zeros(a.getcol(), a.getrow());
+
+        for (uint64_t i = 0; i < a.getcol(); ++i) {
+            for (uint64_t j = 0; j < a.getrow(); ++j) {
+                T diff = (a[i][j] > b[i][j]) ?
+                    (a[i][j] - b[i][j]) :
+                    (b[i][j] - a[i][j]);
+
+                result[i][j] = (diff <= epsilon) ? 1 : 0;
+            }
+        }
+
+        return result;
+    }
 }
