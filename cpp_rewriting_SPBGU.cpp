@@ -34,6 +34,60 @@ std::vector<std::pair<T, T>> generatePointsLambda(int k, T x0, T step, Func F) {
 #define SHOW_INTERPOL_STAT(func,n,m, ...) \
     counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic(func,n+20,m, #func, __VA_ARGS__)
 
+
+//
+
+void test_solve_system() {
+    // Создаем диагональную матрицу 3x3
+    matrix<double> A = matrix<double>::zeros(3, 3);
+    A[0][0] = 2.0;
+    A[1][1] = 3.0;
+    A[2][2] = 4.0;
+
+    // Вектор правой части
+    matrix<double> b = matrix<double>::ones(3, 1);
+    b[0][0] = 4.0;
+    b[1][0] = 6.0;
+    b[2][0] = 8.0;
+
+    // Решаем систему: A * x = b
+    matrix<double> x = matrixfunction::solve_system(A, b);
+
+    // Ожидаемое решение: [2.0, 2.0, 2.0]
+    std::cout << "Solution:\n" << x << std::endl;
+}
+
+void test_solve_system_complex() {
+    // Матрица A (недиагональная, требует перестановок)
+    matrix<double> A = matrix<double>::zeros(3, 3);
+    A[0][0] = 0.0;  A[0][1] = 2.0;  A[0][2] = 1.0;
+    A[1][0] = 1.0;  A[1][1] = 1.0;  A[1][2] = 1.0;
+    A[2][0] = 2.0;  A[2][1] = 0.0;  A[2][2] = 3.0;
+
+    // Вектор правой части: b = [5, 6, 13]
+    matrix<double> b = matrix<double>::ones(3, 1);
+    b[0][0] = 5.0;
+    b[1][0] = 6.0;
+    b[2][0] = 13.0;
+
+    // Решаем систему: A * x = b
+    matrix<double> x = matrixfunction::solve_system(A, b);
+
+    // Ожидаемое решение: x = [1, 2, 3]
+    std::cout << "Computed solution:\n" << x << std::endl;
+
+    // Проверка LU-разложения: L * U = P * A
+    auto lup = A.LUP();
+    b.set_output_mode(output_mode::ABBREVIATED);
+    auto T = (lup.P * b);T.set_output_mode(output_mode::ABBREVIATED);
+    std::cout << "b:\n" << T.set_output_mode(output_mode::ABBREVIATED) << "\n";
+    matrix<double> LU = (lup.L * lup.U);LU.set_output_mode(output_mode::ABBREVIATED);
+    /*std::cout << "l:\n" << ((LU.get_output_mode()) == output_mode::FULL) << "\n";*/
+    matrix<double> PA = (lup.P * A);PA.set_output_mode(output_mode::ABBREVIATED);
+    std::cout << "L * U:\n" << LU << "\nP * A:\n" << PA << std::endl;
+}
+
+//
 int main() {
     using namespace counting_methods_2::Polynomial_interpolation::nuton2;
 #if 0
@@ -55,18 +109,32 @@ int main() {
 
 #if AU_LOG==1
 
-    matrix<double> A(2, 2), T= matrix<double>::random(5, 5, -100, 100.), L=T.lu().L,U= T.lu().U,P= T.lu().P;
-    std::cout << T << "\nL:"<<L<<"\nU:"<<U<<"\nP:" <<P<< "\nL*U:" <<L*U <<"\n"<<"\nP*A:"<<P*T;
-    std::cout << matrix<double>::randomDiagonal(5,-100000.,100000.);
-    
-    std::cin >> A;
+    test_solve_system();
+    test_solve_system_complex();
+   /* matrix<double> A = matrix<double>::randomDiagonal(3, -10.0, 10.0);
+    auto eigen_pairs = matrixfunction::find_all_eigen_pairs(A);
+    std::cout << A<<"\n"<< eigen_pairs.size() <<"\n";
+    for (const auto& pair : eigen_pairs) {
+        std::cout << "Eigenvalue: " << pair.first << "\nEigenvector:\n" << pair.second << std::endl;
+    }*/
+
+
+
+    //
+    //matrix<double>  T = matrix<double>::random(5, 5, -100, 100.);
+    ////auto t_ = (T.LUP());
+    //matrix<double> L = (T.LUP()).L, U = T.LUP().U, P = T.LUP().P;
+    //std::cout << T << "\nL:" << L << "\nU:" << U << "\nP:" << P << "\nL*U:" << L * U << "\n" << "\nP*A:" << P * T << "\nl:" << matrixfunction::is_equal((L * U) , (P * T))<<"\nMl:" <<matrixfunction::elementwise_equal_matrix((L * U), (P * T));
+    //std::cout << matrix<double>::randomDiagonal(5,-100000.,100000.);
+
+    /*std::cin >> A;
 
     try {
         std::cout << "Eigenvalue: " << A.max_eigenvalue();
     }
     catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
-    }
+    }*/
 
 #elif AU_LOG==2
 #elif AU_LOG==3

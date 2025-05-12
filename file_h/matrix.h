@@ -1,19 +1,165 @@
-#pragma once
+Ôªø#pragma once
 #include<iostream>
 #include <sstream>
 #include <iomanip>
 #include <vector>
 #include <random>
 
+#include <stdexcept>
+#include <cmath>
+#include <numeric>
+#include <algorithm>
+
+
 extern enum class output_mode;
 template<typename T> class matrix;
-
+template<typename T>struct LUResult {
+    matrix<T> L;
+    matrix<T> U;
+    matrix<T> P; 
+};
 namespace matrixfunction {
     template<typename T>T power_method(const matrix<T>& A, const matrix<T>& Vec0, double epsilon = 1e-6, int max_iter = 1000);
 
     template<typename T>T power_method(const matrix<T>& A, double epsilon = 1e-6, int max_iter = 1000) {
         return matrixfunction::power_method(A, matrix<T>::ones(A.getcol(), 1), epsilon, max_iter);
     }
+
+    template <typename T>bool is_equal(const matrix<T>& a, const matrix<T>& b, T epsilon = static_cast<T>(1e-6));
+
+    template <typename T>matrix<int> elementwise_equal_matrix(const matrix<T>& a, const matrix<T>& b, T epsilon = static_cast<T>(1e-6));
+
+#if 1
+    // –í—Å–ø–æ–º–æ–≥–∞—Ç–µ–ª—å–Ω—ã–µ —Ñ—É–Ω–∫—Ü–∏–∏ –¥–ª—è –ø—Ä—è–º–æ–≥–æ –∏ –æ–±—Ä–∞—Ç–Ω–æ–≥–æ —Ö–æ–¥–∞
+    template<typename T>
+    matrix<T> forward_substitution(const matrix<T>& L, const matrix<T>& b) {
+        int n = L.getrow();
+        matrix<T> y(n, 1);
+        for (int i = 0; i < n; ++i) {
+            T sum = b[i][0];
+            for (int j = 0; j < i; ++j) {
+                sum -= L[i][j] * y[j][0];
+            }
+            // –ü—Ä–µ–¥–ø–æ–ª–∞–≥–∞–µ–º, —á—Ç–æ L –∏–º–µ–µ—Ç –µ–¥–∏–Ω–∏—Ü—ã –Ω–∞ –¥–∏–∞–≥–æ–Ω–∞–ª–∏ (–∫–∞–∫ –≤ LU-—Ä–∞–∑–ª–æ–∂–µ–Ω–∏–∏)
+            y[i][0] = sum;
+        }
+        return y;
+    }
+
+    template<typename T>
+    matrix<T> backward_substitution(const matrix<T>& U, const matrix<T>& y) {
+        int n = U.getrow();
+        matrix<T> x(n, 1);
+        for (int i = n - 1; i >= 0; --i) {
+            T sum = y[i][0];
+            for (int j = i + 1; j < n; ++j) {
+                sum -= U[i][j] * x[j][0];
+            }
+            x[i][0] = sum / U[i][i];
+        }
+        return x;
+    }
+
+    // 2. –†–µ—à–µ–Ω–∏–µ —Å–∏—Å—Ç–µ–º—ã —Å –æ–±—Ä–∞–±–æ—Ç–∫–æ–π –≤—ã—Ä–æ–∂–¥–µ–Ω–Ω—ã—Ö –º–∞—Ç—Ä–∏—Ü
+    template<typename T>
+    matrix<T> solve_system(const matrix<T>& A, const matrix<T>& b) {
+        auto lup = A.LUP();
+        matrix<T> Pb = lup.P * b;
+        matrix<T> y = forward_substitution(lup.L, Pb);
+        matrix<T> x = backward_substitution(lup.U, y);
+        return x;
+    }
+
+    // 3. –ú–æ–¥–∏—Ñ–∏—Ü–∏—Ä–æ–≤–∞–Ω–Ω—ã–π –æ–±—Ä–∞—Ç–Ω—ã–π —Å—Ç–µ–ø–µ–Ω–Ω–æ–π –º–µ—Ç–æ–¥
+    template<typename T>
+    std::pair<T, matrix<T>> inverse_power_method(
+        const matrix<T>& A,
+        T sigma,
+        const matrix<T>& initial_vec,
+        double delta = 1e-8,  // –£–º–µ–Ω—å—à–µ–Ω–Ω—ã–π –ø–æ—Ä–æ–≥ –¥–ª—è —É—á–µ—Ç–∞ –º–∞–ª—ã—Ö –∫–æ–º–ø–æ–Ω–µ–Ω—Ç
+        double epsilon = 1e-6,
+        int max_iter = 500)   // –£–≤–µ–ª–∏—á–µ–Ω–Ω–æ–µ —á–∏—Å–ª–æ –∏—Ç–µ—Ä–∞—Ü–∏–π
+    {
+        int n = A.getrow();
+        matrix<T> y = initial_vec;
+        T norm = y.norm();
+        if (norm < 1e-10) throw std::runtime_error("Initial vector is zero.");
+        matrix<T> z = y * (1.0 / norm);
+
+        for (int iter = 0; iter < max_iter; ++iter) {
+            matrix<T> B = A - matrix<T>::eye(n) * sigma;
+
+            // –†–µ–≥—É–ª—è—Ä–∏–∑–∞—Ü–∏—è –¥–ª—è –∏–∑–±–µ–∂–∞–Ω–∏—è –≤—ã—Ä–æ–∂–¥–µ–Ω–Ω–æ—Å—Ç–∏
+            B = B + matrix<T>::eye(n) * 1e-6;
+
+            try {
+                matrix<T> y_new = solve_system(B, z);
+                norm = y_new.norm();
+                if (norm < 1e-10) break;
+                z = y_new * (1.0 / norm);
+
+                // –í—ã—á–∏—Å–ª–µ–Ω–∏–µ Œº_i —Å –Ω–æ–≤—ã–º –∫—Ä–∏—Ç–µ—Ä–∏–µ–º
+                std::vector<T> mu_values;
+                for (int i = 0; i < n; ++i) {
+                    if (std::abs(y_new[i][0]) > delta) {
+                        mu_values.push_back(z[i][0] / y_new[i][0]);
+                    }
+                }
+
+                if (mu_values.empty())
+                    throw std::runtime_error("All components below threshold.");
+
+                T avg_mu = std::accumulate(mu_values.begin(), mu_values.end(), T(0)) / mu_values.size();
+                T sigma_new = sigma + avg_mu;
+
+                // –ö—Ä–∏—Ç–µ—Ä–∏–π —Å—Ö–æ–¥–∏–º–æ—Å—Ç–∏
+                if (std::abs(sigma_new - sigma) < epsilon && (y_new - z * norm).norm() < epsilon) {
+                    return { sigma_new, z };
+                }
+
+                sigma = sigma_new;
+                y = y_new;
+
+            }
+            catch (const std::exception& e) {
+                throw std::runtime_error("Solver error: " + std::string(e.what()));
+            }
+        }
+        throw std::runtime_error("Method did not converge.");
+    }
+
+    // 4. –ü–æ–∏—Å–∫ –≤—Å–µ—Ö —Å–æ–±—Å—Ç–≤–µ–Ω–Ω—ã—Ö –ø–∞—Ä —Å —É–ª—É—á—à–µ–Ω–Ω–æ–π —Å—Ç—Ä–∞—Ç–µ–≥–∏–µ–π
+    template<typename T>
+    std::vector<std::pair<T, matrix<T>>> find_all_eigen_pairs(const matrix<T>& A, double epsilon = 1e-6) {
+        std::vector<std::pair<T, matrix<T>>> eigen_pairs;
+        int n = A.getrow();
+        std::vector<T> shifts = { /* –î–∏–∞–≥–æ–Ω–∞–ª—å–Ω—ã–µ —ç–ª–µ–º–µ–Ω—Ç—ã –∫–∞–∫ –Ω–∞—á–∞–ª—å–Ω—ã–µ —Å–¥–≤–∏–≥–∏ */
+            A[0][0], A[1][1], A[2][2]
+        };
+
+        for (T sigma : shifts) {
+            // –ì–µ–Ω–µ—Ä–∞—Ü–∏—è —Å–ª—É—á–∞–π–Ω–æ–≥–æ –≤–µ–∫—Ç–æ—Ä–∞ —Å –Ω–æ—Ä–º–∞–ª—å–Ω—ã–º —Ä–∞—Å–ø—Ä–µ–¥–µ–ª–µ–Ω–∏–µ–º
+            matrix<T> vec = matrix<T>::random(n, 1, -1.0, 1.0);
+            try {
+                auto pair = inverse_power_method(A, sigma, vec, 1e-8, epsilon);
+
+                // –ü—Ä–æ–≤–µ—Ä–∫–∞ —É–Ω–∏–∫–∞–ª—å–Ω–æ—Å—Ç–∏ —Å –æ—Ç–Ω–æ—Å–∏—Ç–µ–ª—å–Ω—ã–º –¥–æ–ø—É—Å–∫–æ–º
+                bool unique = true;
+                for (const auto& ep : eigen_pairs) {
+                    if (std::abs((ep.first - pair.first) / pair.first) < 0.01) {
+                        unique = false;
+                        break;
+                    }
+                }
+                if (unique) eigen_pairs.push_back(pair);
+            }
+            catch (...) {
+                // –ü—Ä–æ–ø—É—Å–∫ –Ω–µ—É–¥–∞—á–Ω—ã—Ö –ø–æ–ø—ã—Ç–æ–∫
+            }
+        }
+        return eigen_pairs;
+    }
+#endif
 }
 
 // //
@@ -67,8 +213,8 @@ public:
     uint64_t getrow()const { return rowsize; }
     void setcol(uint64_t colsize) { this->colsize = colsize; this->allocateMemory(); }
     void setrow(uint64_t rowsize) { this->rowsize = rowsize; this->allocateMemory(); }
-    void set_output_mode(output_mode mode) { out_mode = mode; }
-    enum class output_mode get_output_mode()const { return this->out_mode; }
+    matrix<T>& set_output_mode(output_mode mode) { this->out_mode = mode; std::cout << (int)out_mode; return *this; }
+    enum class output_mode get_output_mode()const { return (this->out_mode); }
     //to index1 row access operator
     T* operator[](const uint64_t index1) const { return ptr + index1 * rowsize; }
 
@@ -102,7 +248,7 @@ public:
 
     //SPECIAL METHODS
     
-    matrix<T> to_upper_triangular() const;
+    //matrix<T> to_upper_triangular() const;
 
     //return of the upper triangular matrix after transformations
     matrix to_uptrng()const;
@@ -124,50 +270,19 @@ public:
     //return of the inverse matrix  
     matrix inverse_M()const;
 
-    //applyMethodToElements function using SFINAE to check for a method with a parameter and call it
-    //for example:
-    //Matrix<ExampleClass> matrix;
-    //matrix.applyMethodToElements(&ExampleClass::output_mode_set, 2);
-    //a method that applies a method( output_mode_set(M) ) of class T to each element of the matrix
-    //(Not tested. Everything worked in the simplified code) 
-    template <typename T, typename ReturnType, typename Param>
-    std::enable_if_t<HasMethodWithParam<T, Param>::value> applyMethodToElements(ReturnType(T::* method)(Param), Param param)const;
-    
-
     matrix<T> cholesky() const;
     //replacement by a matrix of zero T elements
-    static matrix<T> zeros(uint64_t colsize, uint64_t rowsize) {
-        matrix<T> mat;
-        mat.colsize = colsize;
-        mat.rowsize = rowsize;
-        mat.allocateMemory();
-        return mat;
-    }
-
+    static matrix<T> zeros(uint64_t colsize, uint64_t rowsize);
     //replacement by a matrix of single T elements
-    static matrix<T> ones(uint64_t colsize, uint64_t rowsize) {
-        matrix<T> mat;
-        mat.colsize = colsize;
-        mat.rowsize = rowsize;
-        mat.ptr = new T[colsize * rowsize];
-        for (uint64_t i = 0; i < colsize * rowsize; i++) {
-            mat.ptr[i] = 1;
-        }
-        return mat;
-    }
-   
-
-    // Method for calculating the maximum eigenvalue
-    T max_eigenvalue(double epsilon = 1e-6, int max_iter = 1000) const {
-        if (colsize != rowsize) {
-            throw std::invalid_argument("Matrix must be square.");
-        }
-        return matrixfunction::power_method(*this, matrix<T>::ones(colsize, 1), epsilon, max_iter);
-    }
-    // Method for calculating the maximum eigenvalue with initial vector
-    T max_eigenvalue(const matrix<T>& initial_vec, double epsilon = 1e-6, int max_iter = 1000) const {
-        return matrixfunction::power_method(*this, initial_vec, epsilon, max_iter);
-    }
+    static matrix<T> ones(uint64_t colsize, uint64_t rowsize);
+    //The identity matrix
+    //  <-----S---->
+    //  1 0  ..  0 0     |
+    //  0 1  ..  0 0     |
+    //  . ..   ...  .. ..     S                    
+    //  0 0  ..  1 0     |
+    //  0 0  ..  0 1     |
+    static matrix<T> eye(uint64_t S);
 
     static matrix<T> random(size_t rows, size_t cols, T min, T max) {
         matrix<T> m(rows, cols);
@@ -193,76 +308,45 @@ public:
         return m;
     }
 
-    static matrix<T> eye(uint64_t n) {
-        matrix<T> mat(n, n);
-        for (uint64_t i = 0; i < n; ++i) {
-            for (uint64_t j = 0; j < n; ++j) {
-                mat[i][j] = 0; // ﬂ‚ÌÓÂ Ó·ÌÛÎÂÌËÂ
-            }
-            mat[i][i] = 1; // «‡ÔÓÎÌÂÌËÂ ‰Ë‡„ÓÌ‡ÎË
-        }
-        return mat;
-    }
-    // ÃÂÚÓ‰ ‰Îˇ ÔÂÂÒÚ‡ÌÓ‚ÍË ÒÚÓÍ Ï‡ÚËˆ˚
+    // Method for calculating the maximum eigenvalue
+    T max_eigenvalue(double epsilon = 1e-6, int max_iter = 1000) const;
+    // Method for calculating the maximum eigenvalue with initial vector
+    T max_eigenvalue(const matrix<T>& initial_vec, double epsilon = 1e-6, int max_iter = 1000) const;
+
+    // A method for rearranging rows of a matrix
     void swap_rows(size_t i, size_t j) {
         for (size_t col = 0; col < rowsize; ++col) {
             std::swap((*this)[i][col], (*this)[j][col]);
         }
     }
-    // —ÚÛÍÚÛ‡ ‰Îˇ ‚ÓÁ‚‡Ú‡ LU-‡ÁÎÓÊÂÌËˇ Ò Ï‡ÚËˆÂÈ ÔÂÂÒÚ‡ÌÓ‚ÓÍ
-    struct LUResult {
-        matrix<T> L;
-        matrix<T> U;
-        matrix<T> P; // Ã‡ÚËˆ‡ ÔÂÂÒÚ‡ÌÓ‚ÓÍ
-    };
 
-    template <typename T>
-    typename matrix<T>::LUResult matrix<T>::lu() const {
-        if (colsize != rowsize) {
-            throw std::invalid_argument("LU decomposition requires square matrix");
+    LUResult<T> LUP() const;
+
+
+    //applyMethodToElements function using SFINAE to check for a method with a parameter and call it
+    //for example:
+    //Matrix<ExampleClass> matrix;
+    //matrix.applyMethodToElements(&ExampleClass::output_mode_set, 2);
+    //a method that applies a method( output_mode_set(M) ) of class T to each element of the matrix
+    //(Not tested. Everything worked in the simplified code) 
+    template <typename T, typename ReturnType, typename Param>
+    std::enable_if_t<HasMethodWithParam<T, Param>::value> applyMethodToElements(ReturnType(T::* method)(Param), Param param)const;
+
+
+
+    #if 1
+    // –ú–µ—Ç–æ–¥ –Ω–æ—Ä–º—ã –¥–ª—è –≤–µ–∫—Ç–æ—Ä–∞
+    
+    T norm() const {
+        if (rowsize != 1 && colsize != 1) {
+            throw std::runtime_error("Norm is defined only for vectors.");
         }
-
-        const size_t n = colsize;
-        LUResult result;
-        result.L = matrix<T>::zeros(n, n);
-        result.U = *this; //  ÓÔËÛÂÏ ËÒıÓ‰ÌÛ˛ Ï‡ÚËˆÛ
-        result.P = matrix<T>::eye(n); // ≈‰ËÌË˜Ì‡ˇ Ï‡ÚËˆ‡
-
-        for (size_t k = 0; k < n; ++k) {
-            // ◊‡ÒÚË˜Ì˚È ‚˚·Ó ‚Â‰Û˘Â„Ó ˝ÎÂÏÂÌÚ‡
-            size_t max_row = k;
-            T max_val = std::abs(result.U[k][k]);
-            for (size_t i = k + 1; i < n; ++i) {
-                if (std::abs(result.U[i][k]) > max_val) {
-                    max_val = std::abs(result.U[i][k]);
-                    max_row = i;
-                }
-            }
-
-            // œÂÂÒÚ‡ÌÓ‚Í‡ ÒÚÓÍ ‚ U Ë P
-            if (max_row != k) {
-                result.U.swap_rows(k, max_row);
-                result.P.swap_rows(k, max_row);
-
-                // œÂÂÒÚ‡ÌÓ‚Í‡ ÒÚÓÍ ‚ L (ÚÓÎ¸ÍÓ ÛÊÂ ‚˚˜ËÒÎÂÌÌ˚Â ˝ÎÂÏÂÌÚ˚)
-                if (k > 0) {
-                    for (size_t j = 0; j < k; ++j) {
-                        std::swap(result.L[k][j], result.L[max_row][j]);
-                    }
-                }
-            }
-
-            // «‡ÔÓÎÌÂÌËÂ L Ë U
-            result.L[k][k] = 1;
-            for (size_t i = k + 1; i < n; ++i) {
-                result.L[i][k] = result.U[i][k] / result.U[k][k];
-                for (size_t j = k; j < n; ++j) {
-                    result.U[i][j] -= result.L[i][k] * result.U[k][j];
-                }
-            }
+        T sum = 0;
+        for (uint64_t i = 0; i < colsize * rowsize; ++i) {
+            sum += ptr[i] * ptr[i];
         }
-
-        return result;
+        return std::sqrt(sum);
     }
+    #endif
 };
 #include "../_cpp_realisation_file/matrix.cpp"
