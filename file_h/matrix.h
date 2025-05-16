@@ -69,7 +69,9 @@ namespace matrixfunction {
         matrix<T> x = backward_substitution(lup.U, y);
         return x;
     }
+
 #if 0
+    //
     // 3. Модифицированный обратный степенной метод
     template<typename T>
     std::pair<T, matrix<T>> inverse_power_method(
@@ -127,6 +129,8 @@ namespace matrixfunction {
         }
         throw std::runtime_error("Method did not converge.");
     }
+    //
+
 
     // 4. Поиск всех собственных пар с улучшенной стратегией
     template<typename T>
@@ -159,7 +163,7 @@ namespace matrixfunction {
         }
         return eigen_pairs;
     }
-#else
+#elif 0
     template <typename T>
     std::pair<T, matrix<T>> inverse_power_method(
         const matrix<T>& A,
@@ -218,6 +222,89 @@ namespace matrixfunction {
 
         throw std::runtime_error("Method did not converge.");
     }
+
+    #else
+    
+template <typename T>
+std::pair<T, matrix<T>> inverse_power_method_with_shifts(
+    const matrix<T>& A,
+    T sigma0,
+     matrix<T>&& y0 = matrix<T>::ones(1, 1),
+    T delta = 1e-6,
+    T epsilon = 1e-6,
+    int max_iter = 1000)
+{
+    y0 = matrix<T>::ones(A.getcol(), 1);
+
+    int n = A.getcol();
+    matrix<T> E = matrix<T>::eye(n);
+    matrix<T> z_prev = y0 * (1.0 / y0.norm());
+    T sigma_prev = sigma0;
+
+    for (int k = 0; k < max_iter; ++k) {
+        matrix<T> A_shifted = A - (E * sigma_prev);
+        matrix<T> y_new = matrixfunction::solve_system(A_shifted, z_prev);
+        T norm = y_new.norm();
+        if (norm < 1e-12) break; // Avoid division by zero
+        matrix<T> z_new = y_new * (1.0 / norm);
+
+        // Compute mu_i for non-zero components
+        std::vector<T> mu_list;
+        for (int i = 0; i < n; ++i) {
+            if (std::abs(y_new[i][0]) > delta) {
+                T mu_i = z_prev[i][0] / y_new[i][0];
+                mu_list.push_back(mu_i);
+            }
+        }
+
+        if (mu_list.empty()) {
+            throw std::runtime_error("All components are below delta.");
+        }
+
+        T sigma_new = sigma_prev + std::accumulate(mu_list.begin(), mu_list.end(), 0.0) / mu_list.size();
+
+        // Check convergence
+        T diff_sigma = std::abs(sigma_new - sigma_prev);
+        T diff_z = (z_new - z_prev).norm();
+        if (diff_sigma < epsilon && diff_z < epsilon) {
+            return { sigma_new, z_new };
+        }
+
+        sigma_prev = sigma_new;
+        z_prev = z_new;
+    }
+    throw std::runtime_error("Max iterations reached.");
+}
+
+
+template <typename T>
+std::vector<std::pair<T, matrix<T>>> find_all_eigenpairs(const matrix<T>& A, int num_shifts = 10) {
+    std::vector<std::pair<T, matrix<T>>> eigenpairs;
+    T lambda_max = A.max_eigenvalue();
+    T lambda_min = inverse_power_method_with_shifts(A, 0.0).first;
+
+    for (int i = 0; i < num_shifts; ++i) {
+        T sigma0 = lambda_min + i * (lambda_max - lambda_min) / num_shifts;
+        try {
+            auto [lambda, x] = inverse_power_method_with_shifts(A, sigma0);
+            // Check if lambda is new
+            bool is_new = true;
+            for (const auto& pair : eigenpairs) {
+                if (std::abs(pair.first - lambda) < 1e-6) {
+                    is_new = false;
+                    break;
+                }
+            }
+            if (is_new) {
+                eigenpairs.emplace_back(lambda, x);
+            }
+        }
+        catch (...) {
+            // Handle errors (e.g., singular matrix)
+        }
+    }
+    return eigenpairs;
+}
     #endif
 
 #endif
