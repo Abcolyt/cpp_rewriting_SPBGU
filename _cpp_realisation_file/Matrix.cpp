@@ -415,7 +415,7 @@ template<typename T>matrix<T> matrix<T>::operator-(const matrix<T>& other) const
         {
             for (uint64_t j = 0; j < other.getcol(); j++)
             {
-                result[i][j] = (other[i][j] - (*this)[i][j]);
+                result[i][j] = ((*this)[i][j]- other[i][j]);
             }
 
         }

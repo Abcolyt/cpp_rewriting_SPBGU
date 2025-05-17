@@ -63,7 +63,14 @@ void test_solve_system_complex() {
     A[0][0] = 0.0;  A[0][1] = 2.0;  A[0][2] = 1.0;
     A[1][0] = 1.0;  A[1][1] = 1.0;  A[1][2] = 1.0;
     A[2][0] = 2.0;  A[2][1] = 0.0;  A[2][2] = 3.0;
-    auto pair = matrixfunction::(A, 1e-2, matrix<double>::ones(A.getcol(), 1));
+    std::cout << A.set_output_mode(output_mode::ABBREVIATED) << "\n";
+
+    std::vector<double> shifts = {0.9, -1.5, 4.5}; // Начальные сдвиги
+    std::vector<std::pair<double, matrix<double>>> result = matrixfunction::inverse_power_method_with_shifts(A, shifts);
+    for(auto p:result)
+    {
+        std::cout << p.first<< " "<<p.second<<"\n";
+    }
 
     // Вектор правой части: b = [5, 6, 13]
     matrix<double> b = matrix<double>::ones(3, 1);
@@ -117,12 +124,6 @@ int main() {
     
 
 
-    matrix<double> A = matrix<double>::randomDiagonal(3, -10.0, 10.0);
-    auto eigen_pairs = matrixfunction::find_all_eigenpairs(A);
-    std::cout << A<<"\n"<< eigen_pairs.size() <<"\n";
-    for (const auto& pair : eigen_pairs) {
-        std::cout << "Eigenvalue: " << pair.first << "\nEigenvector:\n" << pair.second << std::endl;
-    }
 
 
 
