@@ -112,10 +112,12 @@ namespace matrixfunction {
                 matrix<T> A_shifted = A - matrix<T>::eye(A.getcol()) * sigma;
                 //std::cout << "det:" << std::abs(A_shifted.determinant())<<"\n";
                 if (std::abs(A_shifted.determinant()) < epsilon) {
+                    sigma += epsilon; // Корректируем сдвиг
+                    continue;
                     //std::cerr << "Warning: Matrix (A - " << sigma << "*I) is singular. Skipping this shift.\n";
-                    converged = true;
+                    //converged = true;
                    // eigen_pairs.emplace_back(sigma, z);
-                    break;
+                    //break;
                 }
                 matrix<T> y = solve_system(A_shifted, z);//Y_ k+1 = y_(iter) from z_(iter-1)
                 //std::cout << "sigma:" << sigma << "\n";//"\ndet:" << y.set_output_mode(output_mode::ABBREVIATED) << "\n";
