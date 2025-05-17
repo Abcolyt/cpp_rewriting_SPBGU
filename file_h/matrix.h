@@ -29,8 +29,8 @@ namespace matrixfunction {
 
     template <typename T>matrix<int> elementwise_equal_matrix(const matrix<T>& a, const matrix<T>& b, T epsilon = static_cast<T>(1e-6));
 
-#if 1
-    // Вспомогательные функции для прямого и обратного хода
+//LUP system solver
+   
     template<typename T>
     matrix<T> forward_substitution(const matrix<T>& L, const matrix<T>& b) {
         int n = L.getrow();
@@ -60,7 +60,7 @@ namespace matrixfunction {
         return x;
     }
 
-    // 2. Решение системы с обработкой вырожденных матриц
+    //  Решение системы 
     template<typename T>
     matrix<T> solve_system(const matrix<T>& A, const matrix<T>& b) {
         auto lup = A.LUP();
@@ -70,249 +70,191 @@ namespace matrixfunction {
         return x;
     }
 
-#if 0
-    //
-    // 3. Модифицированный обратный степенной метод
-    template<typename T>
-    std::pair<T, matrix<T>> inverse_power_method(
-        const matrix<T>& A,
-        T sigma,
-        const matrix<T>& initial_vec,
-        double delta = 1e-8,  // Уменьшенный порог для учета малых компонент
-        double epsilon = 1e-6,
-        int max_iter = 500)   // Увеличенное число итераций
-    {
-        int n = A.getrow();
-        matrix<T> y = initial_vec;
-        T norm = y.norm();
-        if (norm < 1e-10) throw std::runtime_error("Initial vector is zero.");
-        matrix<T> z = y * (1.0 / norm);
-
-        for (int iter = 0; iter < max_iter; ++iter) {
-            matrix<T> B = A - matrix<T>::eye(n) * sigma;
-
-            // Регуляризация для избежания вырожденности
-            B = B + matrix<T>::eye(n) * 1e-6;
-
-            try {
-                matrix<T> y_new = solve_system(B, z);
-                norm = y_new.norm();
-                if (norm < 1e-10) break;
-                z = y_new * (1.0 / norm);
-
-                // Вычисление μ_i с новым критерием
-                std::vector<T> mu_values;
-                for (int i = 0; i < n; ++i) {
-                    if (std::abs(y_new[i][0]) > delta) {
-                        mu_values.push_back(z[i][0] / y_new[i][0]);
-                    }
-                }
-
-                if (mu_values.empty())
-                    throw std::runtime_error("All components below threshold.");
-
-                T avg_mu = std::accumulate(mu_values.begin(), mu_values.end(), T(0)) / mu_values.size();
-                T sigma_new = sigma + avg_mu;
-
-                // Критерий сходимости
-                if (std::abs(sigma_new - sigma) < epsilon && (y_new - z * norm).norm() < epsilon) {
-                    return { sigma_new, z };
-                }
-
-                sigma = sigma_new;
-                y = y_new;
-
-            }
-            catch (const std::exception& e) {
-                throw std::runtime_error("Solver error: " + std::string(e.what()));
-            }
+#if 1
+    template<typename T>std::vector<T> generatePoints_equally_sufficient_(int k, T a, T b) {
+        T step = (b - a) / k;
+        std::vector<T> points;
+        for (int i = 0; i < k; ++i) {
+            T x = a + i * step;
+            points.emplace_back(x) ;
         }
-        throw std::runtime_error("Method did not converge.");
+        return points;
     }
-    //
 
-
-    // 4. Поиск всех собственных пар с улучшенной стратегией
-    template<typename T>
-    std::vector<std::pair<T, matrix<T>>> find_all_eigen_pairs(const matrix<T>& A, double epsilon = 1e-6) {
+    template <typename T>
+    std::vector<std::pair<T, matrix<T>>> inverse_power_method_with_shifts(
+        matrix<T> A,
+        const std::vector<T>& initial_shifts,
+        double epsilon = 1e-6,
+        double delta = 1e-8,
+        int max_iter = 10000
+    ) {
         std::vector<std::pair<T, matrix<T>>> eigen_pairs;
-        int n = A.getrow();
-        std::vector<T> shifts = { /* Диагональные элементы как начальные сдвиги */
-            A[0][0], A[1][1], A[2][2]
-        };
+        for (const T& sigma0 : initial_shifts) {
+            ////1.1
+            matrix<T> z = matrix<T>::random(A.getcol(), 1, -1.0, 1.0);
+            //z = matrix<T>::ones(A.getcol(), 1); 
+            z = z * (1.0 / z.norm());
+            //std::cout << z << '\n';
+            ////1.2
+            T sigma = sigma0;
+            T sigma_prev = 0;
+            ////
+            bool converged = false;
 
-        for (T sigma : shifts) {
-            // Генерация случайного вектора с нормальным распределением
-            matrix<T> vec = matrix<T>::random(n, 1, -1.0, 1.0);
-            try {
-                auto pair = inverse_power_method(A, sigma, vec, 1e-8, epsilon);
-
-                // Проверка уникальности с относительным допуском
-                bool unique = true;
-                for (const auto& ep : eigen_pairs) {
-                    if (std::abs((ep.first - pair.first) / pair.first) < 0.01) {
-                        unique = false;
-                        break;
+            
+            for (int iter = 0; iter < max_iter; ++iter) {
+                //std::cout << "sigma0:" << sigma0 << " iter:" << iter << "abs eps:" << std::abs(sigma - sigma_prev) << "\n";
+                
+                ////2.
+               // std::cout << "eye:" << (matrix<T>::eye(A.getcol()) * sigma).set_output_mode(output_mode::ABBREVIATED) << "\n";
+               // std::cout << "A:" << ((A*1).set_output_mode(output_mode::ABBREVIATED)) << "\nA- E*sigma" << (A - matrix<T>::eye(A.getcol()) * sigma).set_output_mode(output_mode::ABBREVIATED) << "\n";
+                matrix<T> A_shifted = A - matrix<T>::eye(A.getcol()) * sigma;
+                //std::cout << "det:" << std::abs(A_shifted.determinant())<<"\n";
+                if (std::abs(A_shifted.determinant()) < epsilon) {
+                    //std::cerr << "Warning: Matrix (A - " << sigma << "*I) is singular. Skipping this shift.\n";
+                    converged = true;
+                   // eigen_pairs.emplace_back(sigma, z);
+                    break;
+                }
+                matrix<T> y = solve_system(A_shifted, z);//Y_ k+1 = y_(iter) from z_(iter-1)
+                //std::cout << "sigma:" << sigma << "\n";//"\ndet:" << y.set_output_mode(output_mode::ABBREVIATED) << "\n";
+                ////
+                
+                //T mu = (z.transpose() * y)[0][0];
+                //std::cout << "(z.transpose()).getcol():" << (z.transpose()).getcol() << "(z.transpose()).getrow():" << (z.transpose()).getrow() << "\n" << (z.transpose()).set_output_mode(output_mode::FULL) << "\n";
+                //std::cout << "(y).getcol():" << (y).getcol() << "(y).getrow():" << (y).getrow() << "\n" << (y).set_output_mode(output_mode::ABBREVIATED) << "\n";
+                //std::cout<<"(z.transpose() * y).getcol():" << (z.transpose() * y).getcol() << "  (z.transpose() * y).getrow():" << (z.transpose() * y).getrow()<<"\n"<< (z.transpose() * y).set_output_mode(output_mode::ABBREVIATED) << "\n";
+                
+                //// 3.
+                T mu = 0;
+#if 1
+                int count = 0;
+                for (uint64_t i = 0; i < y.getcol(); ++i) {
+                    //std::cout << "std::abs(y["<<i<<"][0]):" << std::abs(y[i][0])<<" z[i][0] / y[i][0] : "<< z[i][0] / y[i][0] << "\n";
+                    //std::cout << "std::abs(y[" << i << "][0]):" << std::abs(y[i][0]) << "delta:" << delta<<">=:"<< (std::abs(y[i][0]) >= delta) << "\n";
+                    if ((std::abs(y[i][0]) >= delta)) { // without 
+                        mu += z[i][0] / y[i][0];
+                    count++;
                     }
                 }
-                if (unique) eigen_pairs.push_back(pair);
+                //count = y.getcol();
+                //std::cout << "count:" << count << "\n";
+                if (count == 0) break; 
+                mu = mu / count; // Среднее μ
+                //..std::cout << "mu:" << mu << "\n";
+
+#else
+                mu = (z.transpose() * y)[0][0];
+                if (std::abs(mu) < epsilon) {
+                    std::cout << "mu is too small. Breaking iteration.\n";
+                    break;
+                }
+
+                mu = 1 /mu;
+#endif
+                sigma = sigma +  mu;
+                //std::cout << "sigma:" << sigma << "\n";
+                ////converged?
+
+                if (std::abs(sigma - sigma_prev) < epsilon) {
+                    converged = true;
+                    break;
+                }
+                
+                sigma_prev = sigma;
+
+                //z_(iter) from y_(iter)
+                T y_norm = y.norm();
+                if (y_norm < epsilon) break;
+                z = y * (1.0 / y_norm);
             }
-            catch (...) {
-                // Пропуск неудачных попыток
+
+
+
+
+
+            if (converged) {
+                eigen_pairs.emplace_back(sigma, z);
+            }
+            else {
+                std::cout << "Warning: Convergence not achieved for shift " << sigma <<" "<<z << ".\n";
             }
         }
         return eigen_pairs;
     }
-#elif 0
+
+#else 
+
+
     template <typename T>
-    std::pair<T, matrix<T>> inverse_power_method(
+    std::vector<std::pair<T, matrix<T>>> inverse_power_method_with_shifts(
         const matrix<T>& A,
-        T sigma,
-        const matrix<T>& y0,
+        const std::vector<T>& initial_shifts,
         double epsilon = 1e-6,
         int max_iter = 1000
     ) {
-        size_t n = A.getrow();
-        matrix<T> y = y0;
-        T lambda = sigma;
+        std::vector<std::pair<T, matrix<T>>> eigen_pairs;
+        for (const T& sigma : initial_shifts) {
+            matrix<T> z = matrix<T>::random(A.getcol(), 1, -1.0, 1.0);
+            z = z * (1.0 / z.norm());
 
-        // Нормировка начального вектора
-        T norm = y.norm();
-        if (norm < 1e-10) throw std::runtime_error("Initial vector is zero.");
-        y = y * (1.0 / norm);
+            T lambda_prev = 0;
+            T lambda = 0;
+            bool converged = false;
 
-        for (int iter = 0; iter < max_iter; ++iter) {
-            // 1. Формируем матрицу (A - σI) с регуляризацией
-            matrix<T> B = A - matrix<T>::eye(n) * lambda + matrix<T>::eye(n) * 1e-8;
-
-            // 2. Решаем систему B * y_new = y (явно для диагональной матрицы)
-            matrix<T> y_new(n, 1);
-            for (size_t i = 0; i < n; ++i) {
-                y_new[i][0] = y[i][0] / B[i][i];
+            matrix<T> A_shifted = A - matrix<T>::eye(A.getcol()) * sigma;
+            T det = A_shifted.determinant();
+            if (std::abs(det) < epsilon) {
+                std::cerr << "Warning: Matrix (A - " << sigma << "I) is singular. Skipping this shift.\n";
+                continue;
             }
 
-            // 3. Нормируем новый вектор
-            T new_norm = y_new.norm();
-            if (new_norm < 1e-10) {
-                y_new = matrix<T>::random(n, 1, -1.0, 1.0); // Переинициализация при нулевом векторе
-                new_norm = y_new.norm();
-            }
-            y_new = y_new * (1.0 / new_norm);
+            for (int iter = 0; iter < max_iter; ++iter) {
+                matrix<T> y = solve_system(A_shifted, z);
+                T y_norm = y.norm();
+                if (y_norm < epsilon) break;
 
-            // 4. Вычисляем μ по максимальной компоненте
-            size_t max_idx = 0;
-            T max_val = std::abs(y_new[0][0]);
-            for (size_t i = 1; i < n; ++i) {
-                if (std::abs(y_new[i][0]) > max_val) {
-                    max_val = std::abs(y_new[i][0]);
-                    max_idx = i;
+                T mu = (z.transpose() * y)[0][0];
+                std::cout << "(z.transpose()).getcol():" << (z.transpose()).getcol() << "(z.transpose()).getrow():" << (z.transpose()).getrow() << "\n" << (z.transpose()).set_output_mode(output_mode::FULL) << "\n";
+                std::cout << "(y).getcol():" << (y).getcol() << "(y).getrow():" << (y).getrow() << "\n" << (y).set_output_mode(output_mode::ABBREVIATED) << "\n";
+                std::cout << "(z.transpose() * y).getcol():" << (z.transpose() * y).getcol() << "  (z.transpose() * y).getrow():" << (z.transpose() * y).getrow() << "\n" << (z.transpose() * y).set_output_mode(output_mode::ABBREVIATED) << "\n";
+
+                // Вычисление μ_i = z_i^{(k-1)} / y_i^{(k)} для ненулевых компонент
+                T sum_mu = 0;
+                int count = 0;
+                for (uint64_t i = 0; i < y.getcol() ; ++i) {
+                    if (std::abs(y[i][0]) > delta) { // Игнорируем нули
+                        sum_mu += z[i][0] / y[i][0];
+                        count++;
+                    }
                 }
-            }
-            T mu = y[max_idx][0] / y_new[max_idx][0];
-            T lambda_new = lambda + mu;
+                if (count == 0) break; // Все компоненты близки к нулю
 
-            // 5. Проверка сходимости
-            if (std::abs(lambda_new - lambda) < epsilon) {
-                return { lambda_new, y_new };
-            }
+                T mu = sum_mu / count; // Среднее μ
 
-            lambda = lambda_new;
-            y = y_new;
-        }
-
-        throw std::runtime_error("Method did not converge.");
-    }
-
-    #else
-    
-template <typename T>
-std::pair<T, matrix<T>> inverse_power_method_with_shifts(
-    const matrix<T>& A,
-    T sigma0,
-     matrix<T>&& y0 = matrix<T>::ones(1, 1),
-    T delta = 1e-6,
-    T epsilon = 1e-6,
-    int max_iter = 1000)
-{
-    y0 = matrix<T>::ones(A.getcol(), 1);
-
-    int n = A.getcol();
-    matrix<T> E = matrix<T>::eye(n);
-    matrix<T> z_prev = y0 * (1.0 / y0.norm());
-    T sigma_prev = sigma0;
-
-    for (int k = 0; k < max_iter; ++k) {
-        matrix<T> A_shifted = A - (E * sigma_prev);
-        matrix<T> y_new = matrixfunction::solve_system(A_shifted, z_prev);
-        T norm = y_new.norm();
-        if (norm < 1e-12) break; // Avoid division by zero
-        matrix<T> z_new = y_new * (1.0 / norm);
-
-        // Compute mu_i for non-zero components
-        std::vector<T> mu_list;
-        for (int i = 0; i < n; ++i) {
-            if (std::abs(y_new[i][0]) > delta) {
-                T mu_i = z_prev[i][0] / y_new[i][0];
-                mu_list.push_back(mu_i);
-            }
-        }
-
-        if (mu_list.empty()) {
-            throw std::runtime_error("All components are below delta.");
-        }
-
-        T sigma_new = sigma_prev + std::accumulate(mu_list.begin(), mu_list.end(), 0.0) / mu_list.size();
-
-        // Check convergence
-        T diff_sigma = std::abs(sigma_new - sigma_prev);
-        T diff_z = (z_new - z_prev).norm();
-        if (diff_sigma < epsilon && diff_z < epsilon) {
-            return { sigma_new, z_new };
-        }
-
-        sigma_prev = sigma_new;
-        z_prev = z_new;
-    }
-    throw std::runtime_error("Max iterations reached.");
-}
-
-
-template <typename T>
-std::vector<std::pair<T, matrix<T>>> find_all_eigenpairs(const matrix<T>& A, int num_shifts = 10) {
-    std::vector<std::pair<T, matrix<T>>> eigenpairs;
-    T lambda_max = A.max_eigenvalue();
-    T lambda_min = inverse_power_method_with_shifts(A, 0.0).first;
-
-    for (int i = 0; i < num_shifts; ++i) {
-        T sigma0 = lambda_min + i * (lambda_max - lambda_min) / num_shifts;
-        try {
-            auto [lambda, x] = inverse_power_method_with_shifts(A, sigma0);
-            // Check if lambda is new
-            bool is_new = true;
-            for (const auto& pair : eigenpairs) {
-                if (std::abs(pair.first - lambda) < 1e-6) {
-                    is_new = false;
+                if (std::abs(lambda - lambda_prev) < epsilon) {
+                    converged = true;
                     break;
                 }
+                lambda_prev = lambda;
+
+                z = y * (1.0 / y_norm);//Z_ k+1
             }
-            if (is_new) {
-                eigenpairs.emplace_back(lambda, x);
+            if (converged) {
+                eigen_pairs.emplace_back(lambda, z);
+            }
+            else {
+                std::cerr << "Warning: Convergence not achieved for shift " << sigma << ".\n";
             }
         }
-        catch (...) {
-            // Handle errors (e.g., singular matrix)
-        }
+        return eigen_pairs;
     }
-    return eigenpairs;
-}
-    #endif
 
 #endif
 }
 
-// //
-//  logic of the apply Method To Elements method using SFINAE to check for the presence of a 
-// method with a parameter for a matrix element and to call it if it exists
+
 
 //the main template/
 template <typename T, typename Param, typename = void>
