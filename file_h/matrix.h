@@ -517,5 +517,8 @@ public:
 
     
     QRResult<T> qr() const;
+
+    matrix<T> submatrix(uint64_t start_row, uint64_t start_col, uint64_t rows, uint64_t cols) const;
+
 };
 #include "../_cpp_realisation_file/matrix.cpp"

@@ -641,6 +641,25 @@ template<typename T>
 
      return QRResult<T>{Q, R};
  }
+
+ template <typename T>
+ matrix<T> matrix<T>::submatrix(uint64_t start_row, uint64_t start_col, uint64_t rows, uint64_t cols) const {
+     // Проверка корректности входных параметров
+     if (start_row + rows > rowsize || start_col + cols > colsize) {
+         throw std::out_of_range("Submatrix dimensions exceed matrix bounds");
+     }
+
+     matrix<T> sub(rows, cols); // Создаём новую матрицу нужного размера
+
+     for (uint64_t i = 0; i < rows; ++i) {
+         for (uint64_t j = 0; j < cols; ++j) {
+             // Копируем элементы из исходной матрицы
+             sub[i][j] = (*this)[start_row + i][start_col + j];
+         }
+     }
+
+     return sub;
+ }
 namespace matrixfunction {
     template<typename T>T power_method(const matrix<T>& A, const matrix<T>& Vec0, double epsilon, int max_iter ) {
 

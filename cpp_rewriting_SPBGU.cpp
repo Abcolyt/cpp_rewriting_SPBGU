@@ -152,8 +152,11 @@ int main() {
     auto Q = matrixfunction::sanitize_zeros(Ans.Q, 1e-10), R = matrixfunction::sanitize_zeros(Ans.R, 1e-10);
     std::cout << "Q:\n" << Q << "\nR=\n" << R << "\nQ*R:\n" << Q * R;
     auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10);
-    matrixfunction::qr_algorithm_with_shifts(H);
-
+    
+    for (auto l : matrixfunction::qr_algorithm_with_shifts(H))
+    {
+        std::cout << "Eigenvalue: " << l << "\n";
+    }
     //auto Ans = matrixfunction::qr_decomposition(A);
     //auto Q = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(Ans.Q), 1e-10), R= matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(Ans.R), 1e-10);
     //std::cout <<"Q:\n" <<  Q<< "\nR=\n" << R<< "\nQ*R:\n"<<Q*R;
