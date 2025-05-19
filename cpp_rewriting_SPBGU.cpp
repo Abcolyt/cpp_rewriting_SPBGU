@@ -63,14 +63,10 @@ void test_solve_system_complex() {
     A[0][0] = 0.0;  A[0][1] = 2.0;  A[0][2] = 1.0;
     A[1][0] = 1.0;  A[1][1] = 1.0;  A[1][2] = 1.0;
     A[2][0] = 2.0;  A[2][1] = 0.0;  A[2][2] = 3.0;
-    std::cout << A.set_output_mode(output_mode::ABBREVIATED) << "\n";
+    //std::cout << A.set_output_mode(output_mode::ABBREVIATED) << "\n";
 
-    std::vector<double> shifts = {0.9, -1.5, 4.5}; // Начальные сдвиги
-    std::vector<std::pair<double, matrix<double>>> result = matrixfunction::inverse_power_method_with_shifts(A, shifts);
-    for(auto p:result)
-    {
-        std::cout << p.first<< " "<<p.second<<"\n";
-    }
+
+
 
     // Вектор правой части: b = [5, 6, 13]
     matrix<double> b = matrix<double>::ones(3, 1);
@@ -96,7 +92,25 @@ void test_solve_system_complex() {
     std::cout << "L * U:\n" << LU << "\nP * A:\n" << PA << std::endl;
 
 }
+void Z5_2(int Size) {
+    matrix<double> A;
+    A = matrix<double>::randomDiagonal(Size, -100, 100);
+    std::cout << "A:\n" << A << "\n";
+    matrix<double> T = (matrix<int>::random(Size, Size, -100, 100));
+    A = T * A * (T.inverse_M());
 
+    std::vector<double> shifts = { 0.9, -1.5, 4.5 ,20 }; // Начальные сдвиги
+    std::vector<std::pair<double, matrix<double>>> result = matrixfunction::inverse_power_method_with_shifts(A, shifts);
+    for (auto p : result)
+    {
+        std::cout << "Eigenvalue: " << p.first << "\nEigenvector:\n" << p.second << "\n";
+    }
+    matrix<double> vec0 = matrix<double>::ones(Size, 1);
+    // std::cout << vec0 << "\n";
+    auto result_ = matrixfunction::inverse_power_method_with_shift(A, 1.5, vec0);
+    std::cout << "Eigenvalue: " << result_.first << "\nEigenvector:\n" << result_.second;
+
+}
 //
 int main() {
     using namespace counting_methods_2::Polynomial_interpolation::nuton2;
@@ -121,13 +135,61 @@ int main() {
 
     test_solve_system();
     test_solve_system_complex();
+
+
+    matrix<double> A;
+    A = matrix<double>::randomDiagonal(4, -100, 100);
+    std::cout << "A:\n" << A << "\n";
+    matrix<double> T = (matrix<int>::random(4, 4, -100, 100));
+    A = T * A * (T.inverse_M());
     
+    std::cout << "A:\n" << A << "\n";
+    std::cout <<"T:\n" << T << "\n";
+    std::cout << "hessenberg_form(A):\n" << matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10) << "\n";
+    std::cout << "A:\n" << A << "\n";
+
+    auto Ans = A.qr();
+    auto Q = matrixfunction::sanitize_zeros(Ans.Q, 1e-10), R = matrixfunction::sanitize_zeros(Ans.R, 1e-10);
+    std::cout << "Q:\n" << Q << "\nR=\n" << R << "\nQ*R:\n" << Q * R;
+    auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10);
+    matrixfunction::qr_algorithm_with_shifts(H);
+
+    //auto Ans = matrixfunction::qr_decomposition(A);
+    //auto Q = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(Ans.Q), 1e-10), R= matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(Ans.R), 1e-10);
+    //std::cout <<"Q:\n" <<  Q<< "\nR=\n" << R<< "\nQ*R:\n"<<Q*R;
 
 
 
+    //T = matrixfunction::get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(A,0);
+    //std::cout << (T).set_output_mode(output_mode::ABBREVIATED) << "\n";
+    //std::cout <<"T * A * T _1" << T * A * T;
+    //A = T * A * T;
+    //T = matrixfunction::get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(A, 1);
+    //std::cout << (T).set_output_mode(output_mode::ABBREVIATED) << "\n";
+    //std::cout << "T * A * T _2" << T * A * T;
 
+    
+    // //// PA(P^-1)
+    //matrix<double> T1 = (matrix<double>::randomDiagonal(4, -100, 100));
+    //matrix<double> T2 = (matrix<int>::random(4, 4, -100, 100));
+    //matrix<double> T2_ = (T2.inverse_M());
+    //std::cout << "\nT2_" << matrixfunction::sanitize_zeros(T2_) << "\n";
+    //std::cout << "\n" << T1 << "\n" << T2 << "\n" << matrixfunction::sanitize_zeros(((T2 * T1) * T2_)) << "\n";
+    // ////
 
+    //std::cout << (matrix<double>::random(4, 4, -100, 100)).set_output_mode(output_mode::ABBREVIATED) << "\n";
+   
     //
+    //matrix<double> EYE = matrix<double>::eye(4);
+    //std::cout << "\n" << T2.to_uptrng_two(EYE) << "\n";
+    //std::cout << "\n" << (EYE) << "\n";
+
+    //std::cout << "\n" << T2.to_uptrng_two(EYE).transpose() << "\n";
+    //std::cout << "\n" << (EYE).transpose() << "\n";
+
+    //std::cout << "\n" << T2.to_uptrng_two(EYE).transpose().to_uptrng_two(EYE) << "\n";
+    //std::cout << "\n" << (EYE).transpose() << "\n";
+
     //matrix<double>  T = matrix<double>::random(5, 5, -100, 100.);
     ////auto t_ = (T.LUP());
     //matrix<double> L = (T.LUP()).L, U = T.LUP().U, P = T.LUP().P;

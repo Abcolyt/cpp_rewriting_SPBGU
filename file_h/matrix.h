@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <vector>
 #include <random>
-
+#include <limits>
 #include <stdexcept>
 #include <cmath>
 #include <numeric>
@@ -18,59 +18,91 @@ template<typename T>struct LUResult {
     matrix<T> U;
     matrix<T> P; 
 };
+template<typename T>
+struct QRResult {
+    matrix<T> Q;
+    matrix<T> R;
+};
 namespace matrixfunction {
+//// POWER METHOD
     template<typename T>T power_method(const matrix<T>& A, const matrix<T>& Vec0, double epsilon = 1e-6, int max_iter = 1000);
 
     template<typename T>T power_method(const matrix<T>& A, double epsilon = 1e-6, int max_iter = 1000) {
         return matrixfunction::power_method(A, matrix<T>::ones(A.getcol(), 1), epsilon, max_iter);
     }
-
+////
     template <typename T>bool is_equal(const matrix<T>& a, const matrix<T>& b, T epsilon = static_cast<T>(1e-6));
 
     template <typename T>matrix<int> elementwise_equal_matrix(const matrix<T>& a, const matrix<T>& b, T epsilon = static_cast<T>(1e-6));
 
-//LUP system solver
-   
     template<typename T>
-    matrix<T> forward_substitution(const matrix<T>& L, const matrix<T>& b) {
-        int n = L.getrow();
-        matrix<T> y(n, 1);
-        for (int i = 0; i < n; ++i) {
-            T sum = b[i][0];
-            for (int j = 0; j < i; ++j) {
-                sum -= L[i][j] * y[j][0];
+    matrix<T> sanitize_zeros(matrix<T> m, const T eps = std::numeric_limits<T>::epsilon() * 10) {
+        
+
+        for (uint64_t i = 0; i < m.getrow(); ++i) {
+            for (uint64_t j = 0; j < m.getcol(); ++j) {
+                if (std::abs(m[i][j]) < eps) {
+                    m[i][j] = T(0);
+                }
             }
-            // Предполагаем, что L имеет единицы на диагонали (как в LU-разложении)
-            y[i][0] = sum;
         }
-        return y;
+        return m;
     }
 
+////LUP system solver
     template<typename T>
-    matrix<T> backward_substitution(const matrix<T>& U, const matrix<T>& y) {
-        int n = U.getrow();
-        matrix<T> x(n, 1);
-        for (int i = n - 1; i >= 0; --i) {
-            T sum = y[i][0];
-            for (int j = i + 1; j < n; ++j) {
-                sum -= U[i][j] * x[j][0];
+    matrix<T> forward_substitution(const matrix<T>& L, const matrix<T>& b);
+    template<typename T>
+    matrix<T> backward_substitution(const matrix<T>& U, const matrix<T>& y);
+    template<typename T>
+    matrix<T> solve_system(const matrix<T>& A, const matrix<T>& b);
+////
+    
+//// QR Decomposition
+    template <typename T>
+    QRResult<T> qr_decomposition(const matrix<T>& A) {
+        int m = A.getrow();
+        int n = A.getcol();
+        QRResult<T> result;
+        result.Q = matrix<T>::eye(m); // Инициализация Q как единичной матрицы
+        result.R = A;                 // Копирование исходной матрицы в R
+
+        for (int j = 0; j < n; ++j) {
+            for (int i = j + 1; i < m; ++i) {
+                // Вычисление вращения Гивенса для обнуления R[i][j]
+                T a = result.R[j][j];
+                T b = result.R[i][j];
+                if (std::abs(b) < 1e-10) continue;
+
+                T r = std::hypot(a, b);
+                T c = a / r;
+                T s = -b / r;
+
+                // Применение вращения к R
+                for (int k = j; k < n; ++k) {
+                    T temp = c * result.R[j][k] - s * result.R[i][k];
+                    result.R[i][k] = s * result.R[j][k] + c * result.R[i][k];
+                    result.R[j][k] = temp;
+                }
+
+                // Применение вращения к Q
+                for (int k = 0; k < m; ++k) {
+                    T temp = c * result.Q[k][j] - s * result.Q[k][i];
+                    result.Q[k][i] = s * result.Q[k][j] + c * result.Q[k][i];
+                    result.Q[k][j] = temp;
+                }
             }
-            x[i][0] = sum / U[i][i];
         }
-        return x;
-    }
 
-    //  Решение системы 
-    template<typename T>
-    matrix<T> solve_system(const matrix<T>& A, const matrix<T>& b) {
-        auto lup = A.LUP();
-        matrix<T> Pb = lup.P * b;
-        matrix<T> y = forward_substitution(lup.L, Pb);
-        matrix<T> x = backward_substitution(lup.U, y);
-        return x;
+        return result;
     }
+////
 
-#if 1
+////Eigenvalues and vectors
+    //Simplification column vector or row vector
+    template <typename T>matrix<T> simplify_eigenvector(const matrix<T>& vec, T epsilon = 1e-6);
+    
+    //
     template<typename T>std::vector<T> generatePoints_equally_sufficient_(int k, T a, T b) {
         T step = (b - a) / k;
         std::vector<T> points;
@@ -80,180 +112,185 @@ namespace matrixfunction {
         }
         return points;
     }
-
+    //a lot of shifts
     template <typename T>
     std::vector<std::pair<T, matrix<T>>> inverse_power_method_with_shifts(
-        matrix<T> A,
-        const std::vector<T>& initial_shifts,
-        double epsilon = 1e-6,
-        double delta = 1e-8,
-        int max_iter = 10000
-    ) {
-        std::vector<std::pair<T, matrix<T>>> eigen_pairs;
-        for (const T& sigma0 : initial_shifts) {
-            ////1.1
-            matrix<T> z = matrix<T>::random(A.getcol(), 1, -1.0, 1.0);
-            //z = matrix<T>::ones(A.getcol(), 1); 
-            z = z * (1.0 / z.norm());
-            //std::cout << z << '\n';
-            ////1.2
-            T sigma = sigma0;
-            T sigma_prev = 0;
-            ////
+        matrix<T> A,const std::vector<T>& initial_shifts,
+        double epsilon = 1e-6,double delta = 1e-8,int max_iter = 10000
+    );
+
+    //one shift
+    template <typename T>
+    std::pair<T, matrix<T>> inverse_power_method_with_shift(
+        matrix<T> A,T sigma0,const matrix<T>& vec0,
+        double epsilon = 1e-6,double delta = 1e-8,int max_iter = 10000
+    );
+
+    // a lot of shift
+    template <typename T>
+    std::vector<T> qr_algorithm_with_shifts(matrix<T>& H, T epsilon = 1e-6, int max_iter = 1000) {
+        int n = H.getcol();
+        std::vector<T> eigenvalues;
+
+        while (n > 0) {
+            int iter = 0;
+            T prev_shift = H[n - 1][n - 1];
             bool converged = false;
 
-            
-            for (int iter = 0; iter < max_iter; ++iter) {
-                //std::cout << "sigma0:" << sigma0 << " iter:" << iter << "abs eps:" << std::abs(sigma - sigma_prev) << "\n";
-                
-                ////2.
-               // std::cout << "eye:" << (matrix<T>::eye(A.getcol()) * sigma).set_output_mode(output_mode::ABBREVIATED) << "\n";
-               // std::cout << "A:" << ((A*1).set_output_mode(output_mode::ABBREVIATED)) << "\nA- E*sigma" << (A - matrix<T>::eye(A.getcol()) * sigma).set_output_mode(output_mode::ABBREVIATED) << "\n";
-                matrix<T> A_shifted = A - matrix<T>::eye(A.getcol()) * sigma;
-                //std::cout << "det:" << std::abs(A_shifted.determinant())<<"\n";
-                if (std::abs(A_shifted.determinant()) < epsilon) {
-                    sigma += epsilon; // Корректируем сдвиг
-                    continue;
-                    //std::cerr << "Warning: Matrix (A - " << sigma << "*I) is singular. Skipping this shift.\n";
-                    //converged = true;
-                   // eigen_pairs.emplace_back(sigma, z);
-                    //break;
+            while (iter < max_iter && !converged) {
+                // Выбор сдвига (Wilkinson для блоков 2x2)
+                T shift;
+                bool is_2x2_block = (n >= 2 && std::abs(H[n - 2][n - 1]) > epsilon);
+
+                if (is_2x2_block) {
+                    T a = H[n - 2][n - 2];
+                    T b = H[n - 2][n - 1];
+                    T c = H[n - 1][n - 2];
+                    T d = H[n - 1][n - 1];
+                    T delta = (a - d) / 2;
+                    T sqrt_term = std::sqrt(delta * delta + b * c);
+                    shift = d + delta - std::copysign(sqrt_term, delta);
                 }
-                matrix<T> y = solve_system(A_shifted, z);//Y_ k+1 = y_(iter) from z_(iter-1)
-                //std::cout << "sigma:" << sigma << "\n";//"\ndet:" << y.set_output_mode(output_mode::ABBREVIATED) << "\n";
-                ////
-                
-                //T mu = (z.transpose() * y)[0][0];
-                //std::cout << "(z.transpose()).getcol():" << (z.transpose()).getcol() << "(z.transpose()).getrow():" << (z.transpose()).getrow() << "\n" << (z.transpose()).set_output_mode(output_mode::FULL) << "\n";
-                //std::cout << "(y).getcol():" << (y).getcol() << "(y).getrow():" << (y).getrow() << "\n" << (y).set_output_mode(output_mode::ABBREVIATED) << "\n";
-                //std::cout<<"(z.transpose() * y).getcol():" << (z.transpose() * y).getcol() << "  (z.transpose() * y).getrow():" << (z.transpose() * y).getrow()<<"\n"<< (z.transpose() * y).set_output_mode(output_mode::ABBREVIATED) << "\n";
-                
-                //// 3.
-                T mu = 0;
-#if 1
-                int count = 0;
-                for (uint64_t i = 0; i < y.getcol(); ++i) {
-                    //std::cout << "std::abs(y["<<i<<"][0]):" << std::abs(y[i][0])<<" z[i][0] / y[i][0] : "<< z[i][0] / y[i][0] << "\n";
-                    //std::cout << "std::abs(y[" << i << "][0]):" << std::abs(y[i][0]) << "delta:" << delta<<">=:"<< (std::abs(y[i][0]) >= delta) << "\n";
-                    if ((std::abs(y[i][0]) >= delta)) { // without 
-                        mu += z[i][0] / y[i][0];
-                    count++;
-                    }
+                else {
+                    shift = H[n - 1][n - 1];
                 }
-                //count = y.getcol();
-                //std::cout << "count:" << count << "\n";
-                if (count == 0) break; 
-                mu = mu / count; // Среднее μ
-                //..std::cout << "mu:" << mu << "\n";
+
+                // QR-разложение со сдвигом
+                matrix<T> I = matrix<T>::eye(n);
+                QRResult<T> qr = qr_decomposition(H - (I* shift));
+                H = qr.R * qr.Q +  I* shift;
+
+                // Проверка сходимости
+                T current_shift = H[n - 1][n - 1];
+                T subdiag = (n > 1) ? std::abs(H[n - 1][n - 2]) : 0;
+
+                if (n == 1) {
+                    eigenvalues.push_back(H[0][0]);
+                    converged = true;
+                }
+                else if (subdiag < epsilon && std::abs(current_shift - prev_shift) < 0.33 * std::abs(prev_shift)) {
+                    eigenvalues.push_back(current_shift);
+                    n--;
+                    H = H.submatrix(0, 0, n, n);
+                    converged = true;
+                }
+
+                prev_shift = current_shift;
+                iter++;
+            }
+
+            // Если не сошлось за max_iter, принудительно уменьшаем размерность
+            if (!converged) {
+                eigenvalues.push_back(H[n - 1][n - 1]);
+                n--;
+                H = H.submatrix(0, 0, n, n);
+            }
+        }
+
+        return eigenvalues;
+    }
+////
+
+////
+    //scalar product of vectors
+    template <typename T>
+    T dot_product(const matrix<T>& a, const matrix<T>& b) {
+        // Проверка что оба аргумента - векторы (столбцы или строки)
+        const bool a_is_col = (a.getcol() > 1 && a.getrow() == 1);
+        const bool a_is_row = (a.getrow() > 1 && a.getcol() == 1);
+        const bool b_is_col = (b.getcol() > 1 && b.getrow() == 1);
+        const bool b_is_row = (b.getrow() > 1 && b.getcol() == 1);
+
+        if (!(a_is_col || a_is_row) || !(b_is_col || b_is_row)) {
+            throw std::invalid_argument("Both arguments must be vectors");
+        }
+
+        // Определение длины векторов
+        const uint64_t a_len = a_is_col ? a.getcol() : a.getrow();
+        const uint64_t b_len = b_is_col ? b.getcol() : b.getrow();
+
+        if (a_len != b_len) {
+            throw std::invalid_argument("Vectors must have the same length");
+        }
+
+        // Вычисление скалярного произведения
+        T result = 0;
+        for (uint64_t i = 0; i < a_len; ++i) {
+            const T a_val = a_is_col ? a[0][i] : a[i][0]; // Для столбца [i][0], для строки [0][i]
+            const T b_val = b_is_col ? b[0][i] : b[i][0];
+            result += a_val * b_val;
+        }
+
+        return result;
+    }
+////
+
+////
+
+#if 0
 
 #else
-                mu = (z.transpose() * y)[0][0];
-                if (std::abs(mu) < epsilon) {
-                    std::cout << "mu is too small. Breaking iteration.\n";
-                    break;
-                }
-
-                mu = 1 /mu;
-#endif
-                sigma = sigma +  mu;
-                //std::cout << "sigma:" << sigma << "\n";
-                ////converged?
-
-                if (std::abs(sigma - sigma_prev) < epsilon) {
-                    converged = true;
-                    break;
-                }
-                
-                sigma_prev = sigma;
-
-                //z_(iter) from y_(iter)
-                T y_norm = y.norm();
-                if (y_norm < epsilon) break;
-                z = y * (1.0 / y_norm);
-            }
-
-
-
-
-
-            if (converged) {
-                eigen_pairs.emplace_back(sigma, z);
-            }
-            else {
-                std::cout << "Warning: Convergence not achieved for shift " << sigma <<" "<<z << ".\n";
-            }
-        }
-        return eigen_pairs;
-    }
-
-#else 
-
-
+    
     template <typename T>
-    std::vector<std::pair<T, matrix<T>>> inverse_power_method_with_shifts(
-        const matrix<T>& A,
-        const std::vector<T>& initial_shifts,
-        double epsilon = 1e-6,
-        int max_iter = 1000
-    ) {
-        std::vector<std::pair<T, matrix<T>>> eigen_pairs;
-        for (const T& sigma : initial_shifts) {
-            matrix<T> z = matrix<T>::random(A.getcol(), 1, -1.0, 1.0);
-            z = z * (1.0 / z.norm());
+    matrix<T> get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(const matrix<T>& A, int k) {
+        int n = A.getcol();
+        if (n != A.getrow()) throw std::invalid_argument("Matrix must be square");
+        if (k < 0 || k >= n - 1) throw std::invalid_argument("Invalid column index");
 
-            T lambda_prev = 0;
-            T lambda = 0;
-            bool converged = false;
+        // Выбор подвектора x из столбца k, начиная с элемента k+1
+        int m = n - k - 1;
+        matrix<T> x(m, 1); // Столбец-вектор
+        for (int i = 0; i < m; ++i) {
+            x[i][0] = A[k + 1 + i][k];
+        }
+        //std::cout << x << "\n";
 
-            matrix<T> A_shifted = A - matrix<T>::eye(A.getcol()) * sigma;
-            T det = A_shifted.determinant();
-            if (std::abs(det) < epsilon) {
-                std::cerr << "Warning: Matrix (A - " << sigma << "I) is singular. Skipping this shift.\n";
-                continue;
-            }
+        // Вычисление нормы x и s
+        T norm_x = x.norm();
+        if (norm_x == 0) return matrix<T>::eye(n);
 
-            for (int iter = 0; iter < max_iter; ++iter) {
-                matrix<T> y = solve_system(A_shifted, z);
-                T y_norm = y.norm();
-                if (y_norm < epsilon) break;
+        T s = std::copysign(norm_x, x[0][0]);
 
-                T mu = (z.transpose() * y)[0][0];
-                std::cout << "(z.transpose()).getcol():" << (z.transpose()).getcol() << "(z.transpose()).getrow():" << (z.transpose()).getrow() << "\n" << (z.transpose()).set_output_mode(output_mode::FULL) << "\n";
-                std::cout << "(y).getcol():" << (y).getcol() << "(y).getrow():" << (y).getrow() << "\n" << (y).set_output_mode(output_mode::ABBREVIATED) << "\n";
-                std::cout << "(z.transpose() * y).getcol():" << (z.transpose() * y).getcol() << "  (z.transpose() * y).getrow():" << (z.transpose() * y).getrow() << "\n" << (z.transpose() * y).set_output_mode(output_mode::ABBREVIATED) << "\n";
+        // Построение вектора v = x - s * e
+        matrix<T> v = x;
+        v[0][0] = v[0][0] - s;
 
-                // Вычисление μ_i = z_i^{(k-1)} / y_i^{(k)} для ненулевых компонент
-                T sum_mu = 0;
-                int count = 0;
-                for (uint64_t i = 0; i < y.getcol() ; ++i) {
-                    if (std::abs(y[i][0]) > delta) { // Игнорируем нули
-                        sum_mu += z[i][0] / y[i][0];
-                        count++;
-                    }
-                }
-                if (count == 0) break; // Все компоненты близки к нулю
+        //std::cout << "v:" << v << "\n";
+        // Вычисление mu = 2 / (v^T * v)
+        matrix<T> vT = v.transpose();
+        matrix<T> vtv = vT * v;
+        if (vtv[0][0] == 0) return matrix<T>::eye(n);
+        T mu = T(2) / vtv[0][0];
 
-                T mu = sum_mu / count; // Среднее μ
+        //// Построение матрицы Хаусхолдера 1. H = I - mu * v * v^T
+        matrix<T> H = matrix<T>::eye(n);
+        matrix<T> outer = v * vT;
+        outer = outer * mu;
+        //std::cout <<"outer:" << outer << "\n";
 
-                if (std::abs(lambda - lambda_prev) < epsilon) {
-                    converged = true;
-                    break;
-                }
-                lambda_prev = lambda;
-
-                z = y * (1.0 / y_norm);//Z_ k+1
-            }
-            if (converged) {
-                eigen_pairs.emplace_back(lambda, z);
-            }
-            else {
-                std::cerr << "Warning: Convergence not achieved for shift " << sigma << ".\n";
+        // 2.
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < m; ++j) {
+                H[k + 1 + i][k + 1 + j] -= outer[i][j];
             }
         }
-        return eigen_pairs;
+        ////
+        return H;
+    }
+#endif
+    template <typename T>
+    matrix<T> hessenberg_upper_form(matrix<T> A) {
+        int n = A.getcol();
+        if (n != A.getrow()) throw std::invalid_argument("Matrix must be square");
+
+        for (int k = 0; k < n - 2; ++k) {
+            matrix<T> H = get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(A, k);
+            A = H * A * H; // Применение преобразования
+        }
+        return A;
     }
 
-#endif
+////
 }
 
 
@@ -274,7 +311,7 @@ template <typename T> class matrix
 {
 private:
     //output_mode out_mode 
-    output_mode out_mode = output_mode::FULL;
+    output_mode out_mode = output_mode::ABBREVIATED;
 
     //an array with T elements
     T* ptr;
@@ -296,6 +333,17 @@ public:
     matrix(uint64_t colsize, uint64_t rowsize);
     //the default constructor
     matrix();
+
+    template <typename U>matrix(const matrix<U>& other) {
+        colsize = other.getcol();
+        rowsize = other.getrow();
+        allocateMemory();
+        for (uint64_t i = 0; i < colsize; ++i) {
+            for (uint64_t j = 0; j < rowsize; ++j) {
+                (*this)[i][j] = static_cast<T>(other[i][j]);
+            }
+        }
+    }
     ~matrix();//destructor
 
 
@@ -309,7 +357,8 @@ public:
     enum class output_mode get_output_mode()const { return (this->out_mode); }
     //to index1 row access operator
     T* operator[](const uint64_t index1) const { return ptr + index1 * rowsize; }
-
+    matrix<T> get_column(uint64_t col) const;
+    matrix<T> get_row(uint64_t row) const;
 
     //ARITHMETIC OPERATORS
 
@@ -321,13 +370,27 @@ public:
     matrix<T> operator-(const matrix<T>& other) const;
     // binary matrix multiplication
     matrix<T> operator*(const matrix<T>& other) const; 
-    
-    // binary matrix division(if not a singular matrix on the left)
-    matrix<T> operator/(const matrix<T>& other) const;
     // binary matrix multiplication by  an element from the field
     matrix<T> operator*(const T& other) const;
     // assignment operator overload
     matrix<T>& operator=(const matrix<T>& other); 
+
+    template <typename U>matrix<T>& operator=(const matrix<U>& other) {
+        if (static_cast<const void*>(this) != static_cast<const void*>(&other)) {
+            delete[] ptr;
+            colsize = other.getcol();
+            rowsize = other.getrow();
+            allocateMemory();
+            for (uint64_t i = 0; i < colsize; ++i) {
+                for (uint64_t j = 0; j < rowsize; ++j) {
+                    (*this)[i][j] = static_cast<T>(other[i][j]);
+                }
+            }
+        }
+        return *this;
+    }
+    // binary matrix division(if not a singular matrix on the left)
+    matrix<T> operator/(const matrix<T>& other) const;
 
 
     // I/O OPERATIONS
@@ -339,9 +402,8 @@ public:
 
 
     //SPECIAL METHODS
-    
-    //matrix<T> to_upper_triangular() const;
-
+    // The p norm method for a matrix
+    T norm(int p = 2) const;
     //return of the upper triangular matrix after transformations
     matrix to_uptrng()const;
     //bringing to the upper triangular view together with the "other" matrix
@@ -357,12 +419,13 @@ public:
     //  . ..   ...  .. ..     S                    
     //  0 1  ..  0 0     |
     //  1 0  ..  0 0     |
-    //
     matrix sqprediag(const uint64_t S)const;
     //return of the inverse matrix  
     matrix inverse_M()const;
-
+    //The Cholesky decomposition
     matrix<T> cholesky() const;
+    //LUP decomposition
+    LUResult<T> LUP() const;
     //replacement by a matrix of zero T elements
     static matrix<T> zeros(uint64_t colsize, uint64_t rowsize);
     //replacement by a matrix of single T elements
@@ -375,19 +438,48 @@ public:
     //  0 0  ..  1 0     |
     //  0 0  ..  0 1     |
     static matrix<T> eye(uint64_t S);
-
+    //Random matrix
+    // min < R < max
+    //  <---rows--->
+    //  R R  ..  R R     |
+    //  R R  ..  R R     |
+    //  . ..   ...  .. ..    cols                   
+    //  R R  ..  R R     |
+    //  R R  ..  R R     |
     static matrix<T> random(size_t rows, size_t cols, T min, T max) {
         matrix<T> m(rows, cols);
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_real_distribution<T> dist(min, max);
 
-        for (size_t i = 0; i < rows * cols; ++i) {
-            m.ptr[i] = dist(gen);
+        if constexpr (std::is_integral_v<T>) {
+            std::uniform_int_distribution<T> dist(min, max);
+            for (size_t i = 0; i < rows * cols; ++i) {
+                m.ptr[i] = dist(gen);
+            }
+        }
+        else {
+            static_assert(
+                std::is_same_v<T, float> ||
+                std::is_same_v<T, double> ||
+                std::is_same_v<T, long double>,
+                "T must be float, double, or long double for real distribution"
+                );
+            std::uniform_real_distribution<T> dist(min, max);
+            for (size_t i = 0; i < rows * cols; ++i) {
+                m.ptr[i] = dist(gen);
+            }
         }
         return m;
     }
 
+    //Random matrix
+    // min < R < max
+    //  <---rows--->
+    //  R 0  ..  0 0     |
+    //  0 R  ..  0 0     |
+    //  . ..   ...  .. ..     cols                    
+    //  0 0  ..  R 0     |
+    //  0 0  ..  0 R     |
     static matrix<T> randomDiagonal(size_t n, T min, T max) {
         matrix<T> m(n, n);
         std::random_device rd;
@@ -412,7 +504,6 @@ public:
         }
     }
 
-    LUResult<T> LUP() const;
 
 
     //applyMethodToElements function using SFINAE to check for a method with a parameter and call it
@@ -424,21 +515,7 @@ public:
     template <typename T, typename ReturnType, typename Param>
     std::enable_if_t<HasMethodWithParam<T, Param>::value> applyMethodToElements(ReturnType(T::* method)(Param), Param param)const;
 
-
-
-    #if 1
-    // Метод нормы для вектора
     
-    T norm() const {
-        if (rowsize != 1 && colsize != 1) {
-            throw std::runtime_error("Norm is defined only for vectors.");
-        }
-        T sum = 0;
-        for (uint64_t i = 0; i < colsize * rowsize; ++i) {
-            sum += ptr[i] * ptr[i];
-        }
-        return std::sqrt(sum);
-    }
-    #endif
+    QRResult<T> qr() const;
 };
 #include "../_cpp_realisation_file/matrix.cpp"
