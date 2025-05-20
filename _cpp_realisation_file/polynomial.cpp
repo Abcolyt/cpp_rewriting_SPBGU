@@ -69,7 +69,7 @@ namespace polynomialfunctions {
 			//std::cout <<"root["<<i<<"]=" << ans.first << '\n';
 			b.newsize(2);
 			b[1] = 1;
-			b[0] = (ans.first) * (-1);
+			b[0] = (ans.first) *(P) (-1.0);
 
 			plnm = (plnm / b);
 			//std::cout << "plnm after:" << plnm<<"\n";

@@ -9,7 +9,9 @@
 #include <cmath>
 #include <numeric>
 #include <algorithm>
+#include <complex>
 
+//#include "../file_h/complex.h"
 
 extern enum class output_mode;
 template<typename T> class matrix;
@@ -125,7 +127,26 @@ namespace matrixfunction {
         matrix<T> A,T sigma0,const matrix<T>& vec0,
         double epsilon = 1e-6,double delta = 1e-8,int max_iter = 10000
     );
+    //2*2 matrix
+    template<typename T>
+    std::pair<std::complex<T>, std::complex<T>> compute_2x2_eigenvalues(const matrix<T>& A) {
+        T a = A[0][0], b = A[0][1], c = A[1][0], d = A[1][1];
+        T trace = a + d;
+        T det = a * d - b * c;
+        T discriminant = trace * trace - 4 * det;
 
+        if (discriminant >= 0) {
+            T sqrt_disc = std::sqrt(discriminant);
+            return { std::complex<T>((trace + sqrt_disc) / 2, 0),
+                    std::complex<T>((trace - sqrt_disc) / 2, 0) };
+        }
+        else {
+            T real = trace / 2;
+            T imag = std::sqrt(-discriminant) / 2;
+            return { std::complex<T>(real, imag),
+                    std::complex<T>(real, -imag) };
+        }
+    }
     // a lot of shift
     template <typename T>
     std::vector<T> qr_algorithm_with_shifts(matrix<T>& H, T epsilon = 1e-6, int max_iter = 1000) {
@@ -189,10 +210,13 @@ namespace matrixfunction {
 
         return eigenvalues;
     }
-////
+    
+    //
+   
 
 ////
-    //scalar product of vectors
+
+////scalar product of vectors
     template <typename T>
     T dot_product(const matrix<T>& a, const matrix<T>& b) {
         // Проверка что оба аргумента - векторы (столбцы или строки)
@@ -225,7 +249,7 @@ namespace matrixfunction {
     }
 ////
 
-////
+////Hessenberg form
 
 #if 0
 
@@ -517,8 +541,22 @@ public:
 
     
     QRResult<T> qr() const;
-
+    
+    //
+    //mat:
+    //cols: 4, rows: 4
+    // 68 -94  73 -32
+    // -5  -7  32  39
+    //-69 -79 -91  43
+    // 81  40   6  49
+    //sub:
+    //cols: 3, rows: 3
+    // -94  73 -32
+    // -7  32  39
+    // -79 -91  43
+    //
     matrix<T> submatrix(uint64_t start_row, uint64_t start_col, uint64_t rows, uint64_t cols) const;
 
+    std::vector<std::complex<T>> eigenvalues_qr_double_shift(double epsilon) const;
 };
 #include "../_cpp_realisation_file/matrix.cpp"

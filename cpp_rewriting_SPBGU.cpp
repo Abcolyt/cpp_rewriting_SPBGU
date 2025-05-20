@@ -32,7 +32,7 @@ std::vector<std::pair<T, T>> generatePointsLambda(int k, T x0, T step, Func F) {
 }
 
 #define SHOW_INTERPOL_STAT(func,n,m, ...) \
-    counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic(func,n+20,m, #func, __VA_ARGS__)
+    counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic(func,n,m, #func, __VA_ARGS__)
 
 
 //
@@ -129,7 +129,7 @@ int main() {
     counting_methods::holechi::example();
 #endif
 
-#define AU_LOG 1
+#define AU_LOG 6
 
 #if AU_LOG==1
 
@@ -143,20 +143,26 @@ int main() {
     matrix<double> T = (matrix<int>::random(4, 4, -100, 100));
     A = T * A * (T.inverse_M());
     
+    auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10);
     std::cout << "A:\n" << A << "\n";
     std::cout <<"T:\n" << T << "\n";
-    std::cout << "hessenberg_form(A):\n" << matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10) << "\n";
+    std::cout << "hessenberg_form(A):\n" << H << "\n";
     std::cout << "A:\n" << A << "\n";
-
-    auto Ans = A.qr();
+    //auto eig = matrixfunction::eigenvalues_hessenberg(H);
+    //std::cout << "Size: " << eig.size()<<'\n';
+    //for (auto l : eig)
+    //{
+    //    std::cout << "Eigenvalue: " << l << "\n";
+    //}
+  
+   
+ /* auto Ans = A.qr();
     auto Q = matrixfunction::sanitize_zeros(Ans.Q, 1e-10), R = matrixfunction::sanitize_zeros(Ans.R, 1e-10);
     std::cout << "Q:\n" << Q << "\nR=\n" << R << "\nQ*R:\n" << Q * R;
-    auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10);
-    
-    for (auto l : matrixfunction::qr_algorithm_with_shifts(H))
-    {
-        std::cout << "Eigenvalue: " << l << "\n";
-    }
+    auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10);*/
+
+
+
     //auto Ans = matrixfunction::qr_decomposition(A);
     //auto Q = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(Ans.Q), 1e-10), R= matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(Ans.R), 1e-10);
     //std::cout <<"Q:\n" <<  Q<< "\nR=\n" << R<< "\nQ*R:\n"<<Q*R;
@@ -330,16 +336,25 @@ int main() {
             [](double x) { return identifier; },
             -M_PI / 4, M_PI / 4
         );
-
+        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, decltype(Spline_interpolator<3, 2, double>)>(
+            Spline_interpolator<3, 2, double>, // interpolator
+            10, 20,                      // n, m_
+            "Spline_interpolator<3, 2, double>",
+            [](double x) { return identifier; },
+            -M_PI / 4, M_PI / 4
+        );
 
 
     }
     
-
+    
 #elif AU_LOG == 7
+    int Degree = 30;
 
     std::vector<double> array = { 1,2,3,4,5,6 };
     polynomial<double> polynom = w_k_T0(array, -1);
+
+
 
     std::cout << "wk" << w_k_T0(array, -6).output_mode_set(output_mode::ABBREVIATED);
     std::cout << "\nwx0" << (w_k_T0(array, 1))(1);
@@ -349,9 +364,10 @@ int main() {
         {4.5, polynom(4.5) },{6.5, polynom(6.5)},
         {8.5, polynom(8.5) },{10.5, polynom(10.5)}
     };
-    
+
+    array_xy=generatePoints_equally_sufficient_(Degree, -20., +20., polynom);
     Spline<double> a(-5,5,10);
-    std::cout << a;
+    //std::cout << a;
     const uint64_t m=3, p=2;
     
     std::cout << "<m=" << m << ",p=" << p << ">=\n";
@@ -360,14 +376,14 @@ int main() {
     draw_function<double>(Spline_interpolator<m, p>(array_xy));
     draw_function<double>(polynom);
     draw_function<double>(Spline_interpolator<m, p>(array_xy));
+
+
+    
     //Spline_interpolator<3, 2>(array_xy);
     //std::cout << "<m=" << 4 << ",p=" << 1 << ">=\n";
     //Spline_interpolator<4, 1>(array_xy);
     //Spline_interpolator<4, 2>(array_xy);
     //Spline_interpolator<4, 3>(array_xy);
-
-
-    
 #endif
     
     system("pause");
