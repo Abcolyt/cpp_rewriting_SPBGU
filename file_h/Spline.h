@@ -393,7 +393,7 @@ void Spline_interpolator(const std::vector<std::pair<T, T>>& Array_xy) {
 */
 
 template<uint64_t M_, uint64_t P_= M_ - 1, typename T>
-Spline<T> Spline_interpolator(const std::vector<std::pair<T, T>>& Array_xy) {
+Spline<T> Spline_interpolator(std::vector<std::pair<T, T>> Array_xy) {
     const uint64_t M = M_+1; 
     const uint64_t P = M_ - 1;
     const size_t N = Array_xy.size();

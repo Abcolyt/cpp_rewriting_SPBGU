@@ -1,4 +1,5 @@
 #include <sstream>
+#include <cmath>
 #pragma once
 class Complex
 {
@@ -60,5 +61,23 @@ public:
         return std::sqrt(R * R + I * I);
     }
 
+    ////new 2025
+    //Complex operator*(double scalar) const {
+    //    return Complex(R * scalar, I * scalar);
+    //}
+    //
+    //Complex operator*(int scalar) const {
+    //    return Complex(R * scalar, I * scalar);
+    //}
+
+    Complex operator/(double scalar) const {
+        return Complex(R / scalar, I / scalar);
+    }
+
+    friend Complex sqrt(const Complex& z) {
+        double r = std::sqrt(z.magnitude());
+        double theta = std::atan2(z.I, z.R) / 2.0;
+        return Complex(r * std::cos(theta), r * std::sin(theta));
+    }
 };
 

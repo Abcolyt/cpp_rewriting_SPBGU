@@ -660,6 +660,124 @@ template<typename T>
 
      return sub;
  }
+ template <typename T>
+ std::vector<std::complex<T>> matrix<T>::eigenvalues_qr_double_shift(double epsilon) const {
+     // Приводим матрицу к форме Хессенберга
+     matrix<T> H = hessenberg_upper_form(*this);
+     std::vector<std::complex<T>> eigenvalues;
+     int n = H.getcol();
+
+     while (n > 0) {
+         // Проверка на случай матрицы 1x1
+         if (n == 1) {
+             eigenvalues.emplace_back(H[0][0], 0);
+             break;
+         }
+
+         // Проверка на случай матрицы 2x2
+         if (n == 2) {
+             auto a = H[0][0], b = H[0][1], c = H[1][0], d = H[1][1];
+             T trace = a + d;
+             T det = a * d - b * c;
+             T discriminant = trace * trace - 4 * det;
+
+             if (discriminant >= 0) {
+                 T sqrt_disc = std::sqrt(discriminant);
+                 eigenvalues.emplace_back((trace + sqrt_disc) / 2, 0);
+                 eigenvalues.emplace_back((trace - sqrt_disc) / 2, 0);
+             }
+             else {
+                 T real_part = trace / 2;
+                 T imag_part = std::sqrt(-discriminant) / 2;
+                 eigenvalues.emplace_back(real_part, imag_part);
+                 eigenvalues.emplace_back(real_part, -imag_part);
+             }
+             break;
+         }
+
+         // Поиск разделения на подматрицы
+         int m = n - 2;
+         while (m >= 0 && std::abs(H[m + 1][m]) < epsilon) {
+             m--;
+         }
+
+         // Если найдено разделение
+         if (m == n - 2) {
+             // Обработка 2x2 блока
+             matrix<T> sub = H.submatrix(n - 2, n - 2, 2, 2);
+             auto a = sub[0][0], b = sub[0][1], c = sub[1][0], d = sub[1][1];
+             T trace = a + d;
+             T det = a * d - b * c;
+             T discriminant = trace * trace - 4 * det;
+
+             if (discriminant >= 0) {
+                 T sqrt_disc = std::sqrt(discriminant);
+                 eigenvalues.emplace_back((trace + sqrt_disc) / 2, 0);
+                 eigenvalues.emplace_back((trace - sqrt_disc) / 2, 0);
+             }
+             else {
+                 T real_part = trace / 2;
+                 T imag_part = std::sqrt(-discriminant) / 2;
+                 eigenvalues.emplace_back(real_part, imag_part);
+                 eigenvalues.emplace_back(real_part, -imag_part);
+             }
+             n -= 2;
+             H = H.submatrix(0, 0, n, n);
+         }
+         else if (m >= 0) {
+             // Вычисление сдвигов
+             matrix<T> sub = H.submatrix(n - 2, n - 2, 2, 2);
+             auto [lambda1, lambda2] = compute_2x2_eigenvalues(sub);
+             T s = lambda1.real() + lambda2.real();
+             T t = lambda1.real() * lambda2.real() - lambda1.imag() * lambda2.imag();
+
+             // Вычисление вектора для преобразования Хаусхолдера
+             T x = H[0][0] * H[0][0] - s * H[0][0] + t + H[0][1] * H[1][0];
+             T y = H[1][0] * (H[0][0] + H[1][1] - s);
+             T z = H[2][1] * H[1][0];
+
+             // Построение вектора w
+             matrix<T> w(n, 1);
+             T norm = std::sqrt(x * x + y * y + z * z);
+             if (norm == 0) {
+                 w[0][0] = 1;
+                 w[1][0] = 0;
+                 w[2][0] = 0;
+             }
+             else {
+                 T beta = x < 0 ? -norm : norm;
+                 T mu = 1.0 / (beta * (beta - x));
+                 w[0][0] = (x - beta) * mu;
+                 w[1][0] = y * mu;
+                 w[2][0] = z * mu;
+                 for (int i = 3; i < n; ++i) w[i][0] = 0;
+             }
+
+             // Построение матрицы Хаусхолдера
+             matrix<T> I = matrix<T>::eye(n);
+             matrix<T> P = I - (w * w.transpose()) * (2.0 / (w.transpose() * w)[0][0]);
+
+             // Применение преобразования
+             H = P * H * P;
+
+             // Возврат к форме Хессенберга (упрощенно)
+             for (int i = 0; i < n - 1; ++i) {
+                 for (int j = i + 2; j < n; ++j) {
+                     H[j][i] = 0;
+                 }
+             }
+         }
+         else {
+             // Уменьшение размера матрицы
+             eigenvalues.emplace_back(H[n - 1][n - 1], 0);
+             n--;
+             H = H.submatrix(0, 0, n, n);
+         }
+     }
+
+     return eigenvalues;
+ }
+
 namespace matrixfunction {
     template<typename T>T power_method(const matrix<T>& A, const matrix<T>& Vec0, double epsilon, int max_iter ) {
 

@@ -12,8 +12,8 @@
 
 #include <numeric>
 
-#include "file_h/polynomial.h"
-#include "file_h/Array_xy_To_.h"
+#include "polynomial.h"
+#include "Array_xy_To_.h"
 
 namespace counting_methods_2 {
 
@@ -124,7 +124,7 @@ namespace counting_methods_2 {
                 using enum methodical_error;
                 
                 polynomial<P> pol= func_interpolation(Array_xy);
-                std::vector < P> array_x;
+                std::vector <P> array_x;
                 
                 std::transform(Array_xy.begin(), Array_xy.end(),
                     std::back_inserter(array_x),
@@ -478,7 +478,7 @@ namespace counting_methods_2 {
                 return { Max_ans,std::move(interpolinom) };
             }
 
-            template<typename P=double,typename TypeOfInterpolationFunc = decltype(Lagrang_interpolation<double>), typename TheTypeOfFunctionThatBeingInterpolated>
+            template<typename P=double,typename TypeOfInterpolationFunc /*= decltype(Lagrang_interpolation<double>)*/, typename TheTypeOfFunctionThatBeingInterpolated>
             std::stringstream show_interpolation_statistic(TypeOfInterpolationFunc func_interpolation,int n = 10, int m_ = 99, const std::string& interpolation_name="Unknown",
                 TheTypeOfFunctionThatBeingInterpolated F = [](double x) { return std::cos(x) / std::sin(x) + x * x; },
                 P a = LDBL_EPSILON -2 * M_PI,P b = 2 * M_PI -LDBL_EPSILON
