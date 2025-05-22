@@ -32,7 +32,7 @@ std::vector<std::pair<T, T>> generatePointsLambda(int k, T x0, T step, Func F) {
 }
 
 #define SHOW_INTERPOL_STAT(func,n,m, ...) \
-    counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic(func,n,m, #func, __VA_ARGS__)
+    counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic(func,n,m+50, #func, __VA_ARGS__)
 
 
 //
@@ -92,14 +92,18 @@ void test_solve_system_complex() {
     std::cout << "L * U:\n" << LU << "\nP * A:\n" << PA << std::endl;
 
 }
-void Z5_2(int Size) {
+
+void Z5_2(int Size=4) {
+    std::cout << "Z5_2:\n\n";
     matrix<double> A;
+
     A = matrix<double>::randomDiagonal(Size, -100, 100);
     std::cout << "A:\n" << A << "\n";
     matrix<double> T = (matrix<int>::random(Size, Size, -100, 100));
     A = T * A * (T.inverse_M());
+    std::cout << "T * A *(T^-1):\n" << A << "\n";
 
-    std::vector<double> shifts = { 0.9, -1.5, 4.5 ,20 }; // Начальные сдвиги
+    std::vector<double> shifts = { 0.9, -1.5, 4.5 ,20 };
     std::vector<std::pair<double, matrix<double>>> result = matrixfunction::inverse_power_method_with_shifts(A, shifts);
     for (auto p : result)
     {
@@ -109,6 +113,65 @@ void Z5_2(int Size) {
     // std::cout << vec0 << "\n";
     auto result_ = matrixfunction::inverse_power_method_with_shift(A, 1.5, vec0);
     std::cout << "Eigenvalue: " << result_.first << "\nEigenvector:\n" << result_.second;
+
+}
+void Z5_1_2_const() {
+    std::cout << "Z5_2_const:\n\n";
+    matrix<double> A=matrix<double>::zeros(4,4);
+    A[0][0] = 120; 
+     A[1][1] = 12.0;  
+     A[2][2] = 1.2; 
+     A[3][3] = 0.012;
+    std::cout << "A:\n" << A << "\n";
+    
+    matrix<double> T(4, 4);
+    T[0][0] = 76;  T[0][1] = -56;  T[0][2] = -44;  T[0][3] = -80;
+    T[1][0] = 49;  T[1][1] = 49;  T[1][2] = 100;  T[1][3] = 44;
+    T[2][0] = 85;  T[2][1] = -37;  T[2][2] = 93;  T[2][3] = 20;
+    T[3][0] = 39;  T[3][1] = 95;  T[3][2] = -2;  T[3][3] = -22;
+
+    std::cout << "T :\n" << T << "\n";
+    A = T * A * (T.inverse_M());
+    std::cout << "T * A *(T^-1):\n" << A << "\n";
+
+    
+    std::vector<double> shifts = { 1000, 10, 1 ,0 }; 
+    std::vector<std::pair<double, matrix<double>>> result = matrixfunction::inverse_power_method_with_shifts(A, shifts);
+    std::cout << "inverse_with_shifts_Power_meth:\n\n";
+    for (auto p : result)
+    {
+        std::cout << "Eigenvalue: " << p.first << "\nEigenvector:\n" << p.second << "\n";
+    }
+   
+    std::cout << "Power_meth:\n\n";
+    auto Ans = matrixfunction::power_method(A, matrix<double>::ones(A.getcol(), 1),1e-10,10000);
+    std::cout << "Eigenvalue: " << Ans.first << "\nEigenvector:\n" << Ans.second << "\n";
+}
+
+void Z5_plus(int Size = 4) {
+    std::cout << "Z5_plus:\n\n";
+    //fraction<polynomial<double>>
+    matrix<polynomial<double>> A;
+
+    A = matrix<double>::randomDiagonal(Size, -100, 100);
+    std::cout << "A:\n" << A << "\n";
+
+    matrix<polynomial<double>> T = (matrix<int>::random(Size, Size, -100, 100));
+    std::cout << "T:\n" << T << "\n";
+    A = T * A * (T.inverse_M());
+    std::cout << "T * A *(T^-1):\n" << A << " \n  ";
+    //std::cout<< std::fixed << A.determinant() << "\n";
+
+    matrix<polynomial<double>> A_ = A - matrix<polynomial<double>>::eye(Size) * (polynomial<double>(1) * (polynomial<double>(1) >> 1));
+    
+    //std::cout << "A_:\n" << A_ << "\n";
+    uint64_t j = 0;
+    for (auto& i: A_.determinant().plnm_roots())
+    {
+        j++;
+        std::cout << "root_[\n"<<j<<"]= "<< std::fixed<< i.first << "\n";
+    }
+
 
 }
 //
@@ -129,25 +192,59 @@ int main() {
     counting_methods::holechi::example();
 #endif
 
-#define AU_LOG 6
+#define AU_LOG 1
 
 #if AU_LOG==1
 
-    test_solve_system();
-    test_solve_system_complex();
+#if 1
+    Z5_2(4);
+    Z5_1_2_const();
+    Z5_plus();
 
-
+    
+#else
     matrix<double> A;
     A = matrix<double>::randomDiagonal(4, -100, 100);
     std::cout << "A:\n" << A << "\n";
     matrix<double> T = (matrix<int>::random(4, 4, -100, 100));
     A = T * A * (T.inverse_M());
-    
+
     auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10);
     std::cout << "A:\n" << A << "\n";
-    std::cout <<"T:\n" << T << "\n";
+    std::cout << "T:\n" << T << "\n";
     std::cout << "hessenberg_form(A):\n" << H << "\n";
     std::cout << "A:\n" << A << "\n";
+
+
+    auto qrH = H.qr();
+
+    double sum_shifts = 0;
+    double shift = H[n][n];
+
+    auto B_k_plus_1 = qrH.R * qrH.Q;
+    auto n = B_k_plus_1.getcol();
+    std::cout << qrH.Q << "\n" << qrH.R << "\n"<<"\nRQ:"<< B_k_plus_1;
+    auto b_nn = B_k_plus_1[n][n-1];
+    bool is_converged = 
+    //while (H.getrow() >= 2 && H.getcol()) {
+        //const uint64_t locrow = H.getrow();
+        //const uint64_t loccol = H.getcol();
+        //auto tay = H.submatrix(locrow - 2, loccol - 2, locrow, loccol);
+        //std::cout << tay << "\n";
+        //auto Ans = matrixfunction::compute_2x2_eigenvalues(tay);
+
+        //std::cout << "root_[\n"  << "]= " << std::fixed << Ans.first << "\n";
+        //std::cout << "root_[\n"  << "]= " << std::fixed << Ans.second << "\n";
+
+        //for (size_t i = 0; i < 2; i++)
+        //
+        //{
+        //    j++;
+        //    std::cout << "root_[\n" << j << "]= " << std::fixed << Ans.first << "\n";
+        //}
+ //   }
+#endif
+
     //auto eig = matrixfunction::eigenvalues_hessenberg(H);
     //std::cout << "Size: " << eig.size()<<'\n';
     //for (auto l : eig)
@@ -214,17 +311,6 @@ int main() {
         std::cerr << "Error: " << e.what() << std::endl;
     }*/
 
-#elif AU_LOG==2
-#elif AU_LOG==3
-
-    int n = 10;
-    double a = -2 * M_PI, b = 2 * M_PI;
-
-    auto poly = N_optn(n, a, b, [](double x) { return std::cos(x) / std::sin(x) + x * x; });
-
-    std::cout << "POLINOM:" << poly;
-    std::cout << "\nMAX:" << RN_n(n, a, b, [](double x) { return std::cos(x) / std::sin(x) + x * x; });
-
 #elif AU_LOG == 4
     //show_nuton();
     // 
@@ -269,25 +355,6 @@ int main() {
     
     std::cout << pol(2);
 #elif AU_LOG == 5
-
-    std::vector<double> array = { 1,2,3,4,5,6 };
-    polynomial<double> polynom = w_k_T0(array, -1);
-
-    std::cout << "wk" << w_k_T0(array, -6).output_mode_set(output_mode::ABBREVIATED);
-    std::cout << "\nwx0"<<(w_k_T0(array, 1))(1);
-
-    std::vector<std::pair<double, double>> array_xy = {
-        {0.5, polynom(0.5) },{2.5, polynom(2.5)},
-        {4.5, polynom(4.5) },{6.5, polynom(6.5)},
-        {8.5, polynom(8.5) },{10.5, polynom(10.5)}
-    };
-
-
-    auto Func = [](double x) { return  1 + 10 * x + 10 * x * x + 10 * x * x * x + 10 * x * x * x * x; };
-    auto Array_xy = generatePoints_equally_sufficient_with_step_size(7, -4.0, 1.0, Func);
-
-    std::cout <<"\nans:" << Lagrang_interpolation(Array_xy);
-#elif AU_LOG == 6
     {
         polynomial<double>a; a.outm_E = output_mode::FULL;
         polynomial<double>b;
@@ -310,44 +377,87 @@ int main() {
         b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
         std::cout << '\n' << b << "max|F(x)|=" << b.maximum_abs(-1111., +1111.);
 
+        auto spl = Spline_interpolator<3, 2, double>(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        std::cout << '\n' << spl << '\n';
+
 #define identifier (x-std::sin(x) - 0.25)
+#define the_left_border -M_PI / 4
+#define the_right_border M_PI / 4
+        using SplineInterpolatorFunc = Spline<double>(*)(std::vector<std::pair<double, double>>);
+
         //x-std::sin(x) - 0.25
+        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
+            Spline_interpolator<3, 2, double>, // interpolator
+            50, 50,                      // n, m_
+            "Spline_interpolator<3, 2, double>",
+            [](double x) { return identifier; },
+            the_left_border, the_right_border
+        );
+
+        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
+            Spline_interpolator<2, 1, double>, // interpolator
+            50, 50,                      // n, m_
+            "Spline_interpolator<2, 1, double>",
+            [](double x) { return identifier; },
+            the_left_border, the_right_border
+        );
+
+        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
+            Spline_interpolator<1, 0, double>, // interpolator
+            10, 20,                      // n, m_
+            "Spline_interpolator<1,0, double>",
+            [](double x) { return identifier; },
+            the_left_border, the_right_border
+        );
+
         SHOW_INTERPOL_STAT(
             nuton_interpolation<double>, // interpolator
             10, 20,                      // n, m_
             [](double x) { return identifier; },
-            -M_PI / 4, M_PI / 4
+            the_left_border, the_right_border
         );
         SHOW_INTERPOL_STAT(
             Lagrang_interpolation<double>,
             10, 10,
             [](double x) { return identifier; },
-            -M_PI / 4, M_PI / 4
+            the_left_border, the_right_border
         );
         SHOW_INTERPOL_STAT(
             Alternativ_nuton_interpolation<double>, // interpolator
             10, 20,                      // n, m_
             [](double x) { return identifier; },
-            -M_PI / 4, M_PI / 4
+            the_left_border, the_right_border
         );
         SHOW_INTERPOL_STAT(
             Alternativ_Lagrang_interpolation<double>, // interpolator
             10, 20,                      // n, m_
             [](double x) { return identifier; },
-            -M_PI / 4, M_PI / 4
+            the_left_border, the_right_border
         );
-        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, decltype(Spline_interpolator<3, 2, double>)>(
-            Spline_interpolator<3, 2, double>, // interpolator
-            10, 20,                      // n, m_
-            "Spline_interpolator<3, 2, double>",
-            [](double x) { return identifier; },
-            -M_PI / 4, M_PI / 4
-        );
+
 
 
     }
     
-    
+#elif AU_LOG == 6
+
+std::vector<double> array = { 1,2,3,4,5,6 };
+polynomial<double> polynom = w_k_T0(array, -1);
+
+std::cout << "wk" << w_k_T0(array, -6).output_mode_set(output_mode::ABBREVIATED);
+std::cout << "\nwx0" << (w_k_T0(array, 1))(1);
+
+std::vector<std::pair<double, double>> array_xy = {
+    {0.5, polynom(0.5) },{2.5, polynom(2.5)},
+    {4.5, polynom(4.5) },{6.5, polynom(6.5)},
+    {8.5, polynom(8.5) },{10.5, polynom(10.5)}
+};
+
+
+auto Func = [](double x) { return  1 + 10 * x + 10 * x * x + 10 * x * x * x + 10 * x * x * x * x; };
+auto Array_xy = generatePoints_equally_sufficient_with_step_size(7, -4.0, 1.0, Func);
+
+std::cout << "\nans:" << Lagrang_interpolation(Array_xy);
 #elif AU_LOG == 7
     int Degree = 30;
 
@@ -384,8 +494,14 @@ int main() {
     //Spline_interpolator<4, 1>(array_xy);
     //Spline_interpolator<4, 2>(array_xy);
     //Spline_interpolator<4, 3>(array_xy);
+#elif AU_LOG == 8
 #endif
     
+
+   
+    
+
+
     system("pause");
     return 0;
 }

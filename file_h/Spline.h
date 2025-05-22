@@ -406,6 +406,13 @@ Spline<T> Spline_interpolator(std::vector<std::pair<T, T>> Array_xy) {
     const size_t boundary_eq = /*2 **/ P;
     const size_t equations = interpolation_eq + smoothness_eq + boundary_eq;
 
+    if (N == 1) {
+        Spline<T> ans(convert_pairs_to_vector(Array_xy));
+        
+        ans.setpol(0, polynomial<T>(Array_xy[0].second));
+        return ans;
+    }
+
     matrix<T> a(equations, coefficients);
     matrix<T> b(equations, 1);
 
@@ -470,14 +477,14 @@ Spline<T> Spline_interpolator(std::vector<std::pair<T, T>> Array_xy) {
         eq++;
 #endif            
     }
-    a.set_output_mode(output_mode::ABBREVIATED);
-    std::cout << a << "\nzer good\n";
+   // a.set_output_mode(output_mode::ABBREVIATED);
+   // std::cout << a << "\nzer good\n";
     //std::cout << a.determinant() << "\nzer good\n";
     // Решение системы
-    matrix<T> x = a.inverse_M() * b;
+    matrix<T> x = matrixfunction::solve_system(a, b);
     // std::cout << "Coefficients:\n" << x;
-    std::cout << "Coefficients:\n" << a.inverse_M() * b;
-
+    //std::cout << "Coefficients:\n" << a.inverse_M() * b;
+    
     Spline<T> ans(convert_pairs_to_vector(Array_xy));
     for (uint64_t i = 0; i < x.getcol() / M; i++) {
         polynomial<T> pol; pol.newsize(M);
@@ -485,9 +492,9 @@ Spline<T> Spline_interpolator(std::vector<std::pair<T, T>> Array_xy) {
             
             pol[j]=x[M*i+j][0];
         }
-        std::cout << "\n" << pol << "\n";
+        //std::cout << "\n" << pol << "\n";
         ans.setpol(i,pol);
     }
-    std::cout << "\n" << ans << "\n";
+    //std::cout << "\n" << ans << "\n";
     return ans;
 }

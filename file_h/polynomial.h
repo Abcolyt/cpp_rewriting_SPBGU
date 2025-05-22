@@ -161,6 +161,10 @@ public:
 	polynomial<P> get_first_derrivate()const { return polynomialfunctions::derivate(*this); }
 	P maximum_abs(P a, P b)const;
 	P maximum()const;
+
+	std::vector<std::pair<P, int>> plnm_roots( P x0 = FLT_EPSILON) const {
+		return polynomialfunctions::plnm_roots(*this);
+	};
 };
 template<typename P> output_mode polynomial<P>::default_output_mode = output_mode::SHORT;
 
