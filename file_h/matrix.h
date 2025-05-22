@@ -27,9 +27,9 @@ struct QRResult {
 };
 namespace matrixfunction {
 //// POWER METHOD
-    template<typename T>T power_method(const matrix<T>& A, const matrix<T>& Vec0, double epsilon = 1e-6, int max_iter = 1000);
+    template<typename T>std::pair<T, matrix<T>> power_method(const matrix<T>& A, const matrix<T>& Vec0, double epsilon = 1e-6, int max_iter = 1000);
 
-    template<typename T>T power_method(const matrix<T>& A, double epsilon = 1e-6, int max_iter = 1000) {
+    template<typename T>std::pair<T, matrix<T>> power_method(const matrix<T>& A, double epsilon = 1e-6, int max_iter = 1000) {
         return matrixfunction::power_method(A, matrix<T>::ones(A.getcol(), 1), epsilon, max_iter);
     }
 ////
@@ -66,8 +66,8 @@ namespace matrixfunction {
         int m = A.getrow();
         int n = A.getcol();
         QRResult<T> result;
-        result.Q = matrix<T>::eye(m); // Инициализация Q как единичной матрицы
-        result.R = A;                 // Копирование исходной матрицы в R
+        result.Q = matrix<T>::eye(m); 
+        result.R = A;                
 
         for (int j = 0; j < n; ++j) {
             for (int i = j + 1; i < m; ++i) {
@@ -87,7 +87,6 @@ namespace matrixfunction {
                     result.R[j][k] = temp;
                 }
 
-                // Применение вращения к Q
                 for (int k = 0; k < m; ++k) {
                     T temp = c * result.Q[k][j] - s * result.Q[k][i];
                     result.Q[k][i] = s * result.Q[k][j] + c * result.Q[k][i];
@@ -148,6 +147,7 @@ namespace matrixfunction {
         }
     }
     // a lot of shift
+#if 0
     template <typename T>
     std::vector<T> qr_algorithm_with_shifts(matrix<T>& H, T epsilon = 1e-6, int max_iter = 1000) {
         int n = H.getcol();
@@ -159,7 +159,6 @@ namespace matrixfunction {
             bool converged = false;
 
             while (iter < max_iter && !converged) {
-                // Выбор сдвига (Wilkinson для блоков 2x2)
                 T shift;
                 bool is_2x2_block = (n >= 2 && std::abs(H[n - 2][n - 1]) > epsilon);
 
@@ -171,17 +170,16 @@ namespace matrixfunction {
                     T delta = (a - d) / 2;
                     T sqrt_term = std::sqrt(delta * delta + b * c);
                     shift = d + delta - std::copysign(sqrt_term, delta);
+
                 }
                 else {
                     shift = H[n - 1][n - 1];
                 }
 
-                // QR-разложение со сдвигом
                 matrix<T> I = matrix<T>::eye(n);
                 QRResult<T> qr = qr_decomposition(H - (I* shift));
                 H = qr.R * qr.Q +  I* shift;
 
-                // Проверка сходимости
                 T current_shift = H[n - 1][n - 1];
                 T subdiag = (n > 1) ? std::abs(H[n - 1][n - 2]) : 0;
 
@@ -200,7 +198,6 @@ namespace matrixfunction {
                 iter++;
             }
 
-            // Если не сошлось за max_iter, принудительно уменьшаем размерность
             if (!converged) {
                 eigenvalues.push_back(H[n - 1][n - 1]);
                 n--;
@@ -210,7 +207,14 @@ namespace matrixfunction {
 
         return eigenvalues;
     }
-    
+#else
+    template <typename T>
+    std::vector<T> qr_algorithm_with_shifts(matrix<T>& H, T epsilon = 1e-6, int max_iter = 1000) {
+        while (H.getrow() >= 2 && H.getcol())
+            compute_2x2_eigenvalues(H.submatrix(H.getrow() - 2, H.getcol() - 2, H.getrow(), H.getcol()));
+                return 0;
+    }
+#endif
     //
    
 
@@ -219,7 +223,7 @@ namespace matrixfunction {
 ////scalar product of vectors
     template <typename T>
     T dot_product(const matrix<T>& a, const matrix<T>& b) {
-        // Проверка что оба аргумента - векторы (столбцы или строки)
+
         const bool a_is_col = (a.getcol() > 1 && a.getrow() == 1);
         const bool a_is_row = (a.getrow() > 1 && a.getcol() == 1);
         const bool b_is_col = (b.getcol() > 1 && b.getrow() == 1);
@@ -229,7 +233,6 @@ namespace matrixfunction {
             throw std::invalid_argument("Both arguments must be vectors");
         }
 
-        // Определение длины векторов
         const uint64_t a_len = a_is_col ? a.getcol() : a.getrow();
         const uint64_t b_len = b_is_col ? b.getcol() : b.getrow();
 
@@ -237,7 +240,6 @@ namespace matrixfunction {
             throw std::invalid_argument("Vectors must have the same length");
         }
 
-        // Вычисление скалярного произведения
         T result = 0;
         for (uint64_t i = 0; i < a_len; ++i) {
             const T a_val = a_is_col ? a[0][i] : a[i][0]; // Для столбца [i][0], для строки [0][i]
@@ -280,7 +282,7 @@ namespace matrixfunction {
         v[0][0] = v[0][0] - s;
 
         //std::cout << "v:" << v << "\n";
-        // Вычисление mu = 2 / (v^T * v)
+        // Вычисление mu = 2 / (v^T * v) !
         matrix<T> vT = v.transpose();
         matrix<T> vtv = vT * v;
         if (vtv[0][0] == 0) return matrix<T>::eye(n);
@@ -309,7 +311,7 @@ namespace matrixfunction {
 
         for (int k = 0; k < n - 2; ++k) {
             matrix<T> H = get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(A, k);
-            A = H * A * H; // Применение преобразования
+            A = H * A * H; // <= H==H^-1
         }
         return A;
     }
@@ -504,15 +506,29 @@ public:
     //  . ..   ...  .. ..     cols                    
     //  0 0  ..  R 0     |
     //  0 0  ..  0 R     |
+    template<typename T>
     static matrix<T> randomDiagonal(size_t n, T min, T max) {
         matrix<T> m(n, n);
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_real_distribution<T> dist(min, max);
 
-        for (size_t i = 0; i < n; ++i) {
-            m[i][i] = dist(gen);
+        if constexpr (std::is_integral_v<T>) {
+            std::uniform_int_distribution<T> dist(min, max);
+            for (size_t i = 0; i < n; ++i) {
+                m[i][i] = dist(gen);
+            }
         }
+        else {
+            static_assert(
+                std::is_floating_point_v<T>,
+                "T must be float, double, or long double for real distribution"
+                );
+            std::uniform_real_distribution<T> dist(min, max);
+            for (size_t i = 0; i < n; ++i) {
+                m[i][i] = dist(gen);
+            }
+        }
+
         return m;
     }
 

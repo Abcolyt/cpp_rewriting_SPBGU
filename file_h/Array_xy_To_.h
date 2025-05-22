@@ -7,6 +7,7 @@
 #include <cmath>
 
  
+#include <string>
 
 namespace Drawing_const {};
 using namespace Drawing_const;
@@ -68,8 +69,8 @@ const double modifire = 1*/) {
 
 
 //vector fun object
-template<class T>void draw_functions(const std::vector<std::function<T(T)>>& functions) {
-    sf::RenderWindow window(sf::VideoMode(Drawing_Window_Size), "y(x)=");
+template<class T>void draw_functions(const std::vector<std::function<T(T)>>& functions, const std::string& window_name= "y(x)=") {
+    sf::RenderWindow window(sf::VideoMode(Drawing_Window_Size), window_name);
     
 
     

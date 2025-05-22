@@ -14,6 +14,7 @@
 
 #include "polynomial.h"
 #include "Array_xy_To_.h"
+#include "Spline.h"
 
 namespace counting_methods_2 {
 
@@ -452,38 +453,38 @@ namespace counting_methods_2 {
 
 
             //n - degree of interpolation polinom,  m - degree of check 
-            template<typename P,
-            typename TheTypeOfFunctionThatBeingInterpolated,
-            typename TypeOfInterpolationFunc= decltype(Lagrang_interpolation<P>), 
-            typename TypeFuncOfPointGeneration = decltype(generatePoints_optimal<P, TheTypeOfFunctionThatBeingInterpolated>) >
-            std::pair<double,polynomial<P>> error_of_the_interpolation_function(uint64_t n, uint64_t m,P a,P b,
-                TheTypeOfFunctionThatBeingInterpolated F,
-                TypeOfInterpolationFunc interpolation,
-                TypeFuncOfPointGeneration point_generation) //five parameter is type of point generation function on the interval [a;b]
-            {
-                auto table = filter_by_unique_x(point_generation(n+m, a, b, F));
+                template<typename P,
+                typename TheTypeOfFunctionThatBeingInterpolated,
+                typename TypeOfInterpolationFunc, 
+                typename TypeFuncOfPointGeneration = decltype(generatePoints_optimal<P, TheTypeOfFunctionThatBeingInterpolated>) >
+                auto error_of_the_interpolation_function(uint64_t n, uint64_t m,P a,P b,
+                    TheTypeOfFunctionThatBeingInterpolated F,
+                    TypeOfInterpolationFunc interpolation,
+                    TypeFuncOfPointGeneration point_generation) -> std::pair<double, decltype(interpolation(std::declval<std::vector<std::pair<P, P>>>() )) >
+                {
+                    auto table = filter_by_unique_x(point_generation(n+m, a, b, F));
 
-                auto interpolinom = interpolation(
-                    //std::vector<std::pair<P, P>>(table.begin(), table.begin() + std::min(m, table.size()))
-                    filter_by_unique_x(point_generation(n, a, b, F))
-                );
-
-                double Max_ans = 0;
-                for (const auto& p : table) {
-                    Max_ans = std::max(
-                        Max_ans,
-                        std::abs(polynomialfunctions::f_polyn_x0_(interpolinom, p.first) - p.second)
+                    auto interpolinom = interpolation(
+                        //std::vector<std::pair<P, P>>(table.begin(), table.begin() + std::min(m, table.size()))
+                        filter_by_unique_x(point_generation(n, a, b, F))
                     );
+
+                    double Max_ans = 0;
+                    for (const auto& p : table) {
+                        Max_ans = std::max(
+                            Max_ans,
+                            std::abs((interpolinom(p.first)) - p.second)
+                        );
+                    }
+                    return { Max_ans,std::move(interpolinom) };
                 }
-                return { Max_ans,std::move(interpolinom) };
-            }
 
             template<typename P=double,typename TypeOfInterpolationFunc /*= decltype(Lagrang_interpolation<double>)*/, typename TheTypeOfFunctionThatBeingInterpolated>
             std::stringstream show_interpolation_statistic(TypeOfInterpolationFunc func_interpolation,int n = 10, int m_ = 99, const std::string& interpolation_name="Unknown",
                 TheTypeOfFunctionThatBeingInterpolated F = [](double x) { return std::cos(x) / std::sin(x) + x * x; },
                 P a = LDBL_EPSILON -2 * M_PI,P b = 2 * M_PI -LDBL_EPSILON
             ) {
-                
+                using InterpolationResult = decltype(func_interpolation(std::declval<std::vector<std::pair<P, P>>>()));
                 std::stringstream Ans;
                 int s1 = std::max(std::toupper(log10(n)), 3), s2 = std::max(std::toupper(log10(n + m_)), 3), s3 = 2 + interpolation_name.size() + 2, s4 = std::string{"R_teoretical_n"  }.size()+6,s5 = std::string{ "R_teoretical_opt__n" }.size()+6;
                 Ans << "\n"
@@ -511,13 +512,20 @@ namespace counting_methods_2 {
                     << "\n+" + (std::string(s1, '-') + "+") + (std::string(s2, '-') + "+") + (std::string(s3, '-') + "+") + (std::string(s3 + 5, '-') + "+") + (std::string(s4, '-') + "+") + (std::string(s5, '-'))
                     << "+" << "\n";
 
-                std::vector<std::function<P(P)>> functions_n, functions_opt;
+                std::vector<std::function<P(P)>> functions_n, functions_opt, functions_n_abs_diff, functions_opt_abs_diff;
+                //==
                 functions_n.reserve(n + 1); 
                 functions_n.push_back(F);
 
                 functions_opt.reserve(n + 1); 
                 functions_opt.push_back(F);
+                //==
+                functions_n_abs_diff.reserve(n );
                 
+
+                functions_opt_abs_diff.reserve(n );
+                
+                //==
                 for (uint64_t i = 1; i <= n ; i++)
                 {
                     //auto poly = N_optn(i, a, b, F);
@@ -526,6 +534,14 @@ namespace counting_methods_2 {
 
                     auto rn_opt = error_of_the_interpolation_function(i,m_, a, b, F, func_interpolation, generatePoints_optimal);
                     functions_opt.push_back(rn_opt.second);
+
+                    functions_n_abs_diff.push_back(
+                        [inter = rn.first, I = (double)i](P x) { if (std::abs(x - I) <= 0.5)return std::abs(inter); else return 0.0; }
+                    );
+
+                    functions_opt_abs_diff.push_back(
+                        [inter = rn_opt.first, I = (double)i](P x) { if (std::abs(x - I) <= 0.5)return std::abs(inter); else return 0.0; }
+                    );
 
 
                     Ans << std::left
@@ -536,21 +552,36 @@ namespace counting_methods_2 {
                         << std::setw(1) << "|"
                         << std::setw(s3) << std::setprecision(12) << rn.first
                         << std::setw(1) << "|"
-                        << std::setw(s3+5) << std::setprecision(12) << rn_opt.first
+                        << std::setw(s3 + 5) << std::setprecision(12) << rn_opt.first;
+                    if constexpr (std::is_same_v<InterpolationResult, polynomial<P>>) {
+                        Ans << std::setw(1) << "|"
+                            << std::setw(s4) << std::setprecision(12) << methodic_error(teoretical_max_error.at(interpolation_name + "generatePoints_equally_sufficient_"), generatePoints_equally_sufficient_(i, a, b, F), func_interpolation)
+                            << std::setw(1) << "|"
+                            << std::setw(s5) << std::setprecision(12) << methodic_error(teoretical_max_error.at(interpolation_name + "generatePoints_optimal"), generatePoints_optimal(i, a, b, F), func_interpolation)
+                            << std::setw(1) << "|"
+                            << "\n";
+                    }
+                    else if constexpr (std::is_same_v<InterpolationResult, Spline<P>>) {
+                        Ans << std::setw(1) << "|"
+                            << std::setw(s4) << std::setprecision(12) <<"has not"
+                            << std::setw(1) << "|"
+                            << std::setw(s5) << std::setprecision(12) << "has not"
+                            << std::setw(1) << "|"
+                            << "\n";
+                    }
 
-                        <<std::setw(1 )<<"|" 
-                        << std::setw(s4) << std::setprecision(12) << methodic_error(teoretical_max_error.at(interpolation_name + "generatePoints_equally_sufficient_"), generatePoints_equally_sufficient_(i, a, b, F), func_interpolation)
-                        <<std::setw(1 )<<"|"
-                        << std::setw(s5) << std::setprecision(12) <<methodic_error(teoretical_max_error.at(interpolation_name + "generatePoints_optimal"), generatePoints_optimal(i, a, b, F), func_interpolation)
-                        << std::setw(1) << "|"
-                        << "\n";
                 }
                 Ans<< "+" + (std::string(s1, '-') + "+") + (std::string(s2, '-') + "+") + (std::string(s3, '-') + "+") + (std::string(s3 + 5, '-') + "+") + (std::string(s4, '-') + "+") + (std::string(s5, '-')) << "+"
                     << "\n";
                 std::cout << Ans.str();
 #if __has_include(<SFML/Graphics.hpp>)
-                draw_functions(functions_n);
-                draw_functions(functions_opt);
+                draw_functions(functions_n, ("R_" + interpolation_name + "_n"));
+                draw_functions(functions_opt, ("R_" + interpolation_name + "_n"));
+
+                draw_functions(functions_n_abs_diff, ("R_" + interpolation_name + "_n_abs_diff") );
+                draw_functions(functions_opt_abs_diff, ("R_" + interpolation_name + "opt_n_abs_diff"));
+                
+
 #else
                 std::cout << "\n__has_include(<SFML/Graphics.hpp>)==0\n"
                 <<  "not working draw_functions(functions_n)" <<"\n"
@@ -561,6 +592,7 @@ namespace counting_methods_2 {
             
 }
             };
+
 namespace Spline {
 
 

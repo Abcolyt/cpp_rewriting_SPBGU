@@ -89,7 +89,11 @@ template<typename T>matrix<T> matrix<T>::inverse_M()const
 }
 
 template<typename T>matrix<T> matrix<T>::to_uptrng(matrix<T>& other)const
-{
+{   
+    //Matrix  0x0
+    if (rowsize == 0) {
+        return matrix<T>(); 
+    }
     if ((this->colsize == this->rowsize) && (this->colsize == (other.colsize)) && ((other.colsize) == other.rowsize))
     {
         //std::cout << "std::invalid_argument(the matrix is irreducible to the triangular form)\n";
@@ -174,25 +178,138 @@ template<typename T>matrix<T> matrix<T>::to_uptrng()const
 }
 
 
-template <typename T>T matrix<T>::determinant() const {
+//template <typename T>T matrix<T>::determinant() const {
+//    if (rowsize != colsize) {
+//        
+//        throw std::invalid_argument("rowsize != colsize");
+//    }
+//
+//    matrix<T> temp((*this).to_uptrng());
+//
+//    T det;
+//    det = (T)(1);
+//    //std::cout <<"temp:\n" << temp << "\n";
+//    for (uint64_t i = 0; i < rowsize; i++) {
+//        
+//        det = (det *temp[i][i]);
+//        //std::cout << (temp[i][i]) << '\n';
+//    }
+//    //std::cout << det <<'\n';
+//    return det;
+//}
+
+template <typename T>
+T matrix<T>::determinant() const {
     if (rowsize != colsize) {
-        
-        throw std::invalid_argument("rowsize != colsize");
+        throw std::invalid_argument("Matrix must be square");
     }
 
-    matrix<T> temp((*this).to_uptrng());
+    matrix<T> M = *this; // Работаем с копией матрицы
+    T det = static_cast<T>(1);
+    const size_t n = rowsize;
 
-    T det;
-    det = (T)(1);
-    //std::cout <<"temp:\n" << temp << "\n";
-    for (uint64_t i = 0; i < rowsize; i++) {
-        
-        det = (det *temp[i][i]);
-        //std::cout << (temp[i][i]) << '\n';
+    // Инициализация первого минора
+    if (n == 0) return static_cast<T>(1);
+    if (M[0][0] == static_cast<T>(0)) {
+        // Поиск ненулевой строки для перестановки
+        bool found = false;
+        for (size_t i = 1; i < n; ++i) {
+            if (M[i][0] != static_cast<T>(0)) {
+                for (size_t j = 0; j < n; ++j) {
+                    T tmp = M[0][j];
+                    M[0][j] = M[i][j];
+                    M[i][j] = tmp;
+                }
+                det = det * static_cast<T>(-1); // Смена знака
+                found = true;
+                break;
+            }
+        }
+        if (!found) return static_cast<T>(0);
     }
-    //std::cout << det <<'\n';
-    return det;
+
+    // Главный цикл алгоритма Барейса
+    for (size_t k = 0; k < n - 1; ++k) {
+        for (size_t i = k + 1; i < n; ++i) {
+            for (size_t j = k + 1; j < n; ++j) {
+                // Обновление элементов по формуле
+                M[i][j] = (M[i][j] * M[k][k] - M[i][k] * M[k][j]);
+
+                // Деление на предыдущий минор (k > 0)
+                if (k > 0) {
+                    M[i][j] = M[i][j] / M[k - 1][k - 1];
+                }
+            }
+        }
+
+        // Проверка следующего минора на ноль
+        if (M[k + 1][k + 1] == static_cast<T>(0)) {
+            // Поиск строки для перестановки
+            bool found = false;
+            for (size_t i = k + 2; i < n; ++i) {
+                if (M[i][k + 1] != static_cast<T>(0)) {
+                    // Перестановка строк
+                    for (size_t j = 0; j < n; ++j) {
+                        T tmp = M[k + 1][j];
+                        M[k + 1][j] = M[i][j];
+                        M[i][j] = tmp;
+                    }
+                    det = det * static_cast<T>(-1);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) return static_cast<T>(0);
+        }
+    }
+
+    // Определитель в последнем миноре
+    return M[n - 1][n - 1] * det;
 }
+//template <typename T>
+//T matrix<T>::determinant() const {
+//    if (rowsize != colsize) {
+//        throw std::invalid_argument("Matrix must be square");
+//    }
+//
+//    matrix<T> temp = *this;
+//    T det = static_cast<T>(1);
+//
+//    for (size_t i = 0; i < rowsize; ++i) {
+//        // Обработка нулевого диагонального элемента
+//        if (temp[i][i] == static_cast<T>(0)) {
+//            bool found = false;
+//            for (size_t k = i + 1; k < rowsize; ++k) {
+//                if (temp[k][i] != static_cast<T>(0)) {
+//                    // Ручной обмен строками i и k
+//                    for (size_t col = 0; col < colsize; ++col) {
+//                        T tmp = temp[i][col];
+//                        temp[i][col] = temp[k][col];
+//                        temp[k][col] = tmp;
+//                    }
+//                    //std::cout << temp << "\n";
+//                    det = det * static_cast<T>(-1); // Меняем знак определителя
+//                    found = true;
+//                    break;
+//                }
+//            }
+//            if (!found) return static_cast<T>(0);
+//        }
+//
+//        // Умножение det на диагональный элемент
+//        det = det * temp[i][i];
+//
+//        // Обнуление элементов под диагональю
+//        for (size_t k = i + 1; k < rowsize; ++k) {
+//            T factor = temp[k][i] / temp[i][i];
+//            for (size_t j = i; j < colsize; ++j) {
+//                temp[k][j] = temp[k][j] - factor * temp[i][j];
+//            }
+//        }
+//    }
+//
+//    return det;
+//}
 
 template<typename T>std::ostream& operator<<(std::ostream& out, const matrix<T>& mtrx) {
     const auto mode = mtrx.get_output_mode();
@@ -206,10 +323,10 @@ template<typename T>std::ostream& operator<<(std::ostream& out, const matrix<T>&
             size_t max_width = 0;
             for (uint64_t i = 0; i < cols; ++i) { // Идем по строкам матрицы
                 std::ostringstream oss;
-                oss << mtrx[i][j]; // Элемент [i][j] - строка i, столбец j
+                oss << mtrx[i][j]; 
                 max_width = std::max(max_width, oss.str().size());
             }
-            col_widths[j] = max_width + 1; // Добавляем пробел для разделения
+            col_widths[j] = max_width + 1; //  пробел для разделения
         }
     }
 
@@ -534,7 +651,7 @@ template<typename T>
      if (colsize != rowsize) {
          throw std::invalid_argument("Matrix must be square.");
      }
-     return matrixfunction::power_method(*this, matrix<T>::ones(colsize, 1), epsilon, max_iter);
+     return matrixfunction::power_method(*this, matrix<T>::ones(colsize, 1), epsilon, max_iter).first;
  }
  // Method for calculating the maximum eigenvalue with initial vector
  template<typename T>
@@ -589,7 +706,7 @@ template<typename T>
          throw std::out_of_range("Column index out of bounds");
      }
 
-     matrix<T> column_vec(rowsize, 1); // vec: rowsize x 1
+     matrix<T> column_vec(rowsize, 1); 
      for (uint64_t i = 0; i < rowsize; ++i) {
          column_vec[i][0] = (*this)[i][col];
      }
@@ -598,11 +715,11 @@ template<typename T>
 
  template <typename T>
  matrix<T> matrix<T>::get_row(uint64_t row) const {
-     if (row >= rowsize) {  // <-- Исправлено colsize → rowsize
+     if (row >= rowsize) {  
          throw std::out_of_range("Row index out of bounds");
      }
 
-     matrix<T> row_vec(1, colsize); // Вектор-строка 1 x colsize
+     matrix<T> row_vec(1, colsize); 
      for (uint64_t j = 0; j < colsize; ++j) {
          row_vec[0][j] = (*this)[row][j];
      }
@@ -618,11 +735,11 @@ template<typename T>
      matrix<T> R = matrix<T>::zeros(n, n);
 
      for (uint64_t j = 0; j < n; ++j) {
-         matrix<T> v = this->get_column(j); // Используем get_column()
+         matrix<T> v = this->get_column(j); 
 
          for (uint64_t i = 0; i < j; ++i) {
-             matrix<T> Q_i = Q.get_column(i); // Получаем i-й столбец Q
-             R[i][j] = matrixfunction::dot_product(Q_i, v);   // Используем функцию dot_product
+             matrix<T> Q_i = Q.get_column(i); 
+             R[i][j] = matrixfunction::dot_product(Q_i, v);   
 
              // Вычитаем проекцию
              for (uint64_t k = 0; k < m; ++k) {
@@ -644,31 +761,28 @@ template<typename T>
 
  template <typename T>
  matrix<T> matrix<T>::submatrix(uint64_t start_row, uint64_t start_col, uint64_t rows, uint64_t cols) const {
-     // Проверка корректности входных параметров
-     if (start_row + rows > rowsize || start_col + cols > colsize) {
+     if (start_row + rows > rowsize+2 || start_col + cols > colsize+2) {
          throw std::out_of_range("Submatrix dimensions exceed matrix bounds");
      }
 
-     matrix<T> sub(rows, cols); // Создаём новую матрицу нужного размера
+     matrix<T> sub(rows - start_row, cols- start_col);
 
      for (uint64_t i = 0; i < rows; ++i) {
          for (uint64_t j = 0; j < cols; ++j) {
-             // Копируем элементы из исходной матрицы
              sub[i][j] = (*this)[start_row + i][start_col + j];
          }
      }
 
      return sub;
  }
+ #if 0
  template <typename T>
  std::vector<std::complex<T>> matrix<T>::eigenvalues_qr_double_shift(double epsilon) const {
-     // Приводим матрицу к форме Хессенберга
      matrix<T> H = hessenberg_upper_form(*this);
      std::vector<std::complex<T>> eigenvalues;
      int n = H.getcol();
 
      while (n > 0) {
-         // Проверка на случай матрицы 1x1
          if (n == 1) {
              eigenvalues.emplace_back(H[0][0], 0);
              break;
@@ -777,9 +891,9 @@ template<typename T>
 
      return eigenvalues;
  }
-
+ #endif     
 namespace matrixfunction {
-    template<typename T>T power_method(const matrix<T>& A, const matrix<T>& Vec0, double epsilon, int max_iter ) {
+    template<typename T>std::pair<T,matrix<T>> power_method(const matrix<T>& A, const matrix<T>& Vec0, double epsilon, int max_iter ) {
 
         if (A.getcol() != A.getrow()) {
             throw std::invalid_argument("Matrix must be square for power method.");
@@ -819,7 +933,7 @@ namespace matrixfunction {
 
             // Проверка сходимости
             if (((eigenvalue - eigenvalue_prev) < 0 ? (eigenvalue - eigenvalue_prev) * (-1) : (eigenvalue - eigenvalue_prev)) < epsilon) {
-                return  eigenvalue;
+                return  { eigenvalue ,eigenvector };
             }
 
             eigenvalue_prev = eigenvalue;

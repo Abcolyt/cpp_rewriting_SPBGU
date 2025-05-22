@@ -10,7 +10,7 @@ template<typename T>fraction<T>& fraction<T>::reduce()
     T M = std::max(denominator, numerator);
     T m = std::min(denominator, numerator);
     T gcd = findGCD(M,m);
-    if (numerator % gcd == 0 && denominator % gcd == 0) {
+    if (numerator % gcd == 0 && denominator % gcd == 0             && gcd!=0) {
         numerator = (numerator / gcd);
         denominator = (denominator / gcd);
        
