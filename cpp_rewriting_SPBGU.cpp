@@ -196,7 +196,7 @@ int main() {
 
 #if AU_LOG==1
 
-#if 1
+#if 0
     Z5_2(4);
     Z5_1_2_const();
     Z5_plus();
@@ -215,28 +215,47 @@ int main() {
     std::cout << "hessenberg_form(A):\n" << H << "\n";
     std::cout << "A:\n" << A << "\n";
 
+    std::vector<std::complex<double>> Ans;
+    //const double eps = 10e-9;
+    //uint64_t N = H.getcol() - 1;
+    //while (H.getrow() >= 3 && H.getcol() >= 3)
+    //{
+    //    N = H.getcol()-1;
+    //    if (std::abs(H[N][N - 1])<=eps) {
+    //        Ans.push_back(H[N][N]);
+    //        //std::cout << "=============================" << H[N][N] << "\n";// << "\nH:\n" << H << "\nH.submatrix(0,0, N - 1, N - 1):\n" << H.submatrix(0, 0, N, N) << "\n";
+    //        H = H.submatrix(0,0, N , N);
+    //        N = H.getcol() - 1;
+    //    }
+    //    auto qrH = H.qr();
+    //    H = matrixfunction::sanitize_zeros(qrH.R * qrH.Q);
+    //}
+    //std::cout <<"H:" << H << "\n";
+    //auto i = matrixfunction::compute_2x2_eigenvalues(H);
+    //Ans.push_back(i.first);
+    //Ans.push_back(i.second);
 
-    auto qrH = H.qr();
+    Ans=matrixfunction::compute_eigenvalues(A);
+    for (auto i : Ans) {
+        std::cout << i << "\n";
+    }
 
-    double sum_shifts = 0;
-    double shift = H[n][n];
 
-    auto B_k_plus_1 = qrH.R * qrH.Q;
-    auto n = B_k_plus_1.getcol();
-    std::cout << qrH.Q << "\n" << qrH.R << "\n"<<"\nRQ:"<< B_k_plus_1;
-    auto b_nn = B_k_plus_1[n][n-1];
-    bool is_converged = 
-    //while (H.getrow() >= 2 && H.getcol()) {
-        //const uint64_t locrow = H.getrow();
-        //const uint64_t loccol = H.getcol();
-        //auto tay = H.submatrix(locrow - 2, loccol - 2, locrow, loccol);
-        //std::cout << tay << "\n";
-        //auto Ans = matrixfunction::compute_2x2_eigenvalues(tay);
 
-        //std::cout << "root_[\n"  << "]= " << std::fixed << Ans.first << "\n";
-        //std::cout << "root_[\n"  << "]= " << std::fixed << Ans.second << "\n";
+    //while (H.getrow() >= 2 && H.getcol() >= 2) {
+    //    const uint64_t locrow = H.getrow();
+    //    const uint64_t loccol = H.getcol();
 
-        //for (size_t i = 0; i < 2; i++)
+    //    auto tay = H.submatrix(locrow - 2, loccol - 2, 2, 2);
+    //    std::cout << tay << "\n";
+    //    std::pair<std::complex<double>, std::complex<double>> Ans = matrixfunction::compute_2x2_eigenvalues(tay);
+    //    //std::abs() < 0.00001;
+    //    std::cout << (Ans.first.real());
+    //    std::cout << "root_1 = " << std::fixed << Ans.first << "\n";
+    //    std::cout << "root_2 = " << std::fixed << Ans.second << "\n";
+    //}
+
+    //for (size_t i = 0; i < 2; i++)
         //
         //{
         //    j++;

@@ -760,15 +760,20 @@ template<typename T>
  }
 
  template <typename T>
- matrix<T> matrix<T>::submatrix(uint64_t start_row, uint64_t start_col, uint64_t rows, uint64_t cols) const {
-     if (start_row + rows > rowsize+2 || start_col + cols > colsize+2) {
+ matrix<T> matrix<T>::submatrix(uint64_t start_row, uint64_t start_col,uint64_t rows, uint64_t cols) const {
+     // Проверка границ
+     if (start_row + rows > rowsize || start_col + cols > colsize) {
          throw std::out_of_range("Submatrix dimensions exceed matrix bounds");
      }
 
-     matrix<T> sub(rows - start_row, cols- start_col);
+     matrix<T> sub(rows, cols); // Создать подматрицу размера rows x cols
 
      for (uint64_t i = 0; i < rows; ++i) {
          for (uint64_t j = 0; j < cols; ++j) {
+             // Проверка индексов (опционально)
+             if (start_row + i >= rowsize || start_col + j >= colsize) {
+                 throw std::out_of_range("Index out of bounds");
+             }
              sub[i][j] = (*this)[start_row + i][start_col + j];
          }
      }
