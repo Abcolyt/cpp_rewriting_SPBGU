@@ -60,6 +60,69 @@ namespace matrixfunction {
     matrix<T> solve_system(const matrix<T>& A, const matrix<T>& b);
 ////
     
+////Hessenberg form
+    
+    template <typename T>
+    matrix<T> get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(const matrix<T>& A, int k) {
+        int n = A.getcol();
+        if (n != A.getrow()) throw std::invalid_argument("Matrix must be square");
+        if (k < 0 || k >= n - 1) throw std::invalid_argument("Invalid column index");
+
+        // Выбор подвектора x из столбца k, начиная с элемента k+1
+        int m = n - k - 1;
+        matrix<T> x(m, 1); // Столбец-вектор
+        for (int i = 0; i < m; ++i) {
+            x[i][0] = A[k + 1 + i][k];
+        }
+        //std::cout << x << "\n";
+
+        // Вычисление нормы x и s
+        T norm_x = x.norm();
+        if (norm_x == 0) return matrix<T>::eye(n);
+
+        T s = std::copysign(norm_x, x[0][0]);
+
+        // Построение вектора v = x - s * e
+        matrix<T> v = x;
+        v[0][0] = v[0][0] - s;
+
+        //std::cout << "v:" << v << "\n";
+        // Вычисление mu = 2 / (v^T * v) !
+        matrix<T> vT = v.transpose();
+        matrix<T> vtv = vT * v;
+        if (vtv[0][0] == 0) return matrix<T>::eye(n);
+        T mu = T(2) / vtv[0][0];
+
+        //// Построение матрицы Хаусхолдера 1. H = I - mu * v * v^T
+        matrix<T> H = matrix<T>::eye(n);
+        matrix<T> outer = v * vT;
+        outer = outer * mu;
+        //std::cout <<"outer:" << outer << "\n";
+
+        // 2.
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < m; ++j) {
+                H[k + 1 + i][k + 1 + j] -= outer[i][j];
+            }
+        }
+        ////
+        return H;
+    }
+
+    template <typename T>
+    matrix<T> hessenberg_upper_form(matrix<T> A) {
+        int n = A.getcol();
+        if (n != A.getrow()) throw std::invalid_argument("Matrix must be square");
+
+        for (int k = 0; k < n - 2; ++k) {
+            matrix<T> H = get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(A, k);
+            A = H * A * H; // <= H==H^-1
+        }
+        return A;
+    }
+
+////
+
 //// QR Decomposition
     template <typename T>
     QRResult<T> qr_decomposition(const matrix<T>& A) {
@@ -147,6 +210,40 @@ namespace matrixfunction {
         }
     }
     // a lot of shift
+
+    //n*n
+
+    template <typename T>
+    std::vector<std::complex<double>> compute_eigenvalues(const matrix<T>& A, double eps = 1e-9) {
+        auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10);
+        std::vector<std::complex<double>> eigenvalues;
+
+        while (H.getrow() >= 3 && H.getcol() >= 3) {
+            const uint64_t N = H.getcol() - 1;
+
+            if (std::abs(H[N][N - 1]) <= eps) {
+                eigenvalues.push_back(H[N][N]);
+                H = H.submatrix(0, 0, N, N);
+                continue;
+            }
+
+            auto qrH = H.qr();
+            H = matrixfunction::sanitize_zeros(qrH.R * qrH.Q, eps);
+        }
+
+        if (H.getrow() >= 2 && H.getcol() >= 2) {
+            auto last_evs = matrixfunction::compute_2x2_eigenvalues(H);
+            eigenvalues.push_back(last_evs.first);
+            eigenvalues.push_back(last_evs.second);
+        }
+        else if (H.getrow() == 1 && H.getcol() == 1) {
+            eigenvalues.push_back(H[0][0]);
+        }
+
+        return eigenvalues;
+    }
+
+
 #if 0
     template <typename T>
     std::vector<T> qr_algorithm_with_shifts(matrix<T>& H, T epsilon = 1e-6, int max_iter = 1000) {
@@ -251,72 +348,7 @@ namespace matrixfunction {
     }
 ////
 
-////Hessenberg form
 
-#if 0
-
-#else
-    
-    template <typename T>
-    matrix<T> get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(const matrix<T>& A, int k) {
-        int n = A.getcol();
-        if (n != A.getrow()) throw std::invalid_argument("Matrix must be square");
-        if (k < 0 || k >= n - 1) throw std::invalid_argument("Invalid column index");
-
-        // Выбор подвектора x из столбца k, начиная с элемента k+1
-        int m = n - k - 1;
-        matrix<T> x(m, 1); // Столбец-вектор
-        for (int i = 0; i < m; ++i) {
-            x[i][0] = A[k + 1 + i][k];
-        }
-        //std::cout << x << "\n";
-
-        // Вычисление нормы x и s
-        T norm_x = x.norm();
-        if (norm_x == 0) return matrix<T>::eye(n);
-
-        T s = std::copysign(norm_x, x[0][0]);
-
-        // Построение вектора v = x - s * e
-        matrix<T> v = x;
-        v[0][0] = v[0][0] - s;
-
-        //std::cout << "v:" << v << "\n";
-        // Вычисление mu = 2 / (v^T * v) !
-        matrix<T> vT = v.transpose();
-        matrix<T> vtv = vT * v;
-        if (vtv[0][0] == 0) return matrix<T>::eye(n);
-        T mu = T(2) / vtv[0][0];
-
-        //// Построение матрицы Хаусхолдера 1. H = I - mu * v * v^T
-        matrix<T> H = matrix<T>::eye(n);
-        matrix<T> outer = v * vT;
-        outer = outer * mu;
-        //std::cout <<"outer:" << outer << "\n";
-
-        // 2.
-        for (int i = 0; i < m; ++i) {
-            for (int j = 0; j < m; ++j) {
-                H[k + 1 + i][k + 1 + j] -= outer[i][j];
-            }
-        }
-        ////
-        return H;
-    }
-#endif
-    template <typename T>
-    matrix<T> hessenberg_upper_form(matrix<T> A) {
-        int n = A.getcol();
-        if (n != A.getrow()) throw std::invalid_argument("Matrix must be square");
-
-        for (int k = 0; k < n - 2; ++k) {
-            matrix<T> H = get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(A, k);
-            A = H * A * H; // <= H==H^-1
-        }
-        return A;
-    }
-
-////
 }
 
 
