@@ -243,7 +243,170 @@ namespace matrixfunction {
         return eigenvalues;
     }
 
+    template <typename T>
+    std::vector<std::complex<double>> compute_eigenvalues_2(const matrix<T>& A, double eps = 1e-9) {
+        auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10);
+        std::vector<std::complex<double>> eigenvalues;
+        std::vector<T> accumulated_shifts; // Для накопления сдвигов
 
+        while (H.getrow() >= 3 && H.getcol() >= 3) {
+            const uint64_t N = H.getcol() - 1;
+            const T current_shift = H[N][N]; // Сдвиг Уилкинсона
+            accumulated_shifts.push_back(current_shift); // Сохраняем сдвиг
+
+            // QR-итерация со сдвигом
+            matrix<T> identity = matrix<T>::eye(H.getrow());
+            auto shifted_H = H - current_shift * identity;
+            auto qrH = shifted_H.qr();
+            H = matrixfunction::sanitize_zeros(qrH.R * qrH.Q + current_shift * identity, eps);
+
+            // Проверка сходимости поддиагонального элемента
+            if (std::abs(H[N][N - 1]) <= eps) {
+                // Обратная подстановка: добавляем все накопленные сдвиги
+                std::complex<double> ev = H[N][N];
+                for (const auto& shift : accumulated_shifts) {
+                    ev += shift;
+                }
+                eigenvalues.push_back(ev);
+                accumulated_shifts.clear(); // Сбрасываем сдвиги
+
+                H = H.submatrix(0, 0, N, N); // Уменьшаем размер матрицы
+            }
+        }
+
+        // Обработка оставшейся матрицы 2x2 или 1x1 с учётом сдвигов
+        if (H.getrow() >= 2 && H.getcol() >= 2) {
+            auto last_evs = matrixfunction::compute_2x2_eigenvalues(H);
+            // Добавляем накопленные сдвиги к собственным значениям
+            for (const auto& shift : accumulated_shifts) {
+                last_evs.first += shift;
+                last_evs.second += shift;
+            }
+            eigenvalues.push_back(last_evs.first);
+            eigenvalues.push_back(last_evs.second);
+        }
+        else if (H.getrow() == 1 && H.getcol() == 1) {
+            std::complex<double> ev = H[0][0];
+            for (const auto& shift : accumulated_shifts) {
+                ev += shift;
+            }
+            eigenvalues.push_back(ev);
+        }
+
+        return eigenvalues;
+    }
+
+    template <typename T>
+    std::vector<std::complex<double>> compute_eigenvalues_3(const matrix<T>& A, double eps = 1e-9) {
+        auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10);
+        std::vector<std::complex<double>> eigenvalues;
+        T accumulated_shift = 0; // Переменная вместо вектора
+
+        while (H.getrow() >= 3 && H.getcol() >= 3) {
+            const uint64_t N = H.getcol() - 1;
+            const T current_shift = H[N][N];
+            accumulated_shift += current_shift; // Накопление сдвига
+
+            // QR-итерация со сдвигом
+            matrix<T> identity = matrix<T>::eye(H.getrow());
+            auto shifted_H = H - current_shift * identity;
+            auto qrH = shifted_H.qr();
+            H = matrixfunction::sanitize_zeros(qrH.R * qrH.Q + current_shift * identity, eps);
+
+            // Проверка сходимости
+            if (std::abs(H[N][N - 1]) <= eps) {
+                // Восстанавливаем собственное значение с учётом всех сдвигов
+                std::complex<double> ev = H[N][N] + accumulated_shift;
+                eigenvalues.push_back(ev);
+                accumulated_shift = 0; // Сброс для нового блока
+                H = H.submatrix(0, 0, N, N); // Уменьшаем матрицу
+            }
+        }
+
+        // Обработка оставшегося блока 2x2/1x1
+        if (H.getrow() >= 2 && H.getcol() >= 2) {
+            auto last_evs = matrixfunction::compute_2x2_eigenvalues(H);
+            last_evs.first += accumulated_shift;
+            last_evs.second += accumulated_shift;
+            eigenvalues.push_back(last_evs.first);
+            eigenvalues.push_back(last_evs.second);
+        }
+        else if (H.getrow() == 1 && H.getcol() == 1) {
+            eigenvalues.push_back(H[0][0] + accumulated_shift);
+        }
+
+        return eigenvalues;
+    }
+
+    template <typename T>
+    std::vector<std::complex<double>> compute_eigenvalues_4(const matrix<T>& A, double eps = 1e-12) {
+        auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-12);
+        std::vector<std::complex<double>> eigenvalues;
+        T accumulated_shift = 0;
+
+        while (H.getrow() >= 1) {
+            const uint64_t n = H.getrow();
+
+            // Если матрица диагональная, извлекаем все элементы
+            bool is_diagonal = true;
+            for (uint64_t i = 1; i < n; ++i) {
+                if (std::abs(H[i][i - 1]) > eps) {
+                    is_diagonal = false;
+                    break;
+                }
+            }
+
+            if (is_diagonal) {
+                for (uint64_t i = 0; i < n; ++i) {
+                    eigenvalues.push_back(H[i][i] + accumulated_shift);
+                }
+                accumulated_shift = 0;
+                break;
+            }
+
+            if (n >= 3) {
+                const T current_shift = H[n - 1][n - 1];
+                accumulated_shift += current_shift;
+
+                // QR-итерация со сдвигом
+                matrix<T> identity = matrix<T>::eye(n);
+                auto shifted_H = H - current_shift * identity;
+                auto qrH = shifted_H.qr();
+                H = matrixfunction::sanitize_zeros(qrH.R * qrH.Q + current_shift * identity, eps);
+
+                // Проверка сходимости последнего поддиагонального элемента
+                if (std::abs(H[n - 1][n - 2]) <= eps) {
+                    eigenvalues.push_back(H[n - 1][n - 1] + accumulated_shift);
+                    accumulated_shift = 0;
+                    H = H.submatrix(0, 0, n - 1, n - 1);
+                }
+            }
+            else {
+                // Обработка блоков 2x2 и 1x1
+                break;
+            }
+        }
+
+        // Обработка оставшейся части
+        if (H.getrow() == 2) {
+            auto evs = matrixfunction::compute_2x2_eigenvalues(H);
+            evs.first += accumulated_shift;
+            evs.second += accumulated_shift;
+            eigenvalues.push_back(evs.first);
+            eigenvalues.push_back(evs.second);
+        }
+        else if (H.getrow() == 1) {
+            eigenvalues.push_back(H[0][0] + accumulated_shift);
+        }
+
+        // Сортировка для удобства (опционально)
+        std::sort(eigenvalues.begin(), eigenvalues.end(),
+            [](const std::complex<double>& a, const std::complex<double>& b) {
+                return std::real(a) < std::real(b);
+            });
+
+        return eigenvalues;
+    }
 #if 0
     template <typename T>
     std::vector<T> qr_algorithm_with_shifts(matrix<T>& H, T epsilon = 1e-6, int max_iter = 1000) {
@@ -607,4 +770,8 @@ public:
 
     std::vector<std::complex<T>> eigenvalues_qr_double_shift(double epsilon) const;
 };
+template<typename T>
+matrix<T> operator*(const T& scalar, const matrix<T>& mat) {
+    return mat * scalar; 
+}
 #include "../_cpp_realisation_file/matrix.cpp"
