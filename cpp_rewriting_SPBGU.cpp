@@ -220,7 +220,7 @@ int main() {
     for (auto i : Ans) {
         std::cout << i << "\n";
     }
-
+    
 
 
 #endif
