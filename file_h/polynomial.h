@@ -4,7 +4,11 @@
 #include <complex.h>
 #include <vector>
 
-
+template<typename T>
+std::vector<T> convert_pairs_to_vector(
+	const std::vector<std::pair<T, T>>& input,
+	bool take_first_element
+);
 //the degree of detail of the output
 enum class output_mode
 {
@@ -21,6 +25,7 @@ namespace polynomialfunctions {
 	template<typename P>std::pair<P, int> solve_tangents(polynomial<P> plnm, P x0, double e, uint64_t max_iter_number = 1'000'000);
 	template<typename P>std::vector<std::pair<P, int>> plnm_roots(polynomial<P> plnm, P x0 = FLT_EPSILON);
 	template<typename P>polynomial<P> filter_large_epsilon(polynomial<P>, P eps);
+
 }
 template<typename P> std::ostream& operator<<(std::ostream& out, const polynomial<P>& plnm);
 template<typename P> std::istream& operator>>(std::istream& in, polynomial<P>& plnm);

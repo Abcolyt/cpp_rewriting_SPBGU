@@ -143,9 +143,10 @@ void Z5_1_2_const() {
         std::cout << "Eigenvalue: " << p.first << "\nEigenvector:\n" << p.second << "\n";
     }
    
-    std::cout << "Power_meth:\n\n";
-    auto Ans = matrixfunction::power_method(A, matrix<double>::ones(A.getcol(), 1),1e-10,10000);
-    std::cout << "Eigenvalue: " << Ans.first << "\nEigenvector:\n" << Ans.second << "\n";
+    std::cout << "matrixfunction::power_method_average:\n\n";
+    auto Ans = matrixfunction::power_method_average(A, matrix<double>::ones(A.getcol(), 1), 1e-10, 10000);
+    //matrixfunction::power_method_max(A, matrix<double>::ones(A.getcol(), 1),1e-10,10000);
+    std::cout << "Eigenvalue: " << Ans.first << "\nEigenvector:\n" << matrixfunction::simplify_eigenvector(Ans.second) << "\n";
 }
 
 void Z5_plus(int Size = 4) {
@@ -159,7 +160,7 @@ void Z5_plus(int Size = 4) {
     matrix<polynomial<double>> T = (matrix<int>::random(Size, Size, -100, 100));
     std::cout << "T:\n" << T << "\n";
     A = T * A * (T.inverse_M());
-    std::cout << "T * A *(T^-1):\n" << A << " \n  ";
+    std::cout << "T * A *(T^-1):\n" << A << " \n";
     //std::cout<< std::fixed << A.determinant() << "\n";
 
     matrix<polynomial<double>> A_ = A - matrix<polynomial<double>>::eye(Size) * (polynomial<double>(1) * (polynomial<double>(1) >> 1));
@@ -169,10 +170,86 @@ void Z5_plus(int Size = 4) {
     for (auto& i: A_.determinant().plnm_roots())
     {
         j++;
-        std::cout << "root_[\n"<<j<<"]= "<< std::fixed<< i.first << "\n";
+        std::cout << "root_["<<j<<"]= "<< i.first << "\n";
+    }
+    
+
+
+
+}
+
+void Z5_qr(int Size = 4) {
+
+    std::cout << "\n\nZ5_qr:\n\n";
+    //fraction<polynomial<double>>
+    matrix<double> A;
+
+    A = matrix<double>::randomDiagonal(Size, -100, 100);
+    std::cout << "A:\n" << A << "\n";
+
+    matrix<double> T = (matrix<int>::random(Size, Size, -100, 100));
+    std::cout << "T:\n" << T << "\n";
+    A = T * A * (T.inverse_M());
+    std::cout << "T * A *(T^-1):\n" << A << " \n  ";
+    //std::cout << "A_:\n" << A_ << "\n";
+    uint64_t j = 0;
+    for (auto& i : matrixfunction::compute_eigenvalues_3(A))
+    {
+        j++;
+        std::cout << "eig[" << j << "]= "  << i<< "\n";
     }
 
 
+}
+//
+// 
+// 
+template<typename T>
+std::vector<std::pair<T, T>> addNoiseToPoints(
+    const std::vector<std::pair<T, T>>& points,
+    int measurements_per_point = 3,
+    T noise_level = T(0.1)
+) {
+
+
+    std::vector<std::pair<T, T>> noisy_points;
+    noisy_points.reserve(points.size() * measurements_per_point);
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    for (const auto& point : points) {
+        const T x = point.first;
+        const T y_clean = point.second;
+
+        std::uniform_real_distribution<T> dist(-noise_level, noise_level);
+
+        for (int i = 0; i < measurements_per_point; ++i) {
+            T noise = dist(gen);
+            T y_noisy = y_clean + noise;
+
+            noisy_points.emplace_back(x, y_noisy);
+        }
+    }
+
+    return noisy_points;
+}
+void Z6_1(int size,int degree_of_the_polynomial) {
+#define loc_identifier1 x*x + 20*x*x*x+ 444*x*x*x*x*x 
+#define loc_identifier2 (x-std::sin(x) - 0.25)
+#define identifier loc_identifier1
+#define the_left_border -M_PI / 4
+#define the_right_border M_PI / 4
+//#define SIZE_ 20
+//#define degree_of_the_polynomial 7
+
+
+    std::vector<std::pair<double, double>> clean_points = counting_methods_2::Polynomial_interpolation::nuton2::generatePoints_equally_sufficient_(size, the_left_border, the_right_border, [](double x) { return identifier; });
+    auto noisy_points = addNoiseToPoints(clean_points, 3, 0.2);
+    noisy_points.insert(noisy_points.end(), clean_points.begin(), clean_points.end());
+    std::cout << "\npolynomial form :\n"<< "x*x + 20*x*x*x+ 444*x*x*x*x*x ";
+    std::cout << "\nNormal equations polynomial:\n" << counting_methods_2::aproximate::least_squares_normal(noisy_points, degree_of_the_polynomial);
+    std::cout << "\nOrthogonal polynomial:\n" << counting_methods_2::aproximate::least_squares_orthogonal(noisy_points, degree_of_the_polynomial);
 }
 //
 int main() {
@@ -200,26 +277,38 @@ int main() {
     Z5_2(4);
     Z5_1_2_const();
     Z5_plus();
+    Z5_qr();
 
-    
+
+    //part 3
+
+
+
+
 #else
-    matrix<double> A;
-    A = matrix<double>::randomDiagonal(4, -100, 100);
-    std::cout << "A:\n" << A << "\n";
-    matrix<double> T = (matrix<int>::random(4, 4, -100, 100));
-    A = T * A * (T.inverse_M());
+    Z6_1(20,7);
 
-    //auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10);
-    std::cout << "A:\n" << A << "\n";
-    //std::cout << "T:\n" << T << "\n";
-    //std::cout << "hessenberg_form(A):\n" << H << "\n";
+
+    counting_methods_2::aproximate::show_aproximate_statistic([](double x) { return (x - std::sin(x) - 0.25); });
+
+
+    //matrix<double> A;
+    //A = matrix<double>::randomDiagonal(4, -100, 100);
     //std::cout << "A:\n" << A << "\n";
+    //matrix<double> T = (matrix<int>::random(4, 4, -100, 100));
+    //A = T * A * (T.inverse_M());
 
-    std::vector<std::complex<double>> Ans;
-    Ans=matrixfunction::compute_eigenvalues_3(A);
-    for (auto i : Ans) {
-        std::cout << i << "\n";
-    }
+    ////auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10);
+    //std::cout << "A:\n" << A << "\n";
+    ////std::cout << "T:\n" << T << "\n";
+    ////std::cout << "hessenberg_form(A):\n" << H << "\n";
+    ////std::cout << "A:\n" << A << "\n";
+
+    //std::vector<std::complex<double>> Ans;
+    //Ans=matrixfunction::compute_eigenvalues_3(A);
+    //for (auto i : Ans) {
+    //    std::cout << i << "\n";
+    //}
     
 
 
