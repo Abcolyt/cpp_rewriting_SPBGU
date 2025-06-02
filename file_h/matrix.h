@@ -27,10 +27,10 @@ struct QRResult {
 };
 namespace matrixfunction {
 //// POWER METHOD
-    template<typename T>std::pair<T, matrix<T>> power_method(const matrix<T>& A, const matrix<T>& Vec0, double epsilon = 1e-6, int max_iter = 1000);
+    template<typename T>std::pair<T, matrix<T>> power_method_max(const matrix<T>& A, const matrix<T>& Vec0, double epsilon = 1e-6, int max_iter = 1000);
 
-    template<typename T>std::pair<T, matrix<T>> power_method(const matrix<T>& A, double epsilon = 1e-6, int max_iter = 1000) {
-        return matrixfunction::power_method(A, matrix<T>::ones(A.getcol(), 1), epsilon, max_iter);
+    template<typename T>std::pair<T, matrix<T>> power_method_max(const matrix<T>& A, double epsilon = 1e-6, int max_iter = 1000) {
+        return matrixfunction::power_method_max(A, matrix<T>::ones(A.getcol(), 1), epsilon, max_iter);
     }
 ////
     template <typename T>bool is_equal(const matrix<T>& a, const matrix<T>& b, T epsilon = static_cast<T>(1e-6));
@@ -215,7 +215,7 @@ namespace matrixfunction {
 
     template <typename T>
     std::vector<std::complex<double>> compute_eigenvalues(const matrix<T>& A, double eps = 1e-9) {
-        auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10);
+        auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), (T)1e-10);
         std::vector<std::complex<double>> eigenvalues;
 
         while (H.getrow() >= 3 && H.getcol() >= 3) {
@@ -228,7 +228,7 @@ namespace matrixfunction {
             }
 
             auto qrH = H.qr();
-            H = matrixfunction::sanitize_zeros(qrH.R * qrH.Q, eps);
+            H = matrixfunction::sanitize_zeros(qrH.R * qrH.Q, (T)eps);
         }
 
         if (H.getrow() >= 2 && H.getcol() >= 2) {
@@ -244,169 +244,74 @@ namespace matrixfunction {
     }
 
     template <typename T>
-    std::vector<std::complex<double>> compute_eigenvalues_2(const matrix<T>& A, double eps = 1e-9) {
-        auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10);
+    std::vector<std::complex<double>> compute_eigenvalues_3(const matrix<T>& A, double eps = 1e-12) {
+        auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), static_cast<T>(1e-12));
         std::vector<std::complex<double>> eigenvalues;
-        std::vector<T> accumulated_shifts; // Для накопления сдвигов
+
+        // Переменные для отслеживания состояния сходимости
+        T prev_mu = T(0);
+        bool first_iteration = true;
+        uint64_t current_size = H.getrow();
 
         while (H.getrow() >= 3 && H.getcol() >= 3) {
-            const uint64_t N = H.getcol() - 1;
-            const T current_shift = H[N][N]; // Сдвиг Уилкинсона
-            accumulated_shifts.push_back(current_shift); // Сохраняем сдвиг
-
-            // QR-итерация со сдвигом
-            matrix<T> identity = matrix<T>::eye(H.getrow());
-            auto shifted_H = H - current_shift * identity;
-            auto qrH = shifted_H.qr();
-            H = matrixfunction::sanitize_zeros(qrH.R * qrH.Q + current_shift * identity, eps);
-
-            // Проверка сходимости поддиагонального элемента
-            if (std::abs(H[N][N - 1]) <= eps) {
-                // Обратная подстановка: добавляем все накопленные сдвиги
-                std::complex<double> ev = H[N][N];
-                for (const auto& shift : accumulated_shifts) {
-                    ev += shift;
-                }
-                eigenvalues.push_back(ev);
-                accumulated_shifts.clear(); // Сбрасываем сдвиги
-
-                H = H.submatrix(0, 0, N, N); // Уменьшаем размер матрицы
-            }
-        }
-
-        // Обработка оставшейся матрицы 2x2 или 1x1 с учётом сдвигов
-        if (H.getrow() >= 2 && H.getcol() >= 2) {
-            auto last_evs = matrixfunction::compute_2x2_eigenvalues(H);
-            // Добавляем накопленные сдвиги к собственным значениям
-            for (const auto& shift : accumulated_shifts) {
-                last_evs.first += shift;
-                last_evs.second += shift;
-            }
-            eigenvalues.push_back(last_evs.first);
-            eigenvalues.push_back(last_evs.second);
-        }
-        else if (H.getrow() == 1 && H.getcol() == 1) {
-            std::complex<double> ev = H[0][0];
-            for (const auto& shift : accumulated_shifts) {
-                ev += shift;
-            }
-            eigenvalues.push_back(ev);
-        }
-
-        return eigenvalues;
-    }
-
-    template <typename T>
-    std::vector<std::complex<double>> compute_eigenvalues_3(const matrix<T>& A, double eps = 1e-9) {
-        auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10);
-        std::vector<std::complex<double>> eigenvalues;
-        T accumulated_shift = 0; // Переменная вместо вектора
-
-        while (H.getrow() >= 3 && H.getcol() >= 3) {
-            const uint64_t N = H.getcol() - 1;
-            const T current_shift = H[N][N];
-            accumulated_shift += current_shift; // Накопление сдвига
-
-            // QR-итерация со сдвигом
-            matrix<T> identity = matrix<T>::eye(H.getrow());
-            auto shifted_H = H - current_shift * identity;
-            auto qrH = shifted_H.qr();
-            H = matrixfunction::sanitize_zeros(qrH.R * qrH.Q + current_shift * identity, eps);
-
-            // Проверка сходимости
-            if (std::abs(H[N][N - 1]) <= eps) {
-                // Восстанавливаем собственное значение с учётом всех сдвигов
-                std::complex<double> ev = H[N][N] + accumulated_shift;
-                eigenvalues.push_back(ev);
-                accumulated_shift = 0; // Сброс для нового блока
-                H = H.submatrix(0, 0, N, N); // Уменьшаем матрицу
-            }
-        }
-
-        // Обработка оставшегося блока 2x2/1x1
-        if (H.getrow() >= 2 && H.getcol() >= 2) {
-            auto last_evs = matrixfunction::compute_2x2_eigenvalues(H);
-            last_evs.first += accumulated_shift;
-            last_evs.second += accumulated_shift;
-            eigenvalues.push_back(last_evs.first);
-            eigenvalues.push_back(last_evs.second);
-        }
-        else if (H.getrow() == 1 && H.getcol() == 1) {
-            eigenvalues.push_back(H[0][0] + accumulated_shift);
-        }
-
-        return eigenvalues;
-    }
-
-    template <typename T>
-    std::vector<std::complex<double>> compute_eigenvalues_4(const matrix<T>& A, double eps = 1e-12) {
-        auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-12);
-        std::vector<std::complex<double>> eigenvalues;
-        T accumulated_shift = 0;
-
-        while (H.getrow() >= 1) {
             const uint64_t n = H.getrow();
+            const uint64_t N = n - 1;
 
-            // Если матрица диагональная, извлекаем все элементы
-            bool is_diagonal = true;
-            for (uint64_t i = 1; i < n; ++i) {
-                if (std::abs(H[i][i - 1]) > eps) {
-                    is_diagonal = false;
-                    break;
-                }
+            // Проверяем изменение размера матрицы
+            if (n != current_size) {
+                first_iteration = true;
+                current_size = n;
             }
 
-            if (is_diagonal) {
-                for (uint64_t i = 0; i < n; ++i) {
-                    eigenvalues.push_back(H[i][i] + accumulated_shift);
-                }
-                accumulated_shift = 0;
-                break;
+            //  поддиагональный элемент достаточно мал
+            if (std::abs(H[N][N - 1]) <= eps) {
+                eigenvalues.push_back(H[N][N]);
+                H = H.submatrix(0, 0, N, N);
+                continue;
             }
 
-            if (n >= 3) {
-                const T current_shift = H[n - 1][n - 1];
-                accumulated_shift += current_shift;
-
-                // QR-итерация со сдвигом
-                matrix<T> identity = matrix<T>::eye(n);
-                auto shifted_H = H - current_shift * identity;
-                auto qrH = shifted_H.qr();
-                H = matrixfunction::sanitize_zeros(qrH.R * qrH.Q + current_shift * identity, eps);
-
-                // Проверка сходимости последнего поддиагонального элемента
-                if (std::abs(H[n - 1][n - 2]) <= eps) {
-                    eigenvalues.push_back(H[n - 1][n - 1] + accumulated_shift);
-                    accumulated_shift = 0;
-                    H = H.submatrix(0, 0, n - 1, n - 1);
-                }
+            //  изменение диагонального элемента мало
+            if (!first_iteration && std::abs(H[N][N] - prev_mu) < (1.0 / 3.0) * std::abs(prev_mu)) {
+                eigenvalues.push_back(H[N][N]);
+                H = H.submatrix(0, 0, N, N);
+                first_iteration = true;
+                continue;
             }
-            else {
-                // Обработка блоков 2x2 и 1x1
-                break;
+
+            //  сдвиг 
+            T mu = H[N][N];
+            prev_mu = mu;  
+            first_iteration = false;
+
+            // Применяем QR-шаг со сдвигом
+            matrix<T> H_shifted = H - matrix<double>::eye(H.getrow()) * mu;
+            //for (uint64_t i = 0; i < n; ++i) {
+            //    H_shifted[i][i] -= mu;  // H - mu*I
+            //}
+
+            auto qrH = H_shifted.qr();       // QR-разложение
+            H = qrH.R * qrH.Q;              // R*Q
+            for (uint64_t i = 0; i < n; ++i) {
+                H[i][i] += mu;              // + mu*I
             }
+
+            H = matrixfunction::sanitize_zeros(H, static_cast<T>(eps));
         }
 
-        // Обработка оставшейся части
-        if (H.getrow() == 2) {
-            auto evs = matrixfunction::compute_2x2_eigenvalues(H);
-            evs.first += accumulated_shift;
-            evs.second += accumulated_shift;
-            eigenvalues.push_back(evs.first);
-            eigenvalues.push_back(evs.second);
+        // Обработка оставшихся блоков 2x2 и 1x1
+        if (H.getrow() == 2 && H.getcol() == 2) {
+            auto last_evs = matrixfunction::compute_2x2_eigenvalues(H);
+            eigenvalues.push_back(last_evs.first);
+            eigenvalues.push_back(last_evs.second);
         }
-        else if (H.getrow() == 1) {
-            eigenvalues.push_back(H[0][0] + accumulated_shift);
+        else if (H.getrow() == 1 && H.getcol() == 1) {
+            eigenvalues.push_back(H[0][0]);
         }
-
-        // Сортировка для удобства (опционально)
-        std::sort(eigenvalues.begin(), eigenvalues.end(),
-            [](const std::complex<double>& a, const std::complex<double>& b) {
-                return std::real(a) < std::real(b);
-            });
 
         return eigenvalues;
     }
+
+
 #if 0
     template <typename T>
     std::vector<T> qr_algorithm_with_shifts(matrix<T>& H, T epsilon = 1e-6, int max_iter = 1000) {
@@ -468,8 +373,7 @@ namespace matrixfunction {
         return eigenvalues;
     }
 #else
-    template <typename T>
-    std::vector<T> qr_algorithm_with_shifts(matrix<T>& H, T epsilon = 1e-6, int max_iter = 1000) {
+    template <typename T>std::vector<T> qr_algorithm_with_shifts(matrix<T>& H, T epsilon = 1e-6, int max_iter = 1000) {
         while (H.getrow() >= 2 && H.getcol())
             compute_2x2_eigenvalues(H.submatrix(H.getrow() - 2, H.getcol() - 2, H.getrow(), H.getcol()));
                 return 0;
@@ -612,7 +516,7 @@ public:
     }
     // binary matrix division(if not a singular matrix on the left)
     matrix<T> operator/(const matrix<T>& other) const;
-
+    matrix<T> operator/(T& other) const;
 
     // I/O OPERATIONS
      
@@ -667,31 +571,7 @@ public:
     //  . ..   ...  .. ..    cols                   
     //  R R  ..  R R     |
     //  R R  ..  R R     |
-    static matrix<T> random(size_t rows, size_t cols, T min, T max) {
-        matrix<T> m(rows, cols);
-        std::random_device rd;
-        std::mt19937 gen(rd());
-
-        if constexpr (std::is_integral_v<T>) {
-            std::uniform_int_distribution<T> dist(min, max);
-            for (size_t i = 0; i < rows * cols; ++i) {
-                m.ptr[i] = dist(gen);
-            }
-        }
-        else {
-            static_assert(
-                std::is_same_v<T, float> ||
-                std::is_same_v<T, double> ||
-                std::is_same_v<T, long double>,
-                "T must be float, double, or long double for real distribution"
-                );
-            std::uniform_real_distribution<T> dist(min, max);
-            for (size_t i = 0; i < rows * cols; ++i) {
-                m.ptr[i] = dist(gen);
-            }
-        }
-        return m;
-    }
+    static matrix<T> random(size_t rows, size_t cols, T min, T max);
 
     //Random matrix
     // min < R < max
@@ -701,31 +581,25 @@ public:
     //  . ..   ...  .. ..     cols                    
     //  0 0  ..  R 0     |
     //  0 0  ..  0 R     |
-    template<typename T>
-    static matrix<T> randomDiagonal(size_t n, T min, T max) {
-        matrix<T> m(n, n);
-        std::random_device rd;
-        std::mt19937 gen(rd());
+    static matrix<T> randomDiagonal(size_t n, T min, T max);
 
-        if constexpr (std::is_integral_v<T>) {
-            std::uniform_int_distribution<T> dist(min, max);
-            for (size_t i = 0; i < n; ++i) {
-                m[i][i] = dist(gen);
-            }
-        }
-        else {
-            static_assert(
-                std::is_floating_point_v<T>,
-                "T must be float, double, or long double for real distribution"
-                );
-            std::uniform_real_distribution<T> dist(min, max);
-            for (size_t i = 0; i < n; ++i) {
-                m[i][i] = dist(gen);
-            }
-        }
+    // Constructed from vector x of length n, with m columns (if m=0 then m=n)
+    // Matrix dimensions: n rows x m columns
+    // Element at row i, column j: x[i]^j  [increasing powers]
+    //  <--- m columns --->
+    //  x0^0  x0^1  x0^2  ...  x0^(m-1)   | row 0
+    //  x1^0  x1^1  x1^2  ...  x1^(m-1)   | row 1
+    //  ...                                | ...
+    //  xn^0  xn^1  xn^2  ...  xn^(m-1)   | row n-1
+    static matrix<T> vander(const std::vector<T>& x, uint64_t m=0 );
+    
+    // (A'A)^-1 * A'
+    matrix<T> left_pseudo_reverse()const;
+    // A'*( A*A')^-1
+    matrix<T> right_pseudo_reverse()const;
 
-        return m;
-    }
+    // General pseudo-inverse matrix (automatic selection)
+    matrix<T> pseudo_inverse()const;
 
     // Method for calculating the maximum eigenvalue
     T max_eigenvalue(double epsilon = 1e-6, int max_iter = 1000) const;

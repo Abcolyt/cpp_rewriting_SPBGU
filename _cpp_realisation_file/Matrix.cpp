@@ -516,7 +516,19 @@ template<typename T>matrix<T> matrix<T>::operator/(const matrix<T>& other) const
     }
     throw std::invalid_argument("the matrix on the right is not reversible");
 }
+template<typename T>matrix<T> matrix<T>::operator/(T& other) const {
 
+
+    matrix<T> result(colsize, rowsize);
+
+    for (uint64_t i = 0; i < colsize; ++i) {
+        for (uint64_t j = 0; j < rowsize; ++j) {
+            result[i][j] = (result[i][j]) / other;
+        }
+    }
+
+    return result;
+}
 template<typename T>void matrix<T>::allocateMemory()
 {
     delete[] ptr;
@@ -643,7 +655,94 @@ template<typename T>
      }
      return mat;
  }
+ template<typename T>
+ matrix<T> matrix<T>::random(size_t rows, size_t cols, T min, T max) {
+     matrix<T> m(rows, cols);
+     std::random_device rd;
+     std::mt19937 gen(rd());
 
+     if constexpr (std::is_integral_v<T>) {
+         std::uniform_int_distribution<T> dist(min, max);
+         for (size_t i = 0; i < rows * cols; ++i) {
+             m.ptr[i] = dist(gen);
+         }
+     }
+     else {
+         static_assert(
+             std::is_same_v<T, float> ||
+             std::is_same_v<T, double> ||
+             std::is_same_v<T, long double>,
+             "T must be float, double, or long double for real distribution"
+             );
+         std::uniform_real_distribution<T> dist(min, max);
+         for (size_t i = 0; i < rows * cols; ++i) {
+             m.ptr[i] = dist(gen);
+         }
+     }
+     return m;
+ }
+
+ template<typename T>
+ matrix<T> matrix<T>::randomDiagonal(size_t n, T min, T max) {
+     matrix<T> m(n, n);
+     std::random_device rd;
+     std::mt19937 gen(rd());
+
+     if constexpr (std::is_integral_v<T>) {
+         std::uniform_int_distribution<T> dist(min, max);
+         for (size_t i = 0; i < n; ++i) {
+             m[i][i] = dist(gen);
+         }
+     }
+     else {
+         static_assert(
+             std::is_floating_point_v<T>,
+             "T must be float, double, or long double for real distribution"
+             );
+         std::uniform_real_distribution<T> dist(min, max);
+         for (size_t i = 0; i < n; ++i) {
+             m[i][i] = dist(gen);
+         }
+     }
+
+     return m;
+ }
+
+
+ template<typename T>
+ matrix<T> matrix<T>::vander(const std::vector<T>& x, uint64_t m) {
+     uint64_t n = x.size();
+     if (m == 0) {
+         m = n;
+     }
+     matrix<T> result(n, m);
+     for (uint64_t i = 0; i < n; ++i) {
+         result[i][0] = 1;//  (x_i^0)
+         for (uint64_t j = 1; j < m; ++j) {
+             result[i][j] = result[i][j - 1] * x[i];
+         }
+     }
+     return result;
+ }
+ template<typename T>
+ matrix<T> matrix<T>::left_pseudo_reverse()const {
+     return ((*this).transpose() * (*this)).inverse_M() * ((*this).transpose());
+ }
+ template<typename T>
+ matrix<T> matrix<T>::right_pseudo_reverse()const {
+     return  ((*this).transpose()) * ((*this) * ((*this).transpose())).inverse_M();
+ }
+ template<typename T>
+ matrix<T> matrix<T>::pseudo_inverse()const {
+     int m = (*this).getrow();
+     int n = (*this).getcol();
+         if (m < n) {
+             return (*this).left_pseudo_reverse();
+         }
+         else {
+             return (*this).right_pseudo_reverse();
+         }
+ }
 
  // Method for calculating the maximum eigenvalue
  template<typename T>
@@ -651,12 +750,12 @@ template<typename T>
      if (colsize != rowsize) {
          throw std::invalid_argument("Matrix must be square.");
      }
-     return matrixfunction::power_method(*this, matrix<T>::ones(colsize, 1), epsilon, max_iter).first;
+     return matrixfunction::power_method_max(*this, matrix<T>::ones(colsize, 1), epsilon, max_iter).first;
  }
  // Method for calculating the maximum eigenvalue with initial vector
  template<typename T>
  T matrix<T>::max_eigenvalue(const matrix<T>& initial_vec, double epsilon , int max_iter ) const {
-     return matrixfunction::power_method(*this, initial_vec, epsilon, max_iter);
+     return matrixfunction::power_method_max(*this, initial_vec, epsilon, max_iter);
  }
 template<typename T>
  T matrix<T>::norm(int p) const {
@@ -898,7 +997,7 @@ template<typename T>
  }
  #endif     
 namespace matrixfunction {
-    template<typename T>std::pair<T,matrix<T>> power_method(const matrix<T>& A, const matrix<T>& Vec0, double epsilon, int max_iter ) {
+    template<typename T>std::pair<T,matrix<T>> power_method_max(const matrix<T>& A, const matrix<T>& Vec0, double epsilon, int max_iter ) {
 
         if (A.getcol() != A.getrow()) {
             throw std::invalid_argument("Matrix must be square for power method.");
@@ -936,7 +1035,60 @@ namespace matrixfunction {
                 eigenvector[i][0] /= eigenvalue;
             }
 
-            // Проверка сходимости
+           //convergence check
+           if (((eigenvalue - eigenvalue_prev) < 0 ? (eigenvalue - eigenvalue_prev) * (-1) : (eigenvalue - eigenvalue_prev)) < epsilon) {
+                return  { eigenvalue ,eigenvector };
+            }
+
+            eigenvalue_prev = eigenvalue;
+        }
+
+        throw std::runtime_error("Power method did not converge within the specified iterations.");
+    }
+
+    template<typename T>std::pair<T, matrix<T>> power_method_average(const matrix<T>& A, const matrix<T>& Vec0, double epsilon, int max_iter) {
+
+        if (A.getcol() != A.getrow()) {
+            throw std::invalid_argument("Matrix must be square for power method.");
+        }
+        int n = A.getcol();
+
+        T eigenvalue_prev = 0;
+        T eigenvalue = 0;
+        matrix<T> eigenvector = Vec0;
+
+        for (int iter = 0; iter < max_iter; ++iter) {
+            matrix<T> Ab = A * eigenvector;
+#if 0
+            std::cout << iter << "\n";
+#endif
+
+
+            //eigenvalue = Ab[0][0];
+            uint64_t size = 0;
+            for (int i = 0; i < n; ++i) {
+                if (std::abs(Ab[i][0]) > 1e-10) {
+                    eigenvalue = Ab[i][0];
+                    size++;
+                }
+            }
+            eigenvalue = eigenvalue/size;
+
+            if (((eigenvalue) < 0 ? (eigenvalue) * (-1) : (eigenvalue)) < epsilon) {
+                throw std::runtime_error("Matrix may be singular (zero eigenvalue detected).");
+            }
+
+            //Normalization of the vector
+            eigenvector = Ab;
+#if 0
+            std::cout << "eigenvector:\n" << eigenvector << "\n";
+            std::cout << "eigenvalue_prev:\n" << eigenvalue_prev << "\n";
+#endif
+            for (int i = 0; i < n; ++i) {
+                eigenvector[i][0] /= eigenvalue;
+            }
+
+            //convergence check
             if (((eigenvalue - eigenvalue_prev) < 0 ? (eigenvalue - eigenvalue_prev) * (-1) : (eigenvalue - eigenvalue_prev)) < epsilon) {
                 return  { eigenvalue ,eigenvector };
             }
