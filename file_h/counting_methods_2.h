@@ -421,11 +421,28 @@ namespace counting_methods_2 {
                     }
                     return { Max_ans,std::move(interpolinom) };
                 }
+                bool should_add_point(uint64_t i, uint64_t n, uint64_t num_display) {
+                    if (num_display == 0) return true;
 
+                    if (n == 0) return false;
+                    if (n == 1) return (i == 1);  
+
+                    double step = (num_display > 1) ? (n - 1.0) / (num_display - 1) : 0;
+
+                    if (i == 1 || i == n) return true;
+
+                    if (num_display == 1) return (i == n);
+
+                    double position = (i - 1.0) / step;
+                    double fractional = position - std::floor(position);
+
+                    return std::min(fractional, 1.0 - fractional) < 0.01;
+                }
             template<typename P=double,typename TypeOfInterpolationFunc /*= decltype(Lagrang_interpolation<double>)*/, typename TheTypeOfFunctionThatBeingInterpolated>
             std::stringstream show_interpolation_statistic(TypeOfInterpolationFunc func_interpolation,int n = 10, int m_ = 99, const std::string& interpolation_name="Unknown",
                 TheTypeOfFunctionThatBeingInterpolated F = [](double x) { return std::cos(x) / std::sin(x) + x * x; },
-                P a = LDBL_EPSILON -2 * M_PI,P b = 2 * M_PI -LDBL_EPSILON
+                P a = LDBL_EPSILON -2 * M_PI,P b = 2 * M_PI -LDBL_EPSILON,
+                const uint64_t number_of_displaying_function=0
             ) {
                 using InterpolationResult = decltype(func_interpolation(std::declval<std::vector<std::pair<P, P>>>()));
                 std::stringstream Ans;
@@ -471,21 +488,22 @@ namespace counting_methods_2 {
                 //==
                 for (uint64_t i = 1; i <= n ; i++)
                 {
-                    //auto poly = N_optn(i, a, b, F);
                     auto rn = error_of_the_interpolation_function(i, m_, a, b, F, func_interpolation, generatePoints_equally_sufficient_);
-                    functions_n.push_back(rn.second);
-
                     auto rn_opt = error_of_the_interpolation_function(i,m_, a, b, F, func_interpolation, generatePoints_optimal);
+                    auto interp_fn = func_interpolation(generatePoints_equally_sufficient_(i, a, b, F));
+                    auto interp_fopt = func_interpolation(generatePoints_optimal(i, a, b, F));
+
+                    if (should_add_point(i, n, number_of_displaying_function)) {
+                    //auto poly = N_optn(i, a, b, F);
+                    functions_n.push_back(rn.second);
                     functions_opt.push_back(rn_opt.second);
-
                     functions_n_abs_diff.push_back(
-                        [inter = rn.first, I = (double)i](P x) { if (std::abs(x - I) <= 0.5)return std::abs(inter); else return 0.0; }
+                        [interp_fn, F](P x) {return std::abs(interp_fn(x) - F(x));}
                     );
-
                     functions_opt_abs_diff.push_back(
-                        [inter = rn_opt.first, I = (double)i](P x) { if (std::abs(x - I) <= 0.5)return std::abs(inter); else return 0.0; }
+                        [interp_fopt, F](P x) { return std::abs(interp_fopt(x) - F(x)); }
                     );
-
+                    }
 
                     Ans << std::left
                         << std::setw(1) << "|"
@@ -518,11 +536,12 @@ namespace counting_methods_2 {
                     << "\n";
                 std::cout << Ans.str();
 #if __has_include(<SFML/Graphics.hpp>)
-                draw_functions(functions_n, ("R_" + interpolation_name + "_n"));
-                draw_functions(functions_opt, ("R_" + interpolation_name + "_opt__n"));
 
-                draw_functions(functions_n_abs_diff, ("R_" + interpolation_name + "_n_abs_diff") );
-                draw_functions(functions_opt_abs_diff, ("R_" + interpolation_name + "opt_n_abs_diff"));
+                draw_functions(functions_n, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_n"));
+                draw_functions(functions_opt, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_opt__n"));
+
+                draw_functions(functions_n_abs_diff, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_n_abs_diff") );
+                draw_functions(functions_opt_abs_diff, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "opt_n_abs_diff"));
                 
 
 #else
@@ -537,17 +556,18 @@ namespace counting_methods_2 {
             };
 
 namespace aproximate {
-
-    template<typename P>
-    std::vector<polynomial<P>> orthogonal_polynomials(const std::vector<P>& x, int n) {
+    // dot of ortagoality
+    //degree of polinom
+    template<typename P>std::vector<polynomial<P>> orthogonal_polynomials(const std::vector<P>& x, int n) {
         std::vector<polynomial<P>> polys;
         if (n < 0) return polys;
         polys.push_back(polynomial<P>(1));
         if (n == 0) return polys;
 
-        // Вычисляем alpha1
-        P sum_x = std::accumulate(x.begin(), x.end(), P(0));
-        P alpha1 = sum_x / static_cast<P>(x.size());
+        //  alpha1
+        P alpha1 = std::accumulate(x.begin(), x.end(), P(0)) / static_cast<P>(x.size());
+        
+        //P alpha1 = 1;
 
         //  q1(x) = x - alpha1
         polynomial<P> q1;
@@ -555,6 +575,8 @@ namespace aproximate {
         q1[0] = -alpha1;
         q1[1] = 1;
         polys.push_back(q1);
+
+
         if (n == 1) return polys;
 
         for (int j = 1; j < n; j++) {
@@ -649,7 +671,6 @@ namespace aproximate {
             y.push_back(point.second);
         }
 
-        // Генерация ортогональных полиномов
         std::vector<polynomial<P>> phi = counting_methods_2::aproximate::orthogonal_polynomials(x, n);
 
         std::vector<P> c(n, 0.0);
@@ -660,6 +681,7 @@ namespace aproximate {
 
             for (size_t i = 0; i < x.size(); i++) {
                 P phi_k_x = phi[k](x[i]);
+
                 numerator += y[i] * phi_k_x;
                 denominator += phi_k_x * phi_k_x;
             }
@@ -685,9 +707,9 @@ namespace aproximate {
 
         for (const auto& point : points) {
             P x = point.first;
-            P y_true = point.second;
+            //P y_true = ;
             P y_pred = poly(x); 
-            P error = y_pred - y_true;
+            P error = y_pred - point.second;
             total_error += error * error;
         }
 
@@ -728,19 +750,22 @@ namespace aproximate {
             << std::setw(1) << "|\n"
             << horizontal_line << "\n";
 
+        // lines of function
         std::vector<std::function<P(P)>> functions_normal, functions_ortog;
         functions_normal.reserve(n + 1);
-        functions_normal.push_back(F);
+        //functions_normal.push_back(F);
         functions_ortog.reserve(n + 1);
-        functions_ortog.push_back(F);
+        //functions_ortog.push_back(F);
+
+        // // // //data
+        std::vector<std::pair<double, double>> clean_points = counting_methods_2::Polynomial_interpolation::nuton2::generatePoints_equally_sufficient_(size, a, b, F);
+        auto noisy_points = addNoiseToPoints(clean_points, 3, 0.2);
+        noisy_points.insert(noisy_points.end(), clean_points.begin(), clean_points.end());
+        // // // //
 
         for (uint64_t i = 1; i <= n; i++)
         {
-            //
-            std::vector<std::pair<double, double>> clean_points = counting_methods_2::Polynomial_interpolation::nuton2::generatePoints_equally_sufficient_(size, a, b, F);
-            auto noisy_points = addNoiseToPoints(clean_points, 3, 0.2);
-            noisy_points.insert(noisy_points.end(), clean_points.begin(), clean_points.end());
-            //
+
             functions_normal.push_back(least_squares_normal(noisy_points, i));
             functions_ortog.push_back(least_squares_orthogonal(noisy_points, i));
             //
@@ -761,8 +786,8 @@ namespace aproximate {
         std::cout << Ans.str();
 
 #if __has_include(<SFML/Graphics.hpp>)
-        draw_functions(functions_normal, "R_" + aproximate_name + "least_squares_normal");
-        draw_functions(functions_ortog, "R_" + aproximate_name + "least_squares_orthogonal");
+        draw_functions(functions_normal, a, b, noisy_points, aproximate_name + "_normal");
+        draw_functions(functions_ortog, a, b, noisy_points,  aproximate_name + "_orthogonal");
 #else
         std::cout << "\n__has_include(<SFML/Graphics.hpp>)==0\n"
             << "not working draw_functions(functions_normal)\n"

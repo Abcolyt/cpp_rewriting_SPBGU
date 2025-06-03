@@ -142,7 +142,7 @@ void Z5_1_2_const() {
     {
         std::cout << "Eigenvalue: " << p.first << "\nEigenvector:\n" << p.second << "\n";
     }
-   
+    
     std::cout << "matrixfunction::power_method_average:\n\n";
     auto Ans = matrixfunction::power_method_average(A, matrix<double>::ones(A.getcol(), 1), 1e-10, 10000);
     //matrixfunction::power_method_max(A, matrix<double>::ones(A.getcol(), 1),1e-10,10000);
@@ -247,7 +247,9 @@ void Z6_1(int size,int degree_of_the_polynomial) {
     std::vector<std::pair<double, double>> clean_points = counting_methods_2::Polynomial_interpolation::nuton2::generatePoints_equally_sufficient_(size, the_left_border, the_right_border, [](double x) { return identifier; });
     auto noisy_points = addNoiseToPoints(clean_points, 3, 0.2);
     noisy_points.insert(noisy_points.end(), clean_points.begin(), clean_points.end());
-    std::cout << "\npolynomial form :\n"<< "x*x + 20*x*x*x+ 444*x*x*x*x*x ";
+
+
+    std::cout << "\npolynomial form :\n"<< "x*x + 20*x*x*x+ 444*x*x*x*x*x";
     std::cout << "\nNormal equations polynomial:\n" << counting_methods_2::aproximate::least_squares_normal(noisy_points, degree_of_the_polynomial);
     std::cout << "\nOrthogonal polynomial:\n" << counting_methods_2::aproximate::least_squares_orthogonal(noisy_points, degree_of_the_polynomial);
 }
@@ -269,7 +271,7 @@ int main() {
     counting_methods::holechi::example();
 #endif
 
-#define AU_LOG 1
+#define AU_LOG 5
 
 #if AU_LOG==1
 
@@ -314,71 +316,6 @@ int main() {
 
 #endif
 
-    //auto eig = matrixfunction::eigenvalues_hessenberg(H);
-    //std::cout << "Size: " << eig.size()<<'\n';
-    //for (auto l : eig)
-    //{
-    //    std::cout << "Eigenvalue: " << l << "\n";
-    //}
-  
-   
- /* auto Ans = A.qr();
-    auto Q = matrixfunction::sanitize_zeros(Ans.Q, 1e-10), R = matrixfunction::sanitize_zeros(Ans.R, 1e-10);
-    std::cout << "Q:\n" << Q << "\nR=\n" << R << "\nQ*R:\n" << Q * R;
-    auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10);*/
-
-
-
-    //auto Ans = matrixfunction::qr_decomposition(A);
-    //auto Q = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(Ans.Q), 1e-10), R= matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(Ans.R), 1e-10);
-    //std::cout <<"Q:\n" <<  Q<< "\nR=\n" << R<< "\nQ*R:\n"<<Q*R;
-
-
-
-    //T = matrixfunction::get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(A,0);
-    //std::cout << (T).set_output_mode(output_mode::ABBREVIATED) << "\n";
-    //std::cout <<"T * A * T _1" << T * A * T;
-    //A = T * A * T;
-    //T = matrixfunction::get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(A, 1);
-    //std::cout << (T).set_output_mode(output_mode::ABBREVIATED) << "\n";
-    //std::cout << "T * A * T _2" << T * A * T;
-
-    
-    // //// PA(P^-1)
-    //matrix<double> T1 = (matrix<double>::randomDiagonal(4, -100, 100));
-    //matrix<double> T2 = (matrix<int>::random(4, 4, -100, 100));
-    //matrix<double> T2_ = (T2.inverse_M());
-    //std::cout << "\nT2_" << matrixfunction::sanitize_zeros(T2_) << "\n";
-    //std::cout << "\n" << T1 << "\n" << T2 << "\n" << matrixfunction::sanitize_zeros(((T2 * T1) * T2_)) << "\n";
-    // ////
-
-    //std::cout << (matrix<double>::random(4, 4, -100, 100)).set_output_mode(output_mode::ABBREVIATED) << "\n";
-   
-    //
-    //matrix<double> EYE = matrix<double>::eye(4);
-    //std::cout << "\n" << T2.to_uptrng_two(EYE) << "\n";
-    //std::cout << "\n" << (EYE) << "\n";
-
-    //std::cout << "\n" << T2.to_uptrng_two(EYE).transpose() << "\n";
-    //std::cout << "\n" << (EYE).transpose() << "\n";
-
-    //std::cout << "\n" << T2.to_uptrng_two(EYE).transpose().to_uptrng_two(EYE) << "\n";
-    //std::cout << "\n" << (EYE).transpose() << "\n";
-
-    //matrix<double>  T = matrix<double>::random(5, 5, -100, 100.);
-    ////auto t_ = (T.LUP());
-    //matrix<double> L = (T.LUP()).L, U = T.LUP().U, P = T.LUP().P;
-    //std::cout << T << "\nL:" << L << "\nU:" << U << "\nP:" << P << "\nL*U:" << L * U << "\n" << "\nP*A:" << P * T << "\nl:" << matrixfunction::is_equal((L * U) , (P * T))<<"\nMl:" <<matrixfunction::elementwise_equal_matrix((L * U), (P * T));
-    //std::cout << matrix<double>::randomDiagonal(5,-100000.,100000.);
-
-    /*std::cin >> A;
-
-    try {
-        std::cout << "Eigenvalue: " << A.max_eigenvalue();
-    }
-    catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-    }*/
 
 #elif AU_LOG == 4
     //show_nuton();
@@ -427,7 +364,7 @@ int main() {
     {
         polynomial<double>a; a.outm_E = output_mode::FULL;
         polynomial<double>b;
-        std::vector <double> roots{ 1,3,0.5,0.6,12 };
+        std::vector <double> roots{ 1,3,/*0.5,0.6,12 */};
         a.the_root_constructor(roots);
         auto V = (polynomialfunctions::plnm_roots(a.get_first_derrivate(), DBL_EPSILON));
         std::cout << a << "max|F(x)|=";
@@ -446,8 +383,11 @@ int main() {
         b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
         std::cout << '\n' << b << "max|F(x)|=" << b.maximum_abs(-1111., +1111.);
 
-        auto spl = Spline_interpolator<3, 2, double>(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        auto spl = Spline_interpolator<3,2, double>(generatePoints_equally_sufficient_(5, -12.0, 12.0, a));
         std::cout << '\n' << spl << '\n';
+
+        auto spl2 = Spline_interpolator<2, 1, double>(generatePoints_equally_sufficient_(5, -12.0, 12.0, a));
+        std::cout << '\n' << spl2 << '\n';
 
 #define identifier (x-std::sin(x) - 0.25)
 #define the_left_border -M_PI / 4
@@ -456,11 +396,12 @@ int main() {
 
         //x-std::sin(x) - 0.25
         counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
-            Spline_interpolator<3, 2, double>, // interpolator
+            Spline_interpolator<4, 3, double>, // interpolator
             50, 50,                      // n, m_
             "Spline_interpolator<3, 2, double>",
-            [](double x) { return identifier; },
-            the_left_border, the_right_border
+            [](double x) { return  identifier; },
+            the_left_border, the_right_border,
+            5
         );
 
         counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
@@ -468,7 +409,8 @@ int main() {
             50, 50,                      // n, m_
             "Spline_interpolator<2, 1, double>",
             [](double x) { return identifier; },
-            the_left_border, the_right_border
+            the_left_border, the_right_border,
+            20
         );
 
         counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
@@ -476,32 +418,37 @@ int main() {
             10, 20,                      // n, m_
             "Spline_interpolator<1,0, double>",
             [](double x) { return identifier; },
-            the_left_border, the_right_border
+            the_left_border, the_right_border,
+            20
         );
 
         SHOW_INTERPOL_STAT(
             nuton_interpolation<double>, // interpolator
             10, 20,                      // n, m_
             [](double x) { return identifier; },
-            the_left_border, the_right_border
+            the_left_border, the_right_border,
+            20
         );
         SHOW_INTERPOL_STAT(
             Lagrang_interpolation<double>,
             10, 10,
             [](double x) { return identifier; },
-            the_left_border, the_right_border
+            the_left_border, the_right_border,
+            20
         );
         SHOW_INTERPOL_STAT(
             Alternativ_nuton_interpolation<double>, // interpolator
             10, 20,                      // n, m_
             [](double x) { return identifier; },
-            the_left_border, the_right_border
+            the_left_border, the_right_border,
+            20
         );
         SHOW_INTERPOL_STAT(
             Alternativ_Lagrang_interpolation<double>, // interpolator
             10, 20,                      // n, m_
             [](double x) { return identifier; },
-            the_left_border, the_right_border
+            the_left_border, the_right_border,
+            20
         );
 
 
