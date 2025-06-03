@@ -257,20 +257,17 @@ namespace matrixfunction {
             const uint64_t n = H.getrow();
             const uint64_t N = n - 1;
 
-            // Проверяем изменение размера матрицы
             if (n != current_size) {
                 first_iteration = true;
                 current_size = n;
             }
 
-            //  поддиагональный элемент достаточно мал
             if (std::abs(H[N][N - 1]) <= eps) {
                 eigenvalues.push_back(H[N][N]);
                 H = H.submatrix(0, 0, N, N);
                 continue;
             }
 
-            //  изменение диагонального элемента мало
             if (!first_iteration && std::abs(H[N][N] - prev_mu) < (1.0 / 3.0) * std::abs(prev_mu)) {
                 eigenvalues.push_back(H[N][N]);
                 H = H.submatrix(0, 0, N, N);
@@ -283,17 +280,17 @@ namespace matrixfunction {
             prev_mu = mu;  
             first_iteration = false;
 
-            // Применяем QR-шаг со сдвигом
             matrix<T> H_shifted = H - matrix<double>::eye(H.getrow()) * mu;
             //for (uint64_t i = 0; i < n; ++i) {
             //    H_shifted[i][i] -= mu;  // H - mu*I
             //}
 
-            auto qrH = H_shifted.qr();       // QR-разложение
-            H = qrH.R * qrH.Q;              // R*Q
-            for (uint64_t i = 0; i < n; ++i) {
-                H[i][i] += mu;              // + mu*I
-            }
+            auto qrH = H_shifted.qr();      
+            H = qrH.R * qrH.Q;  
+            H=H + matrix<double>::eye(H.getrow()) * mu;
+            //for (uint64_t i = 0; i < n; ++i) {
+            //    H[i][i] += mu;              // + mu*I
+            //}
 
             H = matrixfunction::sanitize_zeros(H, static_cast<T>(eps));
         }
