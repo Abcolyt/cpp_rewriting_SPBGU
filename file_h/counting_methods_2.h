@@ -542,8 +542,6 @@ namespace aproximate {
     std::vector<polynomial<P>> orthogonal_polynomials(const std::vector<P>& x, int n) {
         std::vector<polynomial<P>> polys;
         if (n < 0) return polys;
-
-        // Создаем q0 = 1 (полином-константа)
         polys.push_back(polynomial<P>(1));
         if (n == 0) return polys;
 
@@ -553,22 +551,19 @@ namespace aproximate {
 
         //  q1(x) = x - alpha1
         polynomial<P> q1;
-        q1.newsize(2);  // Полином степени 1
+        q1.newsize(2); 
         q1[0] = -alpha1;
         q1[1] = 1;
         polys.push_back(q1);
         if (n == 1) return polys;
 
-        // Рекурсивное построение полиномов q2..qn
         for (int j = 1; j < n; j++) {
-            // Вычисляем значения текущих полиномов в точках x
             std::vector<P> qj_vals, qjm1_vals;
             for (auto xi : x) {
                 qj_vals.push_back(polys[j](xi));
                 qjm1_vals.push_back(polys[j - 1](xi));
             }
 
-            // Вычисляем alpha_{j+1}
             P num_alpha = 0, den_alpha = 0;
             for (int i = 0; i < x.size(); i++) {
                 num_alpha += x[i] * qj_vals[i] * qj_vals[i];
@@ -576,7 +571,6 @@ namespace aproximate {
             }
             P alpha_j1 = num_alpha / den_alpha;
 
-            // Вычисляем beta_j
             P num_beta = 0, den_beta = 0;
             for (int i = 0; i < x.size(); i++) {
                 num_beta += x[i] * qj_vals[i] * qjm1_vals[i];
@@ -584,7 +578,6 @@ namespace aproximate {
             }
             P beta_j = num_beta / den_beta;
 
-            // Строим новый полином q_{j+1}(x) = (x - alpha_j1)*q_j(x) - beta_j*q_{j-1}(x)
             polynomial<P> x_minus_alpha;
             x_minus_alpha.newsize(2);
             x_minus_alpha[0] = -alpha_j1;
@@ -640,7 +633,6 @@ namespace aproximate {
             i++;
         }
         auto matrx_ans = matrixfunction::sanitize_zeros(V.pseudo_inverse() * b, 1e-9);
-        //std::cout << matrx_ans;
         polynomial<double> pol_ans; pol_ans.set_deg(degree_of_the_polynomial);
         for (size_t i = 0; i < degree_of_the_polynomial; i++)
         {
@@ -651,26 +643,23 @@ namespace aproximate {
 
     template<typename P>
     polynomial<P> least_squares_orthogonal(const std::vector<std::pair<P, P>>& points, uint64_t n) {
-        // 1. Извлечение данных
         std::vector<P> x, y;
         for (const auto& point : points) {
             x.push_back(point.first);
             y.push_back(point.second);
         }
 
-        // 2. Генерация ортогональных полиномов
+        // Генерация ортогональных полиномов
         std::vector<polynomial<P>> phi = counting_methods_2::aproximate::orthogonal_polynomials(x, n);
 
-        // 3. Вычисление коэффициентов c_k
         std::vector<P> c(n, 0.0);
 
         for (uint64_t k = 0; k < n; k++) {
             P numerator = 0.0;
             P denominator = 0.0;
 
-            // Вычисление скалярных произведений
             for (size_t i = 0; i < x.size(); i++) {
-                P phi_k_x = phi[k](x[i]);  // Значение полинома в точке x[i]
+                P phi_k_x = phi[k](x[i]);
                 numerator += y[i] * phi_k_x;
                 denominator += phi_k_x * phi_k_x;
             }
@@ -678,7 +667,6 @@ namespace aproximate {
             c[k] = numerator / denominator;
         }
 
-        // 4. Построение итогового полинома
         polynomial<P> result;
         for (uint64_t k = 0; k < n; k++) {
             result = result + (phi[k] * c[k]);
@@ -698,7 +686,7 @@ namespace aproximate {
         for (const auto& point : points) {
             P x = point.first;
             P y_true = point.second;
-            P y_pred = poly(x); // Вычисление значения полинома в точке x
+            P y_pred = poly(x); 
             P error = y_pred - y_true;
             total_error += error * error;
         }
@@ -720,7 +708,6 @@ namespace aproximate {
         std::stringstream Ans;
         const std::string aproximate_name = "least_squares";
 
-        // Рассчитываем только необходимые ширины столбцов (без s2)
         int s1 = std::max(static_cast<int>(std::ceil(std::log10(n))), 3);
         int s3 = 2 + aproximate_name.size() + 2;
 
