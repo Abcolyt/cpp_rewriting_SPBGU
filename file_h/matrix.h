@@ -287,15 +287,14 @@ namespace matrixfunction {
 
             auto qrH = H_shifted.qr();      
             H = qrH.R * qrH.Q;  
-            H=H + matrix<double>::eye(H.getrow()) * mu;
-            //for (uint64_t i = 0; i < n; ++i) {
-            //    H[i][i] += mu;              // + mu*I
-            //}
+            //H=H + matrix<double>::eye(H.getrow()) * mu;
+            for (uint64_t i = 0; i < n; ++i) {
+                H[i][i] += mu;              // + mu*I
+            }
 
             H = matrixfunction::sanitize_zeros(H, static_cast<T>(eps));
         }
 
-        // Обработка оставшихся блоков 2x2 и 1x1
         if (H.getrow() == 2 && H.getcol() == 2) {
             auto last_evs = matrixfunction::compute_2x2_eigenvalues(H);
             eigenvalues.push_back(last_evs.first);

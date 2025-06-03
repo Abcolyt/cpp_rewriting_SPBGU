@@ -732,6 +732,7 @@ template<typename T>
  matrix<T> matrix<T>::right_pseudo_reverse()const {
      return  ((*this).transpose()) * ((*this) * ((*this).transpose())).inverse_M();
  }
+
  template<typename T>
  matrix<T> matrix<T>::pseudo_inverse()const {
      int m = (*this).getrow();
@@ -1065,6 +1066,7 @@ namespace matrixfunction {
 
 
             //eigenvalue = Ab[0][0];
+
             uint64_t size = 0;
             for (int i = 0; i < n; ++i) {
                 if (std::abs(Ab[i][0]) > 1e-10) {
@@ -1078,7 +1080,6 @@ namespace matrixfunction {
                 throw std::runtime_error("Matrix may be singular (zero eigenvalue detected).");
             }
 
-            //Normalization of the vector
             eigenvector = Ab;
 #if 0
             std::cout << "eigenvector:\n" << eigenvector << "\n";
@@ -1088,7 +1089,6 @@ namespace matrixfunction {
                 eigenvector[i][0] /= eigenvalue;
             }
 
-            //convergence check
             if (((eigenvalue - eigenvalue_prev) < 0 ? (eigenvalue - eigenvalue_prev) * (-1) : (eigenvalue - eigenvalue_prev)) < epsilon) {
                 return  { eigenvalue ,eigenvector };
             }
