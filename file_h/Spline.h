@@ -61,16 +61,18 @@ public:
 
     T operator()(const T& x) const {
         for (size_t i = 0; i < sections.size() - 1; ++i) {
-            if (x >= sections[i] && x < sections[i + 1]) {
+            if ( sections[i] <= x  && x <= sections[i + 1]) {
                 return polinoms[i](x);
             }
         }
         
-        if (x >= sections.back()) {
-            return polinoms.back()(x);
-        }
         if (x <= sections.front() ) {
             return polinoms.front()(x);
+        }
+        
+        if ( sections.back()<= x) {
+            //std::cout << "sections:" << sections.size() << " polinoms:" << polinoms.size() << "polinoms.back()" << polinoms.back() << " x " << polinoms.back()(x) << "\n" ;
+            return polinoms[sections.size() - 2](x);
         }
         throw std::out_of_range("x is outside the spline range");
     }

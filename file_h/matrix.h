@@ -243,8 +243,8 @@ namespace matrixfunction {
         return eigenvalues;
     }
 
-    template <typename T>
-    std::vector<std::complex<double>> compute_eigenvalues_3(const matrix<T>& A, double eps = 1e-12) {
+    template <typename T>std::vector<std::complex<double>> compute_eigenvalues_3_qr(const matrix<T>& A, double eps = 1e-12) {
+#define second_convergence false
         auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), static_cast<T>(1e-12));
         std::vector<std::complex<double>> eigenvalues;
 
@@ -265,16 +265,18 @@ namespace matrixfunction {
             if (std::abs(H[N][N - 1]) <= eps) {
                 eigenvalues.push_back(H[N][N]);
                 H = H.submatrix(0, 0, N, N);
+                //std::cout <<"std::abs(H[N][N - 1]) <= eps"<< std::abs(H[N][N - 1])  << "\n";
                 continue;
             }
-
+#if second_convergence == true
             if (!first_iteration && std::abs(H[N][N] - prev_mu) < (1.0 / 3.0) * std::abs(prev_mu)) {
                 eigenvalues.push_back(H[N][N]);
                 H = H.submatrix(0, 0, N, N);
                 first_iteration = true;
+                //std::cout << "!first_iteration && std::abs(H[N][N] - prev_mu) < (1.0 / 3.0) * std::abs(prev_mu):\nabs:" << std::abs(H[N][N - 1]) << "\n abs(prey_mu)"<< std::abs(prev_mu)<<"\n";
                 continue;
             }
-
+#endif
             //  сдвиг 
             T mu = H[N][N];
             prev_mu = mu;  
