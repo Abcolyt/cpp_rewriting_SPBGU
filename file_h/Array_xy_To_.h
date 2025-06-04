@@ -70,7 +70,7 @@ const double modifire = 1*/) {
 
 
 
-template<class T>void draw_functions(const std::vector<std::function<T(T)>>& functions, T a= (T)0, T b= (T)0, const std::vector<std::pair<T, T>>& points = std::vector<std::pair<T, T>>{}, const std::string& window_name = "y(x)=") {
+template<class T>void draw_functions(const std::vector<std::function<T(T)>>& functions, T a = (T)0, T b = (T)0, const std::vector<std::pair<T, T>>& points = std::vector<std::pair<T, T>>{}, const std::string& window_name = "y(x)=", const std::vector<std::function<T(T)>>& cyan_functions = std::vector<std::function<T(T)>>{}) {
     sf::RenderWindow window(sf::VideoMode(Drawing_Window_Size), window_name);
     
     window.setVerticalSyncEnabled(true);
@@ -105,11 +105,11 @@ template<class T>void draw_functions(const std::vector<std::function<T(T)>>& fun
         sf::VertexArray markers(sf::PrimitiveType::Lines, 4); 
 
         float screenX_a = center_Window.x + (static_cast<float>(a) + offset_from_Zero_vector.x) * xScale;
-        float screenX_b = center_Window.x + (static_cast<float>(b) + offset_from_Zero_vector.x) * xScale;
         const float risk_size = risk_lenght;
         markers.append(sf::Vertex(sf::Vector2f(screenX_a, screenY_OX - risk_size/2), sf::Color::Black));
         markers.append(sf::Vertex(sf::Vector2f(screenX_a, screenY_OX + risk_size/2), sf::Color::Black));
 
+        float screenX_b = center_Window.x + (static_cast<float>(b) + offset_from_Zero_vector.x) * xScale;
         markers.append(sf::Vertex(sf::Vector2f(screenX_b, screenY_OX - risk_size/2), sf::Color::Black));
         markers.append(sf::Vertex(sf::Vector2f(screenX_b, screenY_OX + risk_size/2), sf::Color::Black));
         // // // //
@@ -122,7 +122,21 @@ template<class T>void draw_functions(const std::vector<std::function<T(T)>>& fun
 
             if (i == 0) {
                 for (size_t j = 0; j < graphs.back().getVertexCount(); ++j) {
+                    graphs.back()[j].color = sf::Color::Black;
+                }
+            }
+
+            if ((i == functions.size() - 1)&&(functions.size()!=1)) {
+                for (size_t j = 0; j < graphs.back().getVertexCount(); ++j) {
                     graphs.back()[j].color = sf::Color::Blue;
+                }
+            }
+        }
+        if (cyan_functions.size() != 0) {
+            for (size_t i = 0; i < cyan_functions.size(); ++i) {
+                graphs.push_back(funct(cyan_functions[i]));
+                for (size_t j = 0; j < graphs.back().getVertexCount(); ++j) {
+                    graphs.back()[j].color = sf::Color::Cyan;
                 }
             }
         }

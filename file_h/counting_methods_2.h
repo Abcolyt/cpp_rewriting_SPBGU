@@ -486,24 +486,22 @@ namespace counting_methods_2 {
                 functions_opt_abs_diff.reserve(n );
                 
                 //==
-                for (uint64_t i = 1; i <= n ; i++)
+                for (uint64_t i = 2; i <= n ; i++)
                 {
                     auto rn = error_of_the_interpolation_function(i, m_, a, b, F, func_interpolation, generatePoints_equally_sufficient_);
                     auto rn_opt = error_of_the_interpolation_function(i,m_, a, b, F, func_interpolation, generatePoints_optimal);
-                    auto interp_fn = func_interpolation(generatePoints_equally_sufficient_(i, a, b, F));
-                    auto interp_fopt = func_interpolation(generatePoints_optimal(i, a, b, F));
+                    //
+                    auto interp_fn = rn.second;//func_interpolation(generatePoints_equally_sufficient_(i, a, b, F));
+                    auto interp_fopt = rn_opt.second;//func_interpolation(generatePoints_optimal(i, a, b, F));
 
                     if (should_add_point(i, n, number_of_displaying_function)) {
                     //auto poly = N_optn(i, a, b, F);
                     functions_n.push_back(rn.second);
                     functions_opt.push_back(rn_opt.second);
-                    functions_n_abs_diff.push_back(
-                        [interp_fn, F](P x) {return std::abs(interp_fn(x) - F(x));}
-                    );
-                    functions_opt_abs_diff.push_back(
-                        [interp_fopt, F](P x) { return std::abs(interp_fopt(x) - F(x)); }
-                    );
+                    functions_n_abs_diff.push_back([interp_fn, F](P x) {return std::abs(interp_fn(x) - F(x));});
+                    functions_opt_abs_diff.push_back([interp_fopt, F](P x) { return std::abs(interp_fopt(x) - F(x)); });
                     }
+                    //
 
                     Ans << std::left
                         << std::setw(1) << "|"
@@ -535,13 +533,37 @@ namespace counting_methods_2 {
                 Ans<< "+" + (std::string(s1, '-') + "+") + (std::string(s2, '-') + "+") + (std::string(s3, '-') + "+") + (std::string(s3 + 5, '-') + "+") + (std::string(s4, '-') + "+") + (std::string(s5, '-')) << "+"
                     << "\n";
                 std::cout << Ans.str();
+
+                // // // //
+                    std::vector<std::function<P(P)>> addition_functions_n, addition_functions_opt, addition_functions_n_abs_diff, addition_functions_opt_abs_diff;
+                if (interpolation_name == "Spline_interpolator<3, 2, double>") {
+
+
+                    auto func_interpolation_two = nuton_interpolation<double>;
+
+                    auto rn = error_of_the_interpolation_function(n, m_, a, b, F, func_interpolation_two, generatePoints_equally_sufficient_);
+                    auto rn_opt = error_of_the_interpolation_function(n, m_, a, b, F, func_interpolation_two, generatePoints_optimal);
+                    //
+                    auto interp_fn = rn.second;//func_interpolation(generatePoints_equally_sufficient_(i, a, b, F));
+                    auto interp_fopt = rn_opt.second;//func_interpolation(generatePoints_optimal(i, a, b, F));
+
+                   /* std::cout << rn.second << "\n";
+                    std::cout << rn_opt.second << "\n";*/
+
+
+                    addition_functions_n.push_back(rn.second);
+                    addition_functions_opt.push_back(rn_opt.second);
+                    addition_functions_n_abs_diff.push_back([interp_fn, F](P x) {return std::abs(interp_fn(x) - F(x));});
+                    addition_functions_opt_abs_diff.push_back([interp_fopt, F](P x) { return std::abs(interp_fopt(x) - F(x)); });
+                }
+                // // // //
 #if __has_include(<SFML/Graphics.hpp>)
 
-                draw_functions(functions_n, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_n"));
-                draw_functions(functions_opt, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_opt__n"));
+                draw_functions(functions_n, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_n"), addition_functions_n);
+                draw_functions(functions_opt, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_opt__n"), addition_functions_opt);
 
-                draw_functions(functions_n_abs_diff, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_n_abs_diff") );
-                draw_functions(functions_opt_abs_diff, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "opt_n_abs_diff"));
+                draw_functions(functions_n_abs_diff, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_n_abs_diff"), addition_functions_n_abs_diff);
+                draw_functions(functions_opt_abs_diff, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "opt_n_abs_diff"), addition_functions_opt_abs_diff);
                 
 
 #else
@@ -678,14 +700,15 @@ namespace aproximate {
         for (uint64_t k = 0; k < n; k++) {
             P numerator = 0.0;
             P denominator = 0.0;
+            //Numerator: projection of the vector y onto the base vector φₖ.
+            //Denominator : the square of the norm φₖ at discrete points.
 
             for (size_t i = 0; i < x.size(); i++) {
                 P phi_k_x = phi[k](x[i]);
-
                 numerator += y[i] * phi_k_x;
                 denominator += phi_k_x * phi_k_x;
             }
-
+            //k-th basic vector
             c[k] = numerator / denominator;
         }
 
@@ -753,9 +776,9 @@ namespace aproximate {
         // lines of function
         std::vector<std::function<P(P)>> functions_normal, functions_ortog;
         functions_normal.reserve(n + 1);
-        //functions_normal.push_back(F);
+        functions_normal.push_back(F);
         functions_ortog.reserve(n + 1);
-        //functions_ortog.push_back(F);
+        functions_ortog.push_back(F);
 
         // // // //data
         std::vector<std::pair<double, double>> clean_points = counting_methods_2::Polynomial_interpolation::nuton2::generatePoints_equally_sufficient_(size, a, b, F);

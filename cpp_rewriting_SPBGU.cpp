@@ -193,7 +193,7 @@ void Z5_qr(int Size = 4) {
     std::cout << "T * A *(T^-1):\n" << A << " \n  ";
     //std::cout << "A_:\n" << A_ << "\n";
     uint64_t j = 0;
-    for (auto& i : matrixfunction::compute_eigenvalues_3(A))
+    for (auto& i : matrixfunction::compute_eigenvalues_3_qr(A))
     {
         j++;
         std::cout << "eig[" << j << "]= "  << i<< "\n";
@@ -247,9 +247,12 @@ void Z6_1(int size,int degree_of_the_polynomial) {
     std::vector<std::pair<double, double>> clean_points = counting_methods_2::Polynomial_interpolation::nuton2::generatePoints_equally_sufficient_(size, the_left_border, the_right_border, [](double x) { return identifier; });
     auto noisy_points = addNoiseToPoints(clean_points, 3, 0.2);
     noisy_points.insert(noisy_points.end(), clean_points.begin(), clean_points.end());
+    std::sort(noisy_points.begin(), noisy_points.end());
+    for (auto& I : noisy_points) {
+        std::cout << "<" << I.first << ";" << I.second << ">\n";
+    }
+    std::cout << "\npolynomial function :\n"<< "x*x + 20*x*x*x+ 444*x*x*x*x*x\n";
 
-
-    std::cout << "\npolynomial form :\n"<< "x*x + 20*x*x*x+ 444*x*x*x*x*x";
     std::cout << "\nNormal equations polynomial:\n" << counting_methods_2::aproximate::least_squares_normal(noisy_points, degree_of_the_polynomial);
     std::cout << "\nOrthogonal polynomial:\n" << counting_methods_2::aproximate::least_squares_orthogonal(noisy_points, degree_of_the_polynomial);
 }
@@ -271,9 +274,37 @@ int main() {
     counting_methods::holechi::example();
 #endif
 
-#define AU_LOG 5
 
-#if AU_LOG==1
+
+#define AU_LOG 0
+    Z5_qr();
+
+    // // // //
+#if AU_LOG==0
+    Z6_1(20, 7);
+
+#define identifier (x-std::sin(x) - 0.25)
+#define the_left_border -M_PI / 4
+#define the_right_border M_PI / 4
+    using SplineInterpolatorFunc = Spline<double>(*)(std::vector<std::pair<double, double>>);
+
+    //x-std::sin(x) - 0.25
+    counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
+        Spline_interpolator<3, 2, double>, // interpolator
+        50, 50,                      // n, m_
+        "Spline_interpolator<3, 2, double>",
+        [](double x) { return  identifier; },
+        the_left_border, the_right_border,
+        5
+    );
+
+
+    counting_methods_2::aproximate::show_aproximate_statistic([](double x) { return (x - std::sin(x) - 0.25); });
+
+// // // // // // // // //
+
+
+#elif AU_LOG==1
 
 #if 0
     Z5_2(4);
@@ -307,7 +338,7 @@ int main() {
     ////std::cout << "A:\n" << A << "\n";
 
     //std::vector<std::complex<double>> Ans;
-    //Ans=matrixfunction::compute_eigenvalues_3(A);
+    //Ans=matrixfunction::compute_eigenvalues_3_qr(A);
     //for (auto i : Ans) {
     //    std::cout << i << "\n";
     //}
@@ -402,7 +433,7 @@ int main() {
             [](double x) { return  identifier; },
             the_left_border, the_right_border,
             5
-        );
+        );  
 
         counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<2, 1, double>, // interpolator
