@@ -276,11 +276,13 @@ int main() {
 
 
 
-#define AU_LOG 0
-    Z5_qr();
+#define PART_OF_TASK 0
 
-    // // // //
-#if AU_LOG==0
+
+
+#if PART_OF_TASK==0
+    Z5_qr();
+    // // // // 
     Z6_1(20, 7);
 
 #define identifier (x-std::sin(x) - 0.25)
@@ -304,154 +306,47 @@ int main() {
 // // // // // // // // //
 
 
-#elif AU_LOG==1
-
-#if 0
-    Z5_2(4);
-    Z5_1_2_const();
-    Z5_plus();
-    Z5_qr();
-
-
-    //part 3
-
-
-
-
-#else
-    Z6_1(20,7);
-
-
-    counting_methods_2::aproximate::show_aproximate_statistic([](double x) { return (x - std::sin(x) - 0.25); });
-
-
-    //matrix<double> A;
-    //A = matrix<double>::randomDiagonal(4, -100, 100);
-    //std::cout << "A:\n" << A << "\n";
-    //matrix<double> T = (matrix<int>::random(4, 4, -100, 100));
-    //A = T * A * (T.inverse_M());
-
-    ////auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), 1e-10);
-    //std::cout << "A:\n" << A << "\n";
-    ////std::cout << "T:\n" << T << "\n";
-    ////std::cout << "hessenberg_form(A):\n" << H << "\n";
-    ////std::cout << "A:\n" << A << "\n";
-
-    //std::vector<std::complex<double>> Ans;
-    //Ans=matrixfunction::compute_eigenvalues_3_qr(A);
-    //for (auto i : Ans) {
-    //    std::cout << i << "\n";
-    //}
+#elif PART_OF_TASK == 4
     
-
-
-#endif
-
-
-#elif AU_LOG == 4
-    //show_nuton();
-    // 
-    //int T0 = 1;
-    //std::vector<double> array{1,2,3,4,5,6,7,8,9,10};
-
-    //
-   
-    ////b.output_mode_set(output_mode::FULL);
-    //polynomial<int> a(1);
-    //for (uint64_t i = 0; i < array.size(); i++)
-    //{
-    //if (i!=T0){
-    //    polynomial<int> b(1);
-    //    b = 1; b = b >> 1; std::cout << b << '\n'; b = b + array[i]; std::cout << b << '\n';
-    //    
-    //    a = a * b;
-    //    std::cout << a<<'\n';
-    //    }
-    //}
-    //
-    //
-    //std::cout << a;
-
-    std::vector<double> array={ 1,2,3,4,5,6 };
-    std::cout<< "wk0" << w_k_T0(array, 1).output_mode_set(output_mode::ABBREVIATED);
-    
-    //static_cast<double(*)(double)>
-    using T = double;
-    //(w_k(array, 1))
-    //draw_function<double(*)(double)>(std::cos);
-
-    polynomial<double> pol = (w_k_T0(array, 1));
-    std::vector<std::function<double(double)>> functions = {
-        // Лямбда с захватом
-        [k = 2.0](double x) { return k * x; },
-        static_cast<double(*)(double)>(std::sin),
-        pol
-    };
-    //draw_function([](float x) {return x * x + x * 2; },-25.0f,25.0f);
-    draw_functions(functions);
-    
-    std::cout << pol(2);
-#elif AU_LOG == 5
-    {
         polynomial<double>a; a.outm_E = output_mode::FULL;
         polynomial<double>b;
         std::vector <double> roots{ 1,3,/*0.5,0.6,12 */};
         a.the_root_constructor(roots);
         auto V = (polynomialfunctions::plnm_roots(a.get_first_derrivate(), DBL_EPSILON));
-        std::cout << a << "max|F(x)|=";
-        std::cout << '\n';
-        std::cout << (a) << "max|F(x)|=" << a.maximum_abs(-1111., +1111.) << '\n';
+        std::cout <<"polynomialfunctions:" << a << '\n';
+
         b = nuton_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
         b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
-        std::cout << '\n' << b << "max|F(x)|=" << b.maximum_abs(-1111., +1111.);
+        std::cout << "\n:nuton_interpolation" << b;
         b = Lagrang_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
         b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
-        std::cout << '\n' << b << "max|F(x)|=" << b.maximum_abs(-1111., +1111.);
+        std::cout << "\nLagrang_interpolation:" << b ;
         b = Alternativ_nuton_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
         b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
-        std::cout << '\n' << b << "max|F(x)|=" << b.maximum_abs(-1111., +1111.);
+        std::cout << "\nAlternativ_nuton_interpolation:" << b ;
         b = Alternativ_Lagrang_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
         b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
-        std::cout << '\n' << b << "max|F(x)|=" << b.maximum_abs(-1111., +1111.);
+        std::cout << "\nAlternativ_Lagrang_interpolation:" << b;
 
-        auto spl = Spline_interpolator<3,2, double>(generatePoints_equally_sufficient_(5, -12.0, 12.0, a));
-        std::cout << '\n' << spl << '\n';
+        auto spl4 = Spline_interpolator<4, 3, double>(generatePoints_equally_sufficient_(5, -12.0, 12.0, a));
+        std::cout << "\nSpline_interpolator<4,3, double>:" << spl4 << "\n";
+
+        auto spl3 = Spline_interpolator<3,2, double>(generatePoints_equally_sufficient_(5, -12.0, 12.0, a));
+        std::cout << "\nSpline_interpolator<3,2, double>:" << spl3 << "\n";
 
         auto spl2 = Spline_interpolator<2, 1, double>(generatePoints_equally_sufficient_(5, -12.0, 12.0, a));
-        std::cout << '\n' << spl2 << '\n';
+        std::cout << "\nSpline_interpolator<2, 1, double>:" << spl2 << "\n";
 
+
+        auto spl1 = Spline_interpolator<1, 0, double>(generatePoints_equally_sufficient_(5, -12.0, 12.0, a));
+        std::cout << "\nSpline_interpolator<1, 0, double>:" << spl1 << "\n";
 #define identifier (x-std::sin(x) - 0.25)
 #define the_left_border -M_PI / 4
 #define the_right_border M_PI / 4
         using SplineInterpolatorFunc = Spline<double>(*)(std::vector<std::pair<double, double>>);
 
-        //x-std::sin(x) - 0.25
-        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
-            Spline_interpolator<4, 3, double>, // interpolator
-            50, 50,                      // n, m_
-            "Spline_interpolator<3, 2, double>",
-            [](double x) { return  identifier; },
-            the_left_border, the_right_border,
-            5
-        );  
+        std::cout << "interpolinoms:nuton_interpolation, Lagrang_interpolation, Alternativ_nuton_interpolation, Alternativ_Lagrang_interpolation\n\n";
 
-        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
-            Spline_interpolator<2, 1, double>, // interpolator
-            50, 50,                      // n, m_
-            "Spline_interpolator<2, 1, double>",
-            [](double x) { return identifier; },
-            the_left_border, the_right_border,
-            20
-        );
-
-        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
-            Spline_interpolator<1, 0, double>, // interpolator
-            10, 20,                      // n, m_
-            "Spline_interpolator<1,0, double>",
-            [](double x) { return identifier; },
-            the_left_border, the_right_border,
-            20
-        );
 
         SHOW_INTERPOL_STAT(
             nuton_interpolation<double>, // interpolator
@@ -462,7 +357,7 @@ int main() {
         );
         SHOW_INTERPOL_STAT(
             Lagrang_interpolation<double>,
-            10, 10,
+            10, 20,
             [](double x) { return identifier; },
             the_left_border, the_right_border,
             20
@@ -482,66 +377,47 @@ int main() {
             20
         );
 
+        std::cout << "spline: <3,2> <2,1> <1,0>\n";
 
+        //x-std::sin(x) - 0.25
+        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
+            Spline_interpolator<3, 2, double>, // interpolator
+            50, 50,                      // n, m_
+            "Spline_interpolator<3, 2, double>",
+            [](double x) { return  identifier; },
+            the_left_border, the_right_border,
+            5
+        );
 
-    }
-    
-#elif AU_LOG == 6
+        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
+            Spline_interpolator<2, 1, double>, // interpolator
+            50, 50,                      // n, m_
+            "Spline_interpolator<2, 1, double>",
+            [](double x) { return identifier; },
+            the_left_border, the_right_border,
+            20
+        );
 
-std::vector<double> array = { 1,2,3,4,5,6 };
-polynomial<double> polynom = w_k_T0(array, -1);
-
-std::cout << "wk" << w_k_T0(array, -6).output_mode_set(output_mode::ABBREVIATED);
-std::cout << "\nwx0" << (w_k_T0(array, 1))(1);
-
-std::vector<std::pair<double, double>> array_xy = {
-    {0.5, polynom(0.5) },{2.5, polynom(2.5)},
-    {4.5, polynom(4.5) },{6.5, polynom(6.5)},
-    {8.5, polynom(8.5) },{10.5, polynom(10.5)}
-};
-
-
-auto Func = [](double x) { return  1 + 10 * x + 10 * x * x + 10 * x * x * x + 10 * x * x * x * x; };
-auto Array_xy = generatePoints_equally_sufficient_with_step_size(7, -4.0, 1.0, Func);
-
-std::cout << "\nans:" << Lagrang_interpolation(Array_xy);
-#elif AU_LOG == 7
-    int Degree = 30;
-
-    std::vector<double> array = { 1,2,3,4,5,6 };
-    polynomial<double> polynom = w_k_T0(array, -1);
-
-
-
-    std::cout << "wk" << w_k_T0(array, -6).output_mode_set(output_mode::ABBREVIATED);
-    std::cout << "\nwx0" << (w_k_T0(array, 1))(1);
-
-    std::vector<std::pair<double, double>> array_xy = {
-        {0.5, polynom(0.5) },{2.5, polynom(2.5)},
-        {4.5, polynom(4.5) },{6.5, polynom(6.5)},
-        {8.5, polynom(8.5) },{10.5, polynom(10.5)}
-    };
-
-    array_xy=generatePoints_equally_sufficient_(Degree, -20., +20., polynom);
-    Spline<double> a(-5,5,10);
-    //std::cout << a;
-    const uint64_t m=3, p=2;
-    
-    std::cout << "<m=" << m << ",p=" << p << ">=\n";
-   
-
-    draw_function<double>(Spline_interpolator<m, p>(array_xy));
-    draw_function<double>(polynom);
-    draw_function<double>(Spline_interpolator<m, p>(array_xy));
-
+        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
+            Spline_interpolator<1, 0, double>, // interpolator
+            10, 20,                      // n, m_
+            "Spline_interpolator<1,0, double>",
+            [](double x) { return identifier; },
+            the_left_border, the_right_border,
+            20
+        );
 
     
-    //Spline_interpolator<3, 2>(array_xy);
-    //std::cout << "<m=" << 4 << ",p=" << 1 << ">=\n";
-    //Spline_interpolator<4, 1>(array_xy);
-    //Spline_interpolator<4, 2>(array_xy);
-    //Spline_interpolator<4, 3>(array_xy);
-#elif AU_LOG == 8
+    
+#elif PART_OF_TASK==5
+    Z5_2(4);
+    Z5_1_2_const();
+    Z5_plus();
+    Z5_qr();
+
+#elif PART_OF_TASK == 6
+Z6_1(20, 7);
+counting_methods_2::aproximate::show_aproximate_statistic([](double x) { return (x - std::sin(x) - 0.25); });
 #endif
     
 

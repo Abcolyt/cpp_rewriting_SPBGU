@@ -169,6 +169,11 @@
     <ClInclude Include="file_h\polynomial.h" />
     <ClInclude Include="file_h\Spline.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="image\abs_diff_spline(3,2) and nuton polynom.bmp" />
+    <Image Include="image\least_squares-blue, black is showing function, with data-green dots.bmp" />
+    <Image Include="image\spline(3,2)-blue,nuton-cian  in left border.bmp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
