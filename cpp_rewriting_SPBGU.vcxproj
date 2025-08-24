@@ -82,6 +82,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -96,6 +97,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -112,7 +114,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard_C>Default</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -127,6 +129,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -155,10 +158,21 @@
     <None Include="document_h\_main_func_file.docx" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="calc_computing_f.h" />
+    <ClInclude Include="file_h\Array_xy_To_.h" />
     <ClInclude Include="file_h\complex.h" />
+    <ClInclude Include="file_h\counting_methods_1.h" />
+    <ClInclude Include="file_h\counting_methods_2.h" />
+    <ClInclude Include="file_h\eigenvalues.h" />
     <ClInclude Include="file_h\fraction.h" />
     <ClInclude Include="file_h\matrix.h" />
     <ClInclude Include="file_h\polynomial.h" />
+    <ClInclude Include="file_h\Spline.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="image\abs_diff_spline(3,2) and nuton polynom.bmp" />
+    <Image Include="image\least_squares-blue, black is showing function, with data-green dots.bmp" />
+    <Image Include="image\spline(3,2)-blue,nuton-cian  in left border.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

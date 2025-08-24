@@ -2,6 +2,13 @@
 #include<iostream>
 #include <sstream>
 #include <complex.h>
+#include <vector>
+
+template<typename T>
+std::vector<T> convert_pairs_to_vector(
+	const std::vector<std::pair<T, T>>& input,
+	bool take_first_element
+);
 //the degree of detail of the output
 enum class output_mode
 {
@@ -10,6 +17,16 @@ enum class output_mode
 	SHORT
 };
 template<typename P> class polynomial;
+namespace polynomialfunctions {
+	template<typename P>inline polynomial<P> derivate(const polynomial<P>& polynom);
+	template<typename P>inline P f_polyn_x0_(const polynomial<P>& polynom, const P& x0);
+	template<typename P>P abs(P arg);
+	template<typename P>P max(P arg1,P arg2);
+	template<typename P>std::pair<P, int> solve_tangents(polynomial<P> plnm, P x0, double e, uint64_t max_iter_number = 1'000'000);
+	template<typename P>std::vector<std::pair<P, int>> plnm_roots(polynomial<P> plnm, P x0 = FLT_EPSILON);
+	template<typename P>polynomial<P> filter_large_epsilon(polynomial<P>, P eps);
+
+}
 template<typename P> std::ostream& operator<<(std::ostream& out, const polynomial<P>& plnm);
 template<typename P> std::istream& operator>>(std::istream& in, polynomial<P>& plnm);
 template<typename P> class polynomial
@@ -41,9 +58,18 @@ public:
 	//DATA ACCESS
 	
     //get the degree of the polynomial
-	uint64_t get_deg() { return deg; };
+	uint64_t get_deg()const { return deg; };
 	//set the degree of the polynomial
-	void set_deg(uint64_t newdeg) { deg = newdeg; };
+	void set_deg(uint64_t newdeg) {
+		
+		polynomial<P> newpol;
+		newpol.newsize(newdeg);
+		for (uint64_t i = 0; i < std::min(deg,newdeg); i++)
+			newpol[i] = ptr[i];
+		/*for (uint64_t i = std::min(deg, newdeg); i < newdeg; i++)
+			newpol[i] = 0;*/
+		(*this) = newpol;
+	};
 
 
 	//ARITHMETIC OPERATORS
@@ -60,6 +86,20 @@ public:
 	polynomial<P> operator*(const polynomial<P>& other)const;
 	//binary polynomial multiplication by an element from the field
 	polynomial<P> operator*(const P& other)const;
+	
+	//NEW start
+	//binary polynomial addition with an element from the field
+	polynomial<P> operator+(const P& other)const {
+		polynomial<P> ans(*this + static_cast<polynomial<P>>(other));
+		return ans;
+	}
+	friend polynomial<P> operator+(const P& scalar, const polynomial<P>& poly) { return poly + scalar; }
+	polynomial<P> operator-(const P& other)const {
+		polynomial<P> ans(*this - static_cast<polynomial<P>>(other));
+		return ans;
+	}
+	friend polynomial<P> operator-(const P& scalar, const polynomial<P>& poly) { return (poly - scalar)* ( - 1); }
+	//NEW end
 
 
     // I/O OPERATIONS
@@ -101,7 +141,7 @@ public:
 	//SPECIAL METHODS
 
     //the access operator to the polynomial coefficient
-	P& operator[](uint64_t index);
+	P& operator[](uint64_t index)const;
 	//equalization operator(low coefficient=other )
 	polynomial<P>& operator=(const P other);
 	//the equalization operator
@@ -111,41 +151,47 @@ public:
 	//reallocate memory with zeros (old data is not saved)
 	void newsize(uint64_t size);
 	//set the output mode via a variable of type: uint64_t newmode
-	void output_mode_set(uint64_t newmode);
+	polynomial<P> output_mode_set(uint64_t newmode);
 	//set the output mode via a variable of type: uint64_t newmode 
-	void output_mode_set(output_mode new_outm_E);
+	polynomial<P>& output_mode_set(output_mode new_outm_E);
 	//set the output mode via a variable of type: std::string newmode
-	void output_mode_set(std::string newmode);
+	polynomial<P> output_mode_set(std::string newmode);
+	
+	//NEW
+	//return Pol(x0)
+	P operator()(const P& x) const {
+		return polynomialfunctions::f_polyn_x0_(*this, x);
+	}
+	void the_root_constructor(const std::vector<P>& array_xy);
+	polynomial<P> get_first_derrivate()const { return polynomialfunctions::derivate(*this); }
+	P maximum_abs(P a, P b)const;
+	P maximum()const;
 
+	std::vector<std::pair<P, int>> plnm_roots( P x0 = FLT_EPSILON) const {
+		return polynomialfunctions::plnm_roots(*this);
+	};
 };
 template<typename P> output_mode polynomial<P>::default_output_mode = output_mode::SHORT;
 
 #include "../_cpp_realisation_file/polynomial.cpp"
-namespace polynomialfunctions {
 
-	template<typename P>inline polynomial<P> derivate(polynomial<P> polynom) {
-		polynomial<P> ans;
-		ans.newsize(polynom.get_deg());
-		if (polynom.get_deg() > 0) {
-			for (uint64_t i = polynom.get_deg() - 1; i >= 1; i--) {
-				ans[i - 1] = polynom[i] * i;
-			}
-			ans = ans.cutbag();
-		}
-		else {
-			ans = 0;
-		}
-		return ans;
-	}
-	template<typename P>inline P f_polyn_x0_(polynomial<P> polynom, P x0) {
-		P ans(0);
-		for (uint64_t i = 0; i < polynom.get_deg(); i++) {
-			//std::cout << polynom[i] + x0 << '\n' << std::endl;
-		}
-		for (int i = polynom.get_deg() - 1; i >= 0; i--) {
-			ans = polynom[i] + (ans)*x0;
-		}
-		return ans;
+
+
+template<typename P>class counting_polynomial :public polynomial<P>
+{
+public:
+	P operator()(const P& x) const {
+		return polynomialfunctions::f_polyn_x0_(*this, x);
 	}
 
-}
+	//ARITHMETIC OPERATORS
+	
+	//binary polynomial addition with an element from the field
+	counting_polynomial<P> operator+(const P& other)const {
+		*this = *this[0] + other;
+		return *this;
+	}
+private:
+
+};
+

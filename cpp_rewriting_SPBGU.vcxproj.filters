@@ -16,6 +16,9 @@
     <Filter Include="Исходные файлы\_docx_documents">
       <UniqueIdentifier>{d21b9c56-57ba-4d97-8075-60ffc865af4b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Картинки">
+      <UniqueIdentifier>{07c3de80-4011-4b91-81af-19b08b19de38}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cpp_rewriting_SPBGU.cpp">
@@ -77,5 +80,34 @@
     <ClInclude Include="file_h\matrix.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="file_h\counting_methods_2.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="file_h\Array_xy_To_.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="calc_computing_f.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="file_h\counting_methods_1.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="file_h\Spline.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="file_h\eigenvalues.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="image\abs_diff_spline(3,2) and nuton polynom.bmp">
+      <Filter>Картинки</Filter>
+    </Image>
+    <Image Include="image\least_squares-blue, black is showing function, with data-green dots.bmp">
+      <Filter>Картинки</Filter>
+    </Image>
+    <Image Include="image\spline(3,2)-blue,nuton-cian  in left border.bmp">
+      <Filter>Картинки</Filter>
+    </Image>
   </ItemGroup>
 </Project>

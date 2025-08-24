@@ -1,533 +1,266 @@
-#include <iostream>
+п»ї#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
+#include <utility>
+#include <functional>
+#include <corecrt_math_defines.h>
+#include <cmath>
+
+//#include <boost/safe_numerics/safe_integer.hpp>
 
 #include "file_h/complex.h"
 #include "file_h/fraction.h"
 #include "file_h/polynomial.h"
 #include "file_h/matrix.h"
 
-#include <functional>
-namespace calc_computing_f
-{
-void complex_calc() {
+#include "file_h/counting_methods_1.h"
+#include "file_h/counting_methods_2.h"
+#include "file_h/Array_xy_To_.h"
+#include "file_h/calc_computing_f.h"
+#include "file_h/Spline.h"
+#include "file_h/eigenvalues.h"
 
-    static char L = 'E';
-    while (1) {
-
-
-        Complex a, b, c;
-        std::cout << "Enter first Number \n";
-        std::cin >> a;
-        std::cout << "Enter second Number \n";
-        std::cin >> b;
-
-        std::cout << "Enter Action('-','+','/','*','E') :";
-
-        std::cin >> L;
-        if (L == 'E' || L == 'e')
-        {
-            break;
-        }
-        std::cout << std::endl;
-        switch (L)
-        {
-        case '+':c = a + b; break;
-        case '-':c = a - b; break;
-        case '*':c = a * b; break;
-        case '/':c = a / b; break;
-        default:throw std::invalid_argument("unknown symbol");
-        }
-        std::cout << c << "\n";
+template<typename T, typename Func>
+std::vector<std::pair<T, T>> generatePointsLambda(int k, T x0, T step, Func F) {
+    std::vector<std::pair<T, T>> points;
+    for (int i = 0; i < k; ++i) {
+        T x = x0 + i * step;
+        points.emplace_back(x, F(x));
     }
+    return points;
+}
 
+#define SHOW_INTERPOL_STAT(func,n,m, ...) \
+    counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic(func,n,m+50, #func, __VA_ARGS__)
+
+
+//
+
+void test_solve_system() {
+    // РЎРѕР·РґР°РµРј РґРёР°РіРѕРЅР°Р»СЊРЅСѓСЋ РјР°С‚СЂРёС†Сѓ 3x3
+    matrix<double> A = matrix<double>::zeros(3, 3);
+    A[0][0] = 2.0;
+    A[1][1] = 3.0;
+    A[2][2] = 4.0;
+
+    // Р’РµРєС‚РѕСЂ РїСЂР°РІРѕР№ С‡Р°СЃС‚Рё
+    matrix<double> b = matrix<double>::ones(3, 1);
+    b[0][0] = 4.0;
+    b[1][0] = 6.0;
+    b[2][0] = 8.0;
+
+    // Р РµС€Р°РµРј СЃРёСЃС‚РµРјСѓ: A * x = b
+    matrix<double> x = matrixfunction::solve_system(A, b);
+
+    // РћР¶РёРґР°РµРјРѕРµ СЂРµС€РµРЅРёРµ: [2.0, 2.0, 2.0]
+    std::cout << "Solution:\n" << x << std::endl;
+}
+
+void test_solve_system_complex() {
+    // РњР°С‚СЂРёС†Р° A (РЅРµРґРёР°РіРѕРЅР°Р»СЊРЅР°СЏ, С‚СЂРµР±СѓРµС‚ РїРµСЂРµСЃС‚Р°РЅРѕРІРѕРє)
+    matrix<double> A = matrix<double>::zeros(3, 3);
+    A[0][0] = 0.0;  A[0][1] = 2.0;  A[0][2] = 1.0;
+    A[1][0] = 1.0;  A[1][1] = 1.0;  A[1][2] = 1.0;
+    A[2][0] = 2.0;  A[2][1] = 0.0;  A[2][2] = 3.0;
+    //std::cout << A.set_output_mode(output_mode::ABBREVIATED) << "\n";
+
+
+
+
+    // Р’РµРєС‚РѕСЂ РїСЂР°РІРѕР№ С‡Р°СЃС‚Рё: b = [5, 6, 13]
+    matrix<double> b = matrix<double>::ones(3, 1);
+    b[0][0] = 5.0;
+    b[1][0] = 6.0;
+    b[2][0] = 13.0;
+
+    // Р РµС€Р°РµРј СЃРёСЃС‚РµРјСѓ: A * x = b
+    matrix<double> x = matrixfunction::solve_system(A, b);
+
+
+    // РћР¶РёРґР°РµРјРѕРµ СЂРµС€РµРЅРёРµ: x = [1, 2, 3]
+    std::cout << "Computed solution:\n" << x << std::endl;
+
+    // РџСЂРѕРІРµСЂРєР° LU-СЂР°Р·Р»РѕР¶РµРЅРёСЏ: L * U = P * A
+    auto lup = A.LUP();
+    b.set_output_mode(output_mode::ABBREVIATED);
+    auto T = (lup.P * b);T.set_output_mode(output_mode::ABBREVIATED);
+    std::cout << "b:\n" << T.set_output_mode(output_mode::ABBREVIATED) << "\n";
+    matrix<double> LU = (lup.L * lup.U);LU.set_output_mode(output_mode::ABBREVIATED);
+    /*std::cout << "l:\n" << ((LU.get_output_mode()) == output_mode::FULL) << "\n";*/
+    matrix<double> PA = (lup.P * A);PA.set_output_mode(output_mode::ABBREVIATED);
+    std::cout << "L * U:\n" << LU << "\nP * A:\n" << PA << std::endl;
 
 }
-template<typename T>void matrix_calc() {
 
-    static char L = 'E';
-    while (1) {
+void Z5_2(int Size=4) {
+    std::cout << "Z5_2:\n\n";
+    matrix<double> A;
 
+    A = matrix<double>::randomDiagonal(Size, -100, 100);
+    std::cout << "A:\n" << A << "\n";
+    matrix<double> T = (matrix<int>::random(Size, Size, -100, 100));
+    A = T * A * (T.inverse_M());
+    std::cout << "T * A *(T^-1):\n" << A << "\n";
 
-        matrix<T> a, b, ans_out;
-        T ans_out_T;
-        std::cout << "Enter first Number \n";
-
-        std::cin >> a;
-        std::cout << "\n" << a << "\n";
-        std::cout << "Enter second Number \n";
-        std::cin >> b;
-        std::cout << "\n" << b << "\n";
-        std::cout << "Enter Action('-','+','/','*','r','E','d') :\n";
-        std::cin >> L;
-        if (L == 'E' || L == 'e')
-        {
-            break;
-        }
-        std::cout << std::endl;
-        switch (L)
-        {
-        case '+':ans_out = a + b; break;
-        case '-':ans_out = a - b; break;
-        case '*':ans_out = a * b; break;
-        case '/':ans_out = a / b; break;
-        case 'd':ans_out_T = (a.determinant()); break;
-        case 'r':ans_out = a.inverse_M(); break;
-        default:throw std::invalid_argument("unknown symbol");
-        }
-        if (L == 'd') {
-            std::cout << ans_out_T << "\n";
-        }
-        else
-        {
-            std::cout << ans_out << "\n";
-        }
-
-
-    }
-
-
-}
-void main_calc_menu() {
-    std::cout << "Enter calc type \n";
-
-    std::cout << "mfpint-matrix_calc<fraction<polynomial<int>>>()\n";
-    std::cout << "mfpdouble-matrix_calc<fraction<polynomial<double>>>()\n";
-    std::cout << "mpint-matrix_calc<polynomial<int>>()\n";
-    std::cout << "mpdouble-matrix_calc<polynomial<double>>()\n";
-    std::cout << "mdouble-matrix_calc<double>()\n";
-    std::cout << "mint-matrix_calc<int>()\n";
-    std::cout << "cmpl-complex_calc()\n";
-    std::cout << "\ncalc type:";
-
-    std::string type;
-    std::cin >> type;
-
-    if (type == "complex_calc()" || type == "cmpl")complex_calc();
-    else if (type == "matrix_calc<fraction<polynomial<int>>>()" || type == "mfpint" || type == "matfrpolint") matrix_calc<fraction<polynomial<int>>>();
-    else if (type == "matrix_calc<fraction<polynomial<double>>>()" || type == "mfpdouble" || type == "matfrpoldouble") matrix_calc<fraction<polynomial<double>>>();
-    else if (type == "matrix_calc<polynomial<int>>()" || type == "mpint" || type == "matpolint") matrix_calc<polynomial<int>>();
-    else if (type == "matrix_calc<polynomial<double>>()" || type == "mpdouble" || type == "matpoldouble") matrix_calc<polynomial<double>>();
-    else if (type == "matrix_calc<double>()" || type == "mdouble" || type == "matdouble") matrix_calc<double>();
-    else if (type == "matrix_calc<int>()" || type == "mint" || type == "matint") matrix_calc<int>();
-    else throw std::invalid_argument("unknown calculator type or an error in the name");
-}
-//global computing function 
-
-void calc_global() {
-    try
+    std::vector<double> shifts = { 0.9, -1.5, 4.5 ,20 };
+    std::vector<std::pair<double, matrix<double>>> result = matrixfunction::inverse_power_method_with_shifts(A, shifts);
+    for (auto p : result)
     {
-        std::string type;
-    restart:
-        main_calc_menu();
-        std::cout << "Do you want to get out?(yes/no)\n:";
-        std::cin >> type;
-        if (type == "yes" || type == "y" || !(type == "no" || type == "n"))std::exit(0);
-        if (type == "no" || type == "n")goto restart;
+        std::cout << "Eigenvalue: " << p.first << "\nEigenvector:\n" << p.second << "\n";
+    }
+    matrix<double> vec0 = matrix<double>::ones(Size, 1);
+    // std::cout << vec0 << "\n";
+    auto result_ = matrixfunction::inverse_power_method_with_shift(A, 1.5, vec0);
+    std::cout << "Eigenvalue: " << result_.first << "\nEigenvector:\n" << result_.second;
 
-    }
-    catch (std::exception ex)
-    {
-        std::cout << "exeption!!What:" << ex.what();
-    }
-    catch (...)
-    {
-        std::cout << "unknown error";
-    }
 }
+void Z5_1_2_const() {
+    std::cout << "Z5_2_const:\n\n";
+    matrix<double> A=matrix<double>::zeros(4,4);
+    A[0][0] = 120; 
+     A[1][1] = 12.0;  
+     A[2][2] = 1.2; 
+     A[3][3] = 0.012;
+    std::cout << "A:\n" << A << "\n";
+    
+    matrix<double> T(4, 4);
+    T[0][0] = 76;  T[0][1] = -56;  T[0][2] = -44;  T[0][3] = -80;
+    T[1][0] = 49;  T[1][1] = 49;  T[1][2] = 100;  T[1][3] = 44;
+    T[2][0] = 85;  T[2][1] = -37;  T[2][2] = 93;  T[2][3] = 20;
+    T[3][0] = 39;  T[3][1] = 95;  T[3][2] = -2;  T[3][3] = -22;
+
+    std::cout << "T :\n" << T << "\n";
+    A = T * A * (T.inverse_M());
+    std::cout << "T * A *(T^-1):\n" << A << "\n";
+
+    
+    std::vector<double> shifts = { 1000, 10, 1 ,0 }; 
+    std::vector<std::pair<double, matrix<double>>> result = matrixfunction::inverse_power_method_with_shifts(A, shifts);
+    std::cout << "inverse_with_shifts_Power_meth:\n\n";
+    for (auto p : result)
+    {
+        std::cout << "Eigenvalue: " << p.first << "\nEigenvector:\n" << p.second << "\n";
+    }
+    
+    std::cout << "matrixfunction::power_method_average:\n\n";
+    auto Ans = matrixfunction::power_method_average(A, matrix<double>::ones(A.getcol(), 1), 1e-10, 10000);
+    //matrixfunction::power_method_max(A, matrix<double>::ones(A.getcol(), 1),1e-10,10000);
+    std::cout << "Eigenvalue: " << Ans.first << "\nEigenvector:\n" << matrixfunction::simplify_eigenvector(Ans.second) << "\n";
 }
 
-namespace counting_methods {
+void Z5_plus(int Size = 4) {
+    std::cout << "Z5_plus:\n\n";
+    //fraction<polynomial<double>>
+    matrix<polynomial<double>> A;
 
-    void executeWithFileInput(std::function<void()> func, const char* filename) {
-        FILE* file;
-        
-        if (freopen_s(&file, filename, "r", stdin) != 0) {
-            std::cerr << "Ошибка при открытии файла: " << filename << std::endl;
-            return; // Завершение функции в случае ошибки
-        }
+    A = matrix<double>::randomDiagonal(Size, -100, 100);
+    std::cout << "A:\n" << A << "\n";
 
-        func();
+    matrix<polynomial<double>> T = (matrix<int>::random(Size, Size, -100, 100));
+    std::cout << "T:\n" << T << "\n";
+    A = T * A * (T.inverse_M());
+    std::cout << "T * A *(T^-1):\n" << A << " \n";
+    //std::cout<< std::fixed << A.determinant() << "\n";
 
-        fclose(file);
+    matrix<polynomial<double>> A_ = A - matrix<polynomial<double>>::eye(Size) * (polynomial<double>(1) * (polynomial<double>(1) >> 1));
+    
+    //std::cout << "A_:\n" << A_ << "\n";
+    uint64_t j = 0;
+    for (auto& i: A_.determinant().plnm_roots())
+    {
+        j++;
+        std::cout << "root_["<<j<<"]= "<< i.first << "\n";
     }
-
-
-
-
-    namespace polinomial {
-
-
-    template<typename P>P abs(P arg) {
-        if (arg < 0) { arg = arg * (-1); }
-        return arg;
-    }
-
-    template<typename P>std::pair<P, int> solve_tangents(polynomial<P> plnm,P x0, double e) {
-        int iterations = 0;
-        P x_old = 5, x_new = x0;
-        while (abs(x_new - x_old) > e) {
-            x_old = x_new;
-            x_new = x_old +  (polynomialfunctions::f_polyn_x0_<P>(plnm, x_old) / (polynomialfunctions::f_polyn_x0_<P>(polynomialfunctions::derivate(plnm), x_old)))*(-1);
-            iterations++;
-        }
-
-        return { x_new, iterations };
-    }
-
-    template<typename P>std::vector<std::pair<P, int>> plnm_roots(polynomial<P> plnm,P x0) {
-        std::vector<std::pair<P,int>> ans_roots;
-        polynomial<P> b;
-        size_t deg=plnm.get_deg()-1;
-        for (size_t i = 0; i < deg; i++)
-        {
-            auto ans = solve_tangents<P>(plnm, x0, LDBL_EPSILON);
-            //std::cout <<"root["<<i<<"]=" << ans.first << '\n';
-            b.newsize(2);
-            b[1] = 1;
-            b[0] = (ans.first) * (-1);
-
-            plnm = (plnm / b);
-            //std::cout << "plnm:" << plnm << "\nnew plnm" << b << "\nnew iter" << "'"<< i<< "' \n";
-            ans_roots.push_back(ans);
-        }
     
 
 
-        return ans_roots;
-    }
 
-
-    void polynomial_test() {
-        polynomial<Complex> plnm, b;
-        std::cin >> plnm;
-        auto ans = plnm_roots<Complex>(plnm,Complex(LDBL_EPSILON,LDBL_EPSILON));
-        for (size_t i = 0; i < ans.size(); i++)
-        {
-            std::cout << "root:(" << ans[i].first << ")\niteration for this root:" << ans[i].second << " \n";
-            //std::cout << "polynomialfunctions::f_polyn_x0_<Complex>(plnm, ans["<<i<<"].first):" << polynomialfunctions::f_polyn_x0_<Complex>(plnm, ans[i].first)<<'\n';
-        }
-
-
-    }
-
-
-    }
-
-    namespace nonlinear_system_with_simple_iterations {
-    using Function = std::function<double(const std::vector<double>&)>;
-
-    // Функция для решения нелинейной системы уравнений методом простых итераций
-    std::vector<double> nonlinear_system_with_simple_iterations(
-        const std::vector<Function>&functions,
-        const std::vector<double>&initial_guess,
-        double tolerance = 1e-20,
-        int max_iterations = LONG_MAX)
-    {
-        std::vector<double> current_guess = initial_guess;
-        int num_functions = functions.size();
-
-        for (int iteration = 0; iteration < max_iterations; ++iteration) {
-            std::vector<double> next_guess(num_functions);
-
-            // Вычисляем значения для следующей итерации
-            for (int i = 0; i < num_functions; ++i) {
-                next_guess[i] = functions[i](current_guess);
-                std::cout<<next_guess[i]<<"    ";
-            }
-            std::cout << "\n";
-            // Проверяем на сходимость
-            double max_diff = 0.0;
-            for (int i = 0; i < num_functions; ++i) {
-                max_diff = std::max(max_diff, std::abs(next_guess[i] - current_guess[i]));
-            }
-
-            if (max_diff < tolerance) {
-                return next_guess; // Возвращаем найденное решение
-            }
-
-            current_guess = next_guess; // Переходим к следующей итерации
-        }
-
-        throw std::runtime_error("Maximum iterations reached without convergence");
-    }
-
-    int run_nnssi_with_setted_nonlinear_function() {
-        //We define the functions of the system of equations 13
-        std::vector<Function> functions1 = {
-            [](const std::vector<double>& x) { return 1 - ((1+LDBL_EPSILON) / (2)) * std::sin(x[1] + 1); },//x=1-((1)/(2))sin(y+1)
-            [](const std::vector<double>& x) { return 0.7 - (1-LDBL_EPSILON)*cos(x[0] - 1); }                   //y=0.7-cos(x-1)
-        };
-
-        std::vector<double> initial_guess = { 0, 0};
-
-        try {
-            
-            std::vector<double> solution = nonlinear_system_with_simple_iterations(functions1, initial_guess);
-
-            //  результат
-            std::cout << "Solution: ";
-            for (double value : solution) {
-                std::cout << value << " ";
-            }
-            std::cout << std::endl;
-
-        }
-        catch (const std::exception& e) {
-            std::cerr << "!Error: " << e.what() << std::endl;
-        }
-
-        return 0;   
-    }
-    int run_nnssi_with_setted_linear_function() {
-        //We define the functions of the system of equations 13
-        std::vector<Function> functions1 = {
-            [](const std::vector<double>& x) { return (24.4781 -(0.0496 * x[1] + 0.0444 * x[2] + 0.0393 * x[3])) / 16;},
-            [](const std::vector<double>& x) { return (26.0849 -(.0688 * x[0] + .0585 * x[2] + .0534 * x[3])) / 15.1; } ,
-            [](const std::vector<double>& x) { return (27.3281 -(.0829 * x[0] + .0777 * x[1] + .0674 * x[3])) / 14.2000; },
-            [](const std::vector<double>& x) { return (28.2078 -(.0970 * x[0] + .0918 * x[1] + .0867 * x[2])) / 13.3000;  }
-        };
-
-        std::vector<double> initial_guess = { 0.1, 0.1,0.1,0.1 };
-
-        try {
-
-            std::vector<double> solution = nonlinear_system_with_simple_iterations(functions1, initial_guess);
-
-            //  результат
-            std::cout << "Solution: ";
-            for (double value : solution) {
-                std::cout << value << " ";
-            }
-            std::cout << std::endl;
-
-        }
-        catch (const std::exception& e) {
-            std::cerr << "!Error: " << e.what() << std::endl;
-        }
-
-        return 0;
-    }
-
-
-    }
-
-
-
-
-
-    namespace nonlinear_system_with_the_tangent_method {
-
-        // Определим типы для функций и якобиана
-        using Function = std::function<double(const std::vector<double>&)>;
-        using Jacobian = std::function<std::vector<std::vector<double>>(const std::vector<double>&)>;
-
-        // Функция для решения нелинейной системы уравнений методом Ньютона
-        std::vector<double> nonlinear_system_with_newton(
-            const std::vector<Function>& functions,
-            const Jacobian& jacobian,
-            const std::vector<double>& initial_guess,
-            double tolerance = 1e-9,
-            int max_iterations = 100000)
-        {
-            std::vector<double> current_guess = initial_guess;
-            int num_functions = functions.size();
-
-            for (int iteration = 0; iteration < max_iterations; ++iteration) {
-                // Вычисляем значения функций
-                std::vector<double> function_values(num_functions);
-                for (int i = 0; i < num_functions; ++i) {
-                    function_values[i] = functions[i](current_guess);
-                }
-
-                // Вычисляем якобиан
-                std::vector<std::vector<double>> J = jacobian(current_guess);
-
-                // Решаем систему J * delta = -F для delta
-                std::vector<double> delta(num_functions);
-
-                // Используем метод Гаусса или любой другой метод для решения системы
-                // Для простоты, будем использовать метод Гаусса с прямой подстановкой
-                // Здесь мы просто создаем матрицу и вектор для решения
-                std::vector<std::vector<double>> augmented_matrix(num_functions, std::vector<double>(num_functions + 1));
-
-                for (int i = 0; i < num_functions; ++i) {
-                    for (int j = 0; j < num_functions; ++j) {
-                        augmented_matrix[i][j] = J[i][j];
-                    }
-                    augmented_matrix[i][num_functions] = -function_values[i];
-                }
-
-                // Прямой ход Гаусса
-                for (int i = 0; i < num_functions; ++i) {
-                    // Нормализация строки
-                    double pivot = augmented_matrix[i][i];
-                    for (int j = i; j <= num_functions; ++j) {
-                        augmented_matrix[i][j] /= pivot;
-                    }
-
-                    // Обнуление ниже
-                    for (int k = i + 1; k < num_functions; ++k) {
-                        double factor = augmented_matrix[k][i];
-                        for (int j = i; j <= num_functions; ++j) {
-                            augmented_matrix[k][j] -= factor * augmented_matrix[i][j];
-                        }
-                    }
-                }
-
-                // Обратный ход Гаусса
-                for (int i = num_functions - 1; i >= 0; --i) {
-                    delta[i] = augmented_matrix[i][num_functions];
-                    for (int j = i + 1; j < num_functions; ++j) {
-                        delta[i] -= augmented_matrix[i][j] * delta[j];
-                    }
-                }
-
-                // Обновляем текущее приближение
-                for (int i = 0; i < num_functions; ++i) {
-                    current_guess[i] += delta[i];
-                }
-
-                // Проверяем на сходимость
-                double max_diff = 0.0;
-                for (const auto& d : delta) {
-                    max_diff = std::max(max_diff, std::abs(d));
-                }
-
-                if (max_diff < tolerance) {
-                    return current_guess; // Возвращаем найденное решение
-                }
-            }
-
-            throw std::runtime_error("Maximum iterations reached without convergence");
-        }
-
-        // Пример использования
-        int nonlinsystem_tangent_method() {
-            // Определяем функции системы уравнений
-            std::vector<Function> functions = {
-                [](const std::vector<double>& x) { return std::tan(x[0] * x[1] + 0.4) - x[0] * x[0]; }, // Пример: f1(x1, x2) = x1^2 + x2 - 2
-                [](const std::vector<double>& x) { return 0.8 * x[0] * x[0] + 2 * x[1] * x[1] - 1; } // Пример: f2(x1, x2) = x1 - x2^2
-            };
-
-            // Определяем якобиан системы уравнений
-            Jacobian jacobian = [](const std::vector<double>& x) {
-                return std::vector<std::vector<double>>{
-                    { x[1]/(std::cos((5*x[1]*x[0]+2)/5)* std::cos((5 * x[1] * x[0] + 2) / 5)) - 2*x[0] , x[0]/ (std::cos((5 * x[1] * x[0] + 2) / 5) * std::cos((5 * x[1] * x[0] + 2) / 5)) },     // df1/dx1, df1/dx2
-                    {8*x[0],4*x[1]}     // df2/dx1, df2/dx2
-                };
-                };
-
-            // Начальное приближение
-            std::vector<double> initial_guess = {0.1, 0.1};
-
-            try {
-                // Решаем систему уравнений
-                std::vector<double> solution = nonlinear_system_with_newton(functions, jacobian, initial_guess);
-
-                // Выводим результат
-                std::cout << "Solution: \n";
-                for (double value : solution) {
-                    std::cout << value << " presizion:   "<< std::sqrt(functions[0](solution) * functions[0](solution) + functions[1](solution)* functions[1](solution))<<"\n";
-                }
-                std::cout << std::endl;
-
-            }
-            catch (const std::exception& e) {
-                std::cerr << "Error: " << e.what() << std::endl;
-            }
-
-            return 0;
-        }
-    }
-
-    namespace gaus_method{
-
-        matrix<double> mult(const matrix<double>& left, const matrix<double>& b)  {
-            //if (left.getcol() != b.getrow() || b.getcol() != 1) {
-            //    throw std::invalid_argument("Invalid dimensions for multiplication.");
-            //}
-            
-            matrix<double> result(left.getrow(), 1);
-            for (size_t i = 0; i < left.getrow(); ++i) {
-                for (size_t j = 0; j < left.getrow(); ++j) {
-                    result[0][i] += left[i][j] * b[0][j];
-                    std::cout << "result[0][<<" << i << "]=" << result[0][i] << "\n";
-                }
-            }
-            return result;
-        }
-
-        void gaus_solver_linear_sistem() {
-           
-
-            try
-            {
-                matrix<double> a;
-            std::cin >> a;
-            std::cout << "\n" << a;
-
-            matrix<double> b;
-            std::cin >> b;
-            std::cout << "\n" << b;
-            std::cout << "\na^-1:\n" << (a.inverse_M()) ;
-            std::cout << "\na*b:\n" << mult((a.inverse_M()) , b);
-            
-            std::cout << "\ncheck:\n" << a * b;
-            //std::cout << "\n(a.inverse_M()):\n" << (a.inverse_M());
-
-            //std::cout << "\n a*(a.inverse_M()):\n" <<(a.inverse_M())* a;
-            }
-
-
-
-            catch (std::exception ex)
-            {
-                std::cout << "exeption!!What:" << ex.what();
-            }
-            catch (...)
-            {
-                std::cout << "unknown error";
-            }
-    }
-    }
-    
-    namespace holechi {
-        int example() {
-        matrix<double> A(4);
-
-        A[0][0] = .1954; A[0][1] = .7700; A[0][2] = 1.3446; A[0][3]= 1.9192;
-        A[1][0] = .7700; A[1][1] = 15.1728; A[1][2] = 21.9666; A[1][3]= 28.7604;
-        A[2][0] = 1.3446; A[2][1] = 21.9666; A[2][2] = 74.7291; A[2][3]= 93.3867;
-        A[3][0] = 1.9192; A[3][1] = 28.7604; A[3][2] = 93.3867; A[3][3]= 208.6609;
-        
-        
-
-            
-        std::cout << "inpyt matrix:\n" << A;
-
-        try {
-            matrix<double> A_inv = (A.cholesky().inverse_M()).transpose()* A.cholesky().inverse_M();
-            std::cout << " A^{-1}:\n" << A_inv;
-
-            std::cout << "check A^{-1}:\n" << A_inv*A;
-        }
-        catch (const std::exception& e) {
-            std::cerr << "error: " << e.what() << std::endl;
-        }
-
-        return 0;
-    }
-    }
 }
-        
+
+void Z5_qr(int Size = 4) {
+
+    std::cout << "\n\nZ5_qr:\n\n";
+    //fraction<polynomial<double>>
+    matrix<double> A;
+
+    A = matrix<double>::randomDiagonal(Size, -100, 100);
+    std::cout << "A:\n" << A << "\n";
+
+    matrix<double> T = (matrix<int>::random(Size, Size, -100, 100));
+    std::cout << "T:\n" << T << "\n";
+    A = T * A * (T.inverse_M());
+    std::cout << "T * A *(T^-1):\n" << A << " \n  ";
+    //std::cout << "A_:\n" << A_ << "\n";
+    uint64_t j = 0;
+    for (auto& i : matrixfunction::compute_eigenvalues_3_qr(A))
+    {
+        j++;
+        std::cout << "eig[" << j << "]= "  << i<< "\n";
+    }
 
 
+}
+//
+// 
+// 
+template<typename T>
+std::vector<std::pair<T, T>> addNoiseToPoints(
+    const std::vector<std::pair<T, T>>& points,
+    int measurements_per_point = 3,
+    T noise_level = T(0.1)
+) {
+
+
+    std::vector<std::pair<T, T>> noisy_points;
+    noisy_points.reserve(points.size() * measurements_per_point);
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    for (const auto& point : points) {
+        const T x = point.first;
+        const T y_clean = point.second;
+
+        std::uniform_real_distribution<T> dist(-noise_level, noise_level);
+
+        for (int i = 0; i < measurements_per_point; ++i) {
+            T noise = dist(gen);
+            T y_noisy = y_clean + noise;
+
+            noisy_points.emplace_back(x, y_noisy);
+        }
+    }
+
+    return noisy_points;
+}
+void Z6_1(int size,int degree_of_the_polynomial) {
+#define loc_identifier1 x*x + 20*x*x*x+ 444*x*x*x*x*x 
+#define loc_identifier2 (x-std::sin(x) - 0.25)
+#define identifier loc_identifier1
+#define the_left_border -M_PI / 4
+#define the_right_border M_PI / 4
+//#define SIZE_ 20
+//#define degree_of_the_polynomial 7
+
+
+    std::vector<std::pair<double, double>> clean_points = counting_methods_2::Polynomial_interpolation::nuton2::generatePoints_equally_sufficient_(size, the_left_border, the_right_border, [](double x) { return identifier; });
+    auto noisy_points = addNoiseToPoints(clean_points, 3, 0.2);
+    noisy_points.insert(noisy_points.end(), clean_points.begin(), clean_points.end());
+    std::sort(noisy_points.begin(), noisy_points.end());
+    for (auto& I : noisy_points) {
+        std::cout << "<" << I.first << ";" << I.second << ">\n";
+    }
+    std::cout << "\npolynomial function :\n"<< "x*x + 20*x*x*x+ 444*x*x*x*x*x\n";
+
+    std::cout << "\nNormal equations polynomial:\n" << counting_methods_2::aproximate::least_squares_normal(noisy_points, degree_of_the_polynomial);
+    std::cout << "\nOrthogonal polynomial:\n" << counting_methods_2::aproximate::least_squares_orthogonal(noisy_points, degree_of_the_polynomial);
+}
+//
 int main() {
+    using namespace counting_methods_2::Polynomial_interpolation::nuton2;
+#if 0
     //calc_computing_f::matrix_calc<double>();
-
-
 //C:\Users\User\source\repos\cpp_rewriting_SPBGU\input_matrix.txt
     /*counting_methods::polinomial::polynomial_test();*/
     //counting_methods::nonlinear_system_with_simple_iterations::run_nnssi_with_setted_nonlinear_function();
@@ -539,6 +272,159 @@ int main() {
     //counting_methods::nonlinear_system_with_simple_iterations::run_nnssi_with_setted_linear_function();
 
     counting_methods::holechi::example();
+#endif
+
+
+
+#define PART_OF_TASK 0
+
+
+
+#if PART_OF_TASK==0
+    Z5_qr();
+    // // // // 
+    Z6_1(20, 7);
+
+#define identifier (x-std::sin(x) - 0.25)
+#define the_left_border -M_PI / 4
+#define the_right_border M_PI / 4
+    using SplineInterpolatorFunc = Spline<double>(*)(std::vector<std::pair<double, double>>);
+
+    //x-std::sin(x) - 0.25
+    counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
+        Spline_interpolator<3, 2, double>, // interpolator
+        50, 50,                      // n, m_
+        "Spline_interpolator<3, 2, double>",
+        [](double x) { return  identifier; },
+        the_left_border, the_right_border,
+        5
+    );
+
+
+    counting_methods_2::aproximate::show_aproximate_statistic([](double x) { return (x - std::sin(x) - 0.25); });
+
+// // // // // // // // //
+
+
+#elif PART_OF_TASK == 4
+    
+        polynomial<double>a; a.outm_E = output_mode::FULL;
+        polynomial<double>b;
+        std::vector <double> roots{ 1,3,/*0.5,0.6,12 */};
+        a.the_root_constructor(roots);
+        auto V = (polynomialfunctions::plnm_roots(a.get_first_derrivate(), DBL_EPSILON));
+        std::cout <<"polynomialfunctions:" << a << '\n';
+
+        b = nuton_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
+        std::cout << "\n:nuton_interpolation" << b;
+        b = Lagrang_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
+        std::cout << "\nLagrang_interpolation:" << b ;
+        b = Alternativ_nuton_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
+        std::cout << "\nAlternativ_nuton_interpolation:" << b ;
+        b = Alternativ_Lagrang_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
+        std::cout << "\nAlternativ_Lagrang_interpolation:" << b;
+
+        auto spl4 = Spline_interpolator<4, 3, double>(generatePoints_equally_sufficient_(5, -12.0, 12.0, a));
+        std::cout << "\nSpline_interpolator<4,3, double>:" << spl4 << "\n";
+
+        auto spl3 = Spline_interpolator<3,2, double>(generatePoints_equally_sufficient_(5, -12.0, 12.0, a));
+        std::cout << "\nSpline_interpolator<3,2, double>:" << spl3 << "\n";
+
+        auto spl2 = Spline_interpolator<2, 1, double>(generatePoints_equally_sufficient_(5, -12.0, 12.0, a));
+        std::cout << "\nSpline_interpolator<2, 1, double>:" << spl2 << "\n";
+
+
+        auto spl1 = Spline_interpolator<1, 0, double>(generatePoints_equally_sufficient_(5, -12.0, 12.0, a));
+        std::cout << "\nSpline_interpolator<1, 0, double>:" << spl1 << "\n";
+#define identifier (x-std::sin(x) - 0.25)
+#define the_left_border -M_PI / 4
+#define the_right_border M_PI / 4
+        using SplineInterpolatorFunc = Spline<double>(*)(std::vector<std::pair<double, double>>);
+
+        std::cout << "interpolinoms:nuton_interpolation, Lagrang_interpolation, Alternativ_nuton_interpolation, Alternativ_Lagrang_interpolation\n\n";
+
+
+        SHOW_INTERPOL_STAT(
+            nuton_interpolation<double>, // interpolator
+            10, 20,                      // n, m_
+            [](double x) { return identifier; },
+            the_left_border, the_right_border,
+            20
+        );
+        SHOW_INTERPOL_STAT(
+            Lagrang_interpolation<double>,
+            10, 20,
+            [](double x) { return identifier; },
+            the_left_border, the_right_border,
+            20
+        );
+        SHOW_INTERPOL_STAT(
+            Alternativ_nuton_interpolation<double>, // interpolator
+            10, 20,                      // n, m_
+            [](double x) { return identifier; },
+            the_left_border, the_right_border,
+            20
+        );
+        SHOW_INTERPOL_STAT(
+            Alternativ_Lagrang_interpolation<double>, // interpolator
+            10, 20,                      // n, m_
+            [](double x) { return identifier; },
+            the_left_border, the_right_border,
+            20
+        );
+
+        std::cout << "spline: <3,2> <2,1> <1,0>\n";
+
+        //x-std::sin(x) - 0.25
+        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
+            Spline_interpolator<3, 2, double>, // interpolator
+            50, 50,                      // n, m_
+            "Spline_interpolator<3, 2, double>",
+            [](double x) { return  identifier; },
+            the_left_border, the_right_border,
+            5
+        );
+
+        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
+            Spline_interpolator<2, 1, double>, // interpolator
+            50, 50,                      // n, m_
+            "Spline_interpolator<2, 1, double>",
+            [](double x) { return identifier; },
+            the_left_border, the_right_border,
+            20
+        );
+
+        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
+            Spline_interpolator<1, 0, double>, // interpolator
+            10, 20,                      // n, m_
+            "Spline_interpolator<1,0, double>",
+            [](double x) { return identifier; },
+            the_left_border, the_right_border,
+            20
+        );
+
+    
+    
+#elif PART_OF_TASK==5
+    Z5_2(4);
+    Z5_1_2_const();
+    Z5_plus();
+    Z5_qr();
+
+#elif PART_OF_TASK == 6
+Z6_1(20, 7);
+counting_methods_2::aproximate::show_aproximate_statistic([](double x) { return (x - std::sin(x) - 0.25); });
+#endif
+    
+
+   
+    
+
+
     system("pause");
     return 0;
 }

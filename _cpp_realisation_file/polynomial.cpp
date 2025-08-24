@@ -1,19 +1,111 @@
 #pragma once
 #include"../file_h/polynomial.h"
+
+namespace polynomialfunctions {
+
+	template<typename P>inline polynomial<P> derivate(const polynomial<P>& polynom) {
+		polynomial<P> ans;
+		ans.newsize(polynom.get_deg());
+		if (polynom.get_deg() > 0) {
+			for (uint64_t i = polynom.get_deg() - 1; i >= 1; i--) {
+				ans[i - 1] = polynom[i] * i;
+			}
+			ans = ans.cutbag();
+		}
+		else {
+			ans = 0;
+		}
+		return ans;
+	}
+	template<typename P>inline P f_polyn_x0_(const polynomial<P>& polynom, const P& x0) {
+		P ans(0);
+		/*for (uint64_t i = 0; i < polynom.get_deg(); i++) {
+			std::cout << '\n' << polynom[i]   << std::endl;
+		}*/
+		for (uint64_t i = polynom.get_deg(); i > 0; --i) {
+			//std::cout << "\n ans:" << ans<<"i=" << i - 1 << std::endl;
+			ans = polynom[i - 1] + (ans)*x0;
+		}
+		//std::cout << "\n ans:" << ans;
+		return ans;
+	}
+
+	template<typename P>P abs(P arg) {
+		if (arg < 0) { arg = arg * (-1); }
+		return arg;
+	}
+	template<typename P>P max(P arg1, P arg2) {
+		if (arg1 <= arg2) {
+			return arg2;
+		}
+		else
+			return arg1;
+	}
+	template<typename P>std::pair<P, int> solve_tangents(polynomial<P> plnm, P x0, double e, uint64_t max_iter_number) {
+		int iterations = 0;
+		P x_old = 5, x_new = x0;
+		auto derivate = polynomialfunctions::derivate(plnm);
+		while (abs(x_new - x_old) > e and iterations < max_iter_number) {
+			auto T = abs(x_new - x_old);
+			x_old = x_new;
+			x_new = x_old + (polynomialfunctions::f_polyn_x0_<P>(plnm, x_old) / (polynomialfunctions::f_polyn_x0_<P>(derivate, x_old))) * (-1);
+			iterations++;
+		}
+		return { x_new, iterations };
+	}
+
+	template<typename P>std::vector<std::pair<P, int>> plnm_roots(polynomial<P> plnm, P x0)
+	{
+		std::vector<std::pair<P, int>> ans_roots;
+		polynomial<P> b;
+		size_t deg = plnm.get_deg() - 1;
+		//std::cout << plnm << "  deg" << plnm.get_deg() << "\n";
+
+		for (size_t i = 0; i < deg; i++)
+		{
+			//std::cout << "plnm:" << plnm << "\nnew plnm" << b << "\nnew iter" << "'" << i << "' \n";
+			auto ans = solve_tangents<P>(plnm, x0, LDBL_EPSILON);
+			//std::cout << "ans" << solve_tangents<P>(plnm, x0, LDBL_EPSILON).first << "\n";
+			//std::cout <<"root["<<i<<"]=" << ans.first << '\n';
+			b.newsize(2);
+			b[1] = 1;
+			b[0] = (ans.first) *(P) (-1.0);
+
+			plnm = (plnm / b);
+			//std::cout << "plnm after:" << plnm<<"\n";
+			ans_roots.push_back(ans);
+		}
+		return ans_roots;
+	}
+
+	template<typename P>polynomial<P> filter_large_epsilon(polynomial<P> pol, P eps) {
+		for (uint64_t i = 0; i < pol.get_deg(); i++)
+		{
+				if (-eps < pol[i] && pol[i] < eps){
+					pol[i] = 0;
+			}
+		}
+		return pol.cutbag();
+
+	}
+
+}
+
 template<typename P>polynomial<P> polynomial<P>::operator>>(const uint64_t power)const
 {
-	polynomial result;result.newsize(deg + power);
+	polynomial<P> result;result.newsize(deg + power);
 	for (uint64_t i = 0; i < deg; i++)
 	{
 		result.ptr[i + power] = ptr[i];
+		
 	}
 	return result;
 }
 
 template<typename P>polynomial<P> polynomial<P>::operator<<(const uint64_t power)const
 {
-	polynomial result; result.newsiz(deg - power);
-	for (uint64_t i = 0; i <= (deg - power); i++)
+	polynomial result; result.newsize(deg - power);
+	for (uint64_t i = 0; i < (deg - power); i++)
 	{
 		result.ptr[i] = ptr[i + power];
 	}
@@ -146,17 +238,17 @@ template<typename P>std::istream& operator>>(std::istream& in, polynomial<P>& pl
 
 	return in;
 }
-
-template<typename P>void polynomial<P>::output_mode_set(std::string newmode) {
-	switch (newmode)
-	{
-	case "FULL": outm_E = output_mode::FULL;			 break;
-	case "ABBREVIATED":outm_E = output_mode::ABBREVIATED;break;
-	case "SHORT": outm_E = output_mode::SHORT;			 break;
-	default:break;
-	}
-}
-template<typename P>void polynomial<P>::output_mode_set(uint64_t newmode) {
+//
+//template<typename P>polynomial<P> polynomial<P>::output_mode_set(std::string newmode) {
+//	switch (newmode)
+//	{
+//	case "FULL": outm_E = output_mode::FULL;			 break;
+//	case "ABBREVIATED":outm_E = output_mode::ABBREVIATED;break;
+//	case "SHORT": outm_E = output_mode::SHORT;			 break;
+//	default:break;
+//	}
+//}
+template<typename P>polynomial<P> polynomial<P>::output_mode_set(uint64_t newmode) {
 	switch (newmode)
 	{
 	case 0: outm_E = output_mode::FULL;			break;
@@ -164,8 +256,9 @@ template<typename P>void polynomial<P>::output_mode_set(uint64_t newmode) {
 	case 2: outm_E = output_mode::SHORT;		break;
 	default:break;
 	}
+	return *this;
 }
-template<typename P>void polynomial<P>::output_mode_set(output_mode new_outm_E) {
+template<typename P>polynomial<P>& polynomial<P>::output_mode_set(output_mode new_outm_E) {
 	switch (new_outm_E)
 	{
 	case output_mode::FULL:			outm_E = output_mode::FULL;			break;
@@ -173,6 +266,7 @@ template<typename P>void polynomial<P>::output_mode_set(output_mode new_outm_E) 
 	case output_mode::SHORT:		outm_E = output_mode::SHORT;		break;
 	default:break;
 	}
+	return *this;
 }
 
 template<typename P>std::ostream& operator<<(std::ostream& out, const polynomial<P>& plnm)
@@ -364,7 +458,7 @@ template<typename P>bool  polynomial<P>::operator<(const polynomial<P>& other)co
 {
 	return this->deg <  other.deg;
 }
-template<typename P>P& polynomial<P>::operator[](uint64_t index) {
+template<typename P>P& polynomial<P>::operator[](uint64_t index) const {
 	if (index >= deg) {
 		throw std::out_of_range("Index out of range");
 	}
@@ -383,3 +477,43 @@ template<typename P>polynomial<P> polynomial<P>::cutbag() const {
 	return new_poly;
 }
 
+template<typename P>void polynomial<P>::the_root_constructor(const std::vector<P>& array_x) {
+	polynomial<P> a(1);
+	for (uint64_t i = 0; i < array_x.size(); i++)
+	{
+		polynomial<P> b(1);
+		b = 1; b = b >> 1;
+		b = b - array_x[i];
+		a = a * b;
+	}
+	*this = a;
+}
+
+template<typename P>P polynomial<P>::maximum_abs(P a, P b) const {
+	using namespace polynomialfunctions;
+	P ans_max = 0;
+	std::vector<std::pair<P, int>> V = polynomialfunctions::plnm_roots(this->get_first_derrivate(), DBL_EPSILON);
+	//std::cout << this<<" " << *this << '\n';
+	for (auto& i : V)
+	{
+		if (a < i.first && i.first < b) {
+			//std::cout << "i.first:" << i.first << " (*this)(i.first): " << ((*this)(i.first)) << "abs:" << polynomialfunctions::abs((*this)(i.first))<< " \n";
+			ans_max = polynomialfunctions::max(ans_max,abs((*this)(i.first) ));
+		}
+	}
+	ans_max =max(ans_max, polynomialfunctions::abs((*this)(a)));
+	ans_max =max(ans_max, polynomialfunctions::abs((*this)(b)));
+	//std::cout <<"ans_max:" << ans_max << '\n';
+	return ans_max;
+}
+
+//template<typename P>P polynomial<P>::maximum_abs()const {
+//	P ans_max = 0;
+//	for (auto& i : polynomialfunctions::plnm_roots(this->get_first_derrivate()) )
+//	{
+//		ans_max = polynomialfunctions::max(ans_max, polynomialfunctions::abs((*this)(i.first)));
+//		std::cout << "\n" << i.first << " f(i.first) " << (*this)(i.first) << "\n";
+//	}
+//	
+//	return ans_max;
+//}
