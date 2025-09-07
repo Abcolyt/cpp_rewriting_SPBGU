@@ -159,6 +159,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="calc_computing_f.h" />
+    <ClInclude Include="counting_methods_3.h" />
     <ClInclude Include="file_h\Array_xy_To_.h" />
     <ClInclude Include="file_h\complex.h" />
     <ClInclude Include="file_h\counting_methods_1.h" />
