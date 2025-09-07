@@ -1,9 +1,14 @@
 ﻿#pragma once
-#include "../matrix.h"
-template<typename T>matrix<T>::matrix(const matrix<T>& mtrx) 
-{
-    (*this).ptr = nullptr;
-    (*this) = mtrx;
+#include "../file_h/matrix.h"
+template<typename T>matrix<T>::matrix(const matrix<T>& other)
+    : ptr(nullptr), colsize(other.colsize), rowsize(other.rowsize), out_mode(other.out_mode) {
+
+    if (colsize > 0 && rowsize > 0) {
+        ptr = new T[colsize * rowsize];
+        for (uint64_t i = 0; i < colsize * rowsize; ++i) {
+            ptr[i] = other.ptr[i];
+        }
+    }
 }
 template<typename T>matrix<T>::matrix() 
 {
@@ -22,6 +27,34 @@ template<typename T>matrix<T>::matrix(uint64_t colsize, uint64_t rowsize)
         ptr[i] = 0;
     }
 }
+
+template<typename T>matrix<T>::matrix(std::initializer_list<std::initializer_list<T>> init)
+    : ptr(nullptr), colsize(init.size()), rowsize(0) {
+
+    // We check that all lines have the same length.
+    if (colsize > 0) {
+        rowsize = init.begin()->size();
+        for (const auto& row : init) {
+            if (row.size() != rowsize) {
+                throw std::invalid_argument("All rows must have the same length");
+            }
+        }
+    }
+
+    allocateMemory();
+
+    //Copying data from the initialization list
+    uint64_t i = 0;
+    for (const auto& row : init) {
+        uint64_t j = 0;
+        for (const auto& value : row) {
+            (*this)[i][j] = value;
+            j++;
+        }
+        i++;
+    }
+}
+
 template<typename T>matrix<T>::~matrix()
 {
     delete[] ptr;
@@ -40,7 +73,6 @@ template<typename T>matrix<T> matrix<T>::sqprediag(const uint64_t S)const
 template<typename T>matrix<T> matrix<T>::transpose() const {
 
     matrix<T> temp(rowsize, colsize);
-
     for (size_t i = 0; i < colsize; ++i) {
         for (size_t j = 0; j < rowsize; ++j) {
             temp[j][i] = (*this)[i][j];
@@ -406,6 +438,7 @@ template<typename T>matrix<T>& matrix<T>::operator=(const matrix<T>& other)
             {
                 (*this)[i][j] = other[i][j];
             }
+           
         }
     }
 

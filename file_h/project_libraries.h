@@ -12,17 +12,17 @@
 //#include <boost/safe_numerics/safe_integer.hpp>
 
 //My Libraries
-#include "complex.h"
-#include "fraction.h"
-#include "polynomial.h"
-#include "matrix.h"
+#include "../file_h/complex.h"
+#include "../file_h/fraction.h"
+#include "../file_h/polynomial.h"
+#include "../file_h/matrix.h"
 
 //My algorithms for libraries
-#include "counting_methods_1.h"
-#include "counting_methods_2.h"
-#include "Array_xy_To_.h"
-#include "calc_computing_f.h"
-#include "Spline.h"
-#include "eigenvalues.h"
+#include "../file_h/counting_methods_1.h"
+#include "../file_h/counting_methods_2.h"
+#include "../file_h/Array_xy_To_.h"
+#include "../file_h/calc_computing_f.h"
+#include "../file_h/Spline.h"
+#include "../file_h/eigenvalues.h"//empty file
 
-#include "counting_methods_3.h"
+#include "../file_h/counting_methods_3.h"

@@ -2,8 +2,8 @@
 #include <array>
 #include <algorithm>
 #include <utility> 
-#include "../polynomial.h"
-#include "../matrix.h"
+#include "../file_h/polynomial.h"
+#include "../file_h/matrix.h"
 
 uint64_t factorial(const int n)
 {

@@ -472,8 +472,11 @@ namespace sem_5 {
 }
 int main() {
 
-
-
+    matrix<double> T{ {1}};
+    std::cout << "T :\n" << T<<"\n";
+    std::cout << "coeff :\n" << counting_methods_3::СoefficNewtonCotes(T,static_cast<double>(0), static_cast<double>(1)) << "\n";
+    //std::cout << "T :\n" << T << "\n";
+    
     system("pause");
     return 0;
 }
