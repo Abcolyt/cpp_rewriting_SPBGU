@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <complex>
 
-//#include "../complex.h"
+//#include "../file_h/complex.h"
 
 extern enum class output_mode;
 template<typename T> class matrix;
@@ -456,7 +456,8 @@ public:
     matrix(uint64_t colsize, uint64_t rowsize);
     //the default constructor
     matrix();
-
+    //2D Constructor with initialization list
+    matrix(std::initializer_list<std::initializer_list<T>> init);
     template <typename U>matrix(const matrix<U>& other) {
         colsize = other.getcol();
         rowsize = other.getrow();
@@ -466,6 +467,13 @@ public:
                 (*this)[i][j] = static_cast<T>(other[i][j]);
             }
         }
+    }
+    //move operator
+    matrix(matrix<T>&& other) noexcept
+        : ptr(other.ptr), colsize(other.colsize), rowsize(other.rowsize), out_mode(other.out_mode) {
+        other.ptr = nullptr;
+        other.colsize = 0;
+        other.rowsize = 0;
     }
     ~matrix();//destructor
 
@@ -497,6 +505,21 @@ public:
     matrix<T> operator*(const T& other) const;
     // assignment operator overload
     matrix<T>& operator=(const matrix<T>& other); 
+    //r-value moving
+    matrix<T>& operator=(matrix<T>&& other) noexcept {
+        if (this != &other) {
+            delete[] ptr;
+            ptr = other.ptr;
+            colsize = other.colsize;
+            rowsize = other.rowsize;
+            out_mode = other.out_mode;
+            other.ptr = nullptr;
+            other.colsize = 0;
+            other.rowsize = 0;
+        }
+        return *this;
+    }
+
 
     template <typename U>matrix<T>& operator=(const matrix<U>& other) {
         if (static_cast<const void*>(this) != static_cast<const void*>(&other)) {
@@ -551,7 +574,14 @@ public:
     LUResult<T> LUP() const;
     //replacement by a matrix of zero T elements
     static matrix<T> zeros(uint64_t colsize, uint64_t rowsize);
+
     //replacement by a matrix of single T elements
+    //  <---rows--->
+    //  1 1  ..  1 1     |
+    //  1 1  ..  1 1     |
+    //  . ..   ...  .. ..    cols                   
+    //  1 1  ..  1 1     |
+    //  1 1  ..  1 1     |
     static matrix<T> ones(uint64_t colsize, uint64_t rowsize);
     //The identity matrix
     //  <-----S---->
@@ -641,6 +671,30 @@ public:
     matrix<T> submatrix(uint64_t start_row, uint64_t start_col, uint64_t rows, uint64_t cols) const;
 
     std::vector<std::complex<T>> eigenvalues_qr_double_shift(double epsilon) const;
+    
+    //LOGIC OPERATIONS
+    //Is a vector a row or a vector a column
+    bool is_vector() {
+        return (this->colsize == 1) || (this->rowsize == 1);
+    }
+    bool operator==(const matrix<T>& other) const {
+        if (this->getcol() == other.getcol() && this->getrow() == other.getrow()) {
+
+        for (size_t i = 0; i < this->getcol(); i++)
+        {
+            for (size_t j = 0; j < this->getrow(); j++)
+            {   
+                if ((*this)[j][i] != other[j][i]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+        }
+        else {
+            return false;
+        }
+    }
 };
 template<typename T>
 matrix<T> operator*(const T& scalar, const matrix<T>& mat) {

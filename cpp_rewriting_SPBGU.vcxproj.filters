@@ -101,7 +101,7 @@
     <ClInclude Include="project_libraries.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="counting_methods_3.h">
+    <ClInclude Include="file_h\counting_methods_3.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

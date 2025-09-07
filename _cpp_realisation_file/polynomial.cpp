@@ -1,5 +1,5 @@
 #pragma once
-#include"../polynomial.h"
+#include"../file_h/polynomial.h"
 
 namespace polynomialfunctions {
 
