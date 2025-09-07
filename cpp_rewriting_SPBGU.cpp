@@ -1,27 +1,6 @@
-﻿#include 
+﻿#include "file_h\project_libraries.h"
 
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <vector>
-#include <utility>
-#include <functional>
-#include <corecrt_math_defines.h>
-#include <cmath>
 
-//#include <boost/safe_numerics/safe_integer.hpp>
-
-#include "file_h/complex.h"
-#include "file_h/fraction.h"
-#include "file_h/polynomial.h"
-#include "file_h/matrix.h"
-
-#include "file_h/counting_methods_1.h"
-#include "file_h/counting_methods_2.h"
-#include "file_h/Array_xy_To_.h"
-#include "file_h/calc_computing_f.h"
-#include "file_h/Spline.h"
-#include "file_h/eigenvalues.h"
 
     //uncomment it and you can use it carefully. 
     //Performance is not guaranteed
@@ -443,7 +422,53 @@ namespace sem_4 {
 }
 
 namespace sem_5 {
+    void sem_5() {
+        //const std::vector<float> execution_logic={1.1,1.2,1.3};
+        
+        ////Part No. 1: Quadrature formulas of Newton-Kot(e)ca and Gauss
+        //1.1 calculations of a certain integral using compound quadrature formulas 
+        // Beginning:
+        
+        //ens;
+                 
+        //Methods for calculating a definite integral using compound quadrature formulas
+        //based on 3 - point Newton - Kot formulas(e)ca and Gauss.
+        // Beginning:
 
+        //ens;
+        
+        //1.3. Graph of the dependence of the absolute error on the number of splits 
+        //of the integration interval of each quadrature formula from paragraphs 1.1 - 2.
+        // Beginning:
+
+        //ens;
+        
+        ////
+
+        ////Part No. 2: Methods for estimating the error of composite quadrature formulas
+        //A definite integral with a given accuracy 𝜀 using the composite 3 - point quadrature formula of Newton - Cot(e)ca.
+        // 
+        //Estimation of the error by the Richardson method.
+        //The rate of convergence according to Aitken's rule.
+        // 
+        //The length of the step ℎ of the partition.
+        // Beginning:
+
+        //ens;
+        
+        // N2.1 but using 3-point Gauss formulas:
+        // Beginning:
+
+        //ens;
+        
+        //Using the Aitken convergence rate estimate, select the h_opt step for either formulas 2.1 or 2.2.
+        // 
+        //Сompare it with the step calculated in 2.1 or 2.2.
+        // Beginning:
+
+        //ens;
+        ////
+    }
 }
 int main() {
 
