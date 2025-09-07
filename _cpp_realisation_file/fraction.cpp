@@ -1,6 +1,6 @@
 
 #pragma once
-#include"../file_h/fraction.h"
+#include"../fraction.h"
 template<typename T>fraction<T>& fraction<T>::reduce()
 {
     /*if (denominator == 0)return fraction < T>(1);
