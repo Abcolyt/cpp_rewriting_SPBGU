@@ -470,11 +470,45 @@ namespace sem_5 {
         ////
     }
 }
-int main() {
 
-    matrix<double> T{ {1}};
+template<typename IntegratedFunction>
+void GetaPartialIntegralSum_Singlethreaded(const IntegratedFunction integrated_function,
+                            const double left_boundary_of_the_integration_gap,
+                            const double right_boundary_of_the_integration_gap,
+                            uint64_t number_of_partitioning_intervals,
+
+                            matrix<double> interval_partitioning_scheme) {
+    if (interval_partitioning_scheme.is_vector() == false||( left_boundary_of_the_integration_gap > right_boundary_of_the_integration_gap )) { throw std::exception("interval_partitioning_scheme is not a vector "); }
+    if (interval_partitioning_scheme.is_vertical_vector()) {
+        interval_partitioning_scheme = interval_partitioning_scheme.transpose();
+    }
+    double ans_sum=0;
+    const double shifting_boundaries = (right_boundary_of_the_integration_gap - left_boundary_of_the_integration_gap) / number_of_partitioning_intervals;
+
+    double local_left_border = left_boundary_of_the_integration_gap;
+    double local_right_border = left_boundary_of_the_integration_gap + shifting_boundaries;
+   
+    std::array<double> the_nodes_of_the_partition_on_the_interval()
+    double the_nodes_of_the_partition_on_the_interval[interval_partitioning_scheme.getrow()];
+
+
+    for (uint64_t i = 0; i <= number_of_partitioning_intervals; i++) {
+        for (uint64_t j = 0; j; j++) {
+            ans_sum += integrated_function(j)*;
+        }
+
+
+
+        local_left_border += shifting_boundaries;
+        local_right_border+= shifting_boundaries;
+    }
+
+}
+int main() {
+    matrix< double> T{ {1,5,9}};
     std::cout << "T :\n" << T<<"\n";
-    std::cout << "coeff :\n" << counting_methods_3::СoefficNewtonCotes(T,static_cast<double>(0), static_cast<double>(1)) << "\n";
+    //T=T.transpose();
+    std::cout << "coeff :\n" << counting_methods_3::СoefficNewtonCotes(T,static_cast<double>(1), static_cast<double>(9)) << "\n";
     //std::cout << "T :\n" << T << "\n";
     
     system("pause");

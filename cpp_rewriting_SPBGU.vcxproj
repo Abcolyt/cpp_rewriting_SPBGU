@@ -168,8 +168,8 @@
     <ClInclude Include="file_h\fraction.h" />
     <ClInclude Include="file_h\matrix.h" />
     <ClInclude Include="file_h\polynomial.h" />
+    <ClInclude Include="file_h\project_libraries.h" />
     <ClInclude Include="file_h\Spline.h" />
-    <ClInclude Include="project_libraries.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="image\abs_diff_spline(3,2) and nuton polynom.bmp" />

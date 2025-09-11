@@ -549,14 +549,14 @@ template<typename T>matrix<T> matrix<T>::operator/(const matrix<T>& other) const
     }
     throw std::invalid_argument("the matrix on the right is not reversible");
 }
-template<typename T>matrix<T> matrix<T>::operator/(T& other) const {
+template<typename T>matrix<T> matrix<T>::operator/(const T& other) const {
 
 
     matrix<T> result(colsize, rowsize);
 
     for (uint64_t i = 0; i < colsize; ++i) {
         for (uint64_t j = 0; j < rowsize; ++j) {
-            result[i][j] = (result[i][j]) / other;
+            result[i][j] = ((*this)[i][j]) / other;
         }
     }
 

@@ -537,7 +537,7 @@ public:
     }
     // binary matrix division(if not a singular matrix on the left)
     matrix<T> operator/(const matrix<T>& other) const;
-    matrix<T> operator/(T& other) const;
+    matrix<T> operator/(const T& other) const;
 
     // I/O OPERATIONS
      
@@ -676,6 +676,12 @@ public:
     //Is a vector a row or a vector a column
     bool is_vector() {
         return (this->colsize == 1) || (this->rowsize == 1);
+    }
+    bool is_vertical_vector() {
+        return (this->rowsize == 1);
+    }
+    bool is_gorizontal_vector() {
+        return (this->colsize == 1);
     }
     bool operator==(const matrix<T>& other) const {
         if (this->getcol() == other.getcol() && this->getrow() == other.getrow()) {

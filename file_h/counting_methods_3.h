@@ -21,18 +21,23 @@ namespace counting_methods_3 {
 		return  coeff;
  }
     
+
+
+
     template<typename T>
     matrix<T> ÑoefficNewtonCotes(matrix<T> nodes_in_the_integration_gap, T beginning_of_the_integration_interval, T end_of_the_integration_interval) {
         if (nodes_in_the_integration_gap.is_vector()) {
             //std::cout << "nodes_in_the_integration_gap:\n" << nodes_in_the_integration_gap << "\n";
             if (nodes_in_the_integration_gap.getcol() == 1) { nodes_in_the_integration_gap = nodes_in_the_integration_gap.transpose(); }
+            std::cout << nodes_in_the_integration_gap <<'\n';
             if (beginning_of_the_integration_interval != 0 | end_of_the_integration_interval != 1) {
-                nodes_in_the_integration_gap = (nodes_in_the_integration_gap - matrix<T>::ones(nodes_in_the_integration_gap.getcol(), nodes_in_the_integration_gap.getrow()))/
-                    (end_of_the_integration_interval - beginning_of_the_integration_interval);
+                std::cout << (nodes_in_the_integration_gap - (matrix<T>::ones(nodes_in_the_integration_gap.getcol(), nodes_in_the_integration_gap.getrow()))) << "\n";
+                nodes_in_the_integration_gap = (nodes_in_the_integration_gap - (matrix<T>::ones(nodes_in_the_integration_gap.getcol(), nodes_in_the_integration_gap.getrow())));
+                nodes_in_the_integration_gap = nodes_in_the_integration_gap /(end_of_the_integration_interval - beginning_of_the_integration_interval);
             }
             uint64_t size= std::max(nodes_in_the_integration_gap.getrow(), nodes_in_the_integration_gap.getcol());
             matrix<T>A(size), b(size, 1);
-
+            std::cout << nodes_in_the_integration_gap << '\n';
             for (int i = 0; i < size; i++) {
                 A[0][i] = 1;//nodes_in_the_integration_gap[i];
                 b[i][0] = 1 / (static_cast<T>(1 + i));
