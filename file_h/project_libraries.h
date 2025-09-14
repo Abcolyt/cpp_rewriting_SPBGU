@@ -8,7 +8,7 @@
 #include <functional>
 #include <corecrt_math_defines.h>
 #include <cmath>
-
+#include <array>
 //#include <boost/safe_numerics/safe_integer.hpp>
 
 //My Libraries

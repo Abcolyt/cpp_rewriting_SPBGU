@@ -470,47 +470,90 @@ namespace sem_5 {
         ////
     }
 }
+#if 0
+template<typename IntegratedFunction>
+inline double ApproximateValueOfTheIntegral(matrix<double> nodes_in_the_integration_gap, IntegratedFunction F, double a, double b) {
+    if (interval_partitioning_scheme.is_vector() == false || (left_boundary_of_the_integration_gap > right_boundary_of_the_integration_gap) || )
+    
+    
+    { throw std::exception("interval_partitioning_scheme is not a vector "); }
+    if (interval_partitioning_scheme.is_vertical_vector()) {
+        interval_partitioning_scheme = interval_partitioning_scheme.transpose();
+    }
+    double ans=0;
+    matrix<double> coeff = counting_methods_3::СoefficNewtonCotes(nodes_in_the_integration_gap, a,b);
+    
+    for(int i=0; i < 4;i++)
+    {
+        ans += F(nodes_in_the_integration_gap[i][]);
+    }
 
+    return ans*(b-a); }
+
+#endif
+//location_of_the_split_points in diapazon [0,1]
 template<typename IntegratedFunction>
 void GetaPartialIntegralSum_Singlethreaded(const IntegratedFunction integrated_function,
                             const double left_boundary_of_the_integration_gap,
                             const double right_boundary_of_the_integration_gap,
                             uint64_t number_of_partitioning_intervals,
-
-                            matrix<double> interval_partitioning_scheme) {
-    if (interval_partitioning_scheme.is_vector() == false||( left_boundary_of_the_integration_gap > right_boundary_of_the_integration_gap )) { throw std::exception("interval_partitioning_scheme is not a vector "); }
-    if (interval_partitioning_scheme.is_vertical_vector()) {
-        interval_partitioning_scheme = interval_partitioning_scheme.transpose();
+                            matrix<double> location_of_the_split_points
+                           ) {
+    if (location_of_the_split_points.is_vector() == false||( left_boundary_of_the_integration_gap > right_boundary_of_the_integration_gap )) { throw std::exception("interval_partitioning_scheme is not a vector "); }
+    if (location_of_the_split_points.is_vertical_vector()) {
+        location_of_the_split_points = location_of_the_split_points.transpose();
     }
     double ans_sum=0;
-    const double shifting_boundaries = (right_boundary_of_the_integration_gap - left_boundary_of_the_integration_gap) / number_of_partitioning_intervals;
+    const double interval_size = (right_boundary_of_the_integration_gap - left_boundary_of_the_integration_gap) / number_of_partitioning_intervals;
+    const double number_of_split_points = location_of_the_split_points.getrow();
 
-    double local_left_border = left_boundary_of_the_integration_gap;
-    double local_right_border = left_boundary_of_the_integration_gap + shifting_boundaries;
+    matrix<double> interval_partitioning_scheme = counting_methods_3::СoefficNewtonCotes(location_of_the_split_points, static_cast<double>(0), static_cast<double>(1));
+    std::cout << "interval_partitioning_scheme" << interval_partitioning_scheme<<'\n';
+
    
-    std::array<double> the_nodes_of_the_partition_on_the_interval()
-    double the_nodes_of_the_partition_on_the_interval[interval_partitioning_scheme.getrow()];
+    
+    ////nodes constructor
+    std::vector<double> nodes_of_the_partition_on_the_interval(number_of_split_points,0);
+    auto F = [left_boundary_of_the_integration_gap,interval_size, number_of_split_points](double s) {return left_boundary_of_the_integration_gap + (interval_size * s); };
 
-
-    for (uint64_t i = 0; i <= number_of_partitioning_intervals; i++) {
-        for (uint64_t j = 0; j; j++) {
-            ans_sum += integrated_function(j)*;
+    /*nodes_of_the_partition_on_the_interval[0] = left_boundary_of_the_integration_gap;
+    std::cout << "nodes_of_the_partition_on_the_interval[0]=" << nodes_of_the_partition_on_the_interval[0] << '\n';*/
+    if (number_of_split_points >1){
+        for (unsigned int i = 0; i < number_of_split_points; i++)
+        {
+            nodes_of_the_partition_on_the_interval[i] = F(location_of_the_split_points[0][i]);
+            std::cout << "nodes_of_the_partition_on_the_interval[i]=" << nodes_of_the_partition_on_the_interval[i] << '\n';
         }
-
-
-
-        local_left_border += shifting_boundaries;
-        local_right_border+= shifting_boundaries;
     }
-
+    ////
+    
+    ////
+    for (uint64_t i = 0; i < number_of_partitioning_intervals; i++) {
+        double local_sum = 0;
+        for (uint64_t j = 0; j < number_of_split_points; j++) {
+            local_sum += integrated_function(nodes_of_the_partition_on_the_interval[j]) * interval_partitioning_scheme[0][j];
+           
+        }
+        std::cout << "local_sum=" << local_sum << '\n';
+        ans_sum += local_sum;
+        for (auto i : nodes_of_the_partition_on_the_interval)
+        {
+            i += interval_size;
+            std::cout << "nodes_of_the_partition_on_the_interval[j]=" << i << '\n';
+        }
+    }
+    ////
+    std::cout<<"ans_sum=" << ans_sum << '\n';
 }
 int main() {
     matrix< double> T{ {1,5,9}};
     std::cout << "T :\n" << T<<"\n";
     //T=T.transpose();
-    std::cout << "coeff :\n" << counting_methods_3::СoefficNewtonCotes(T,static_cast<double>(1), static_cast<double>(9)) << "\n";
+    std::cout << "coeff :\n" << counting_methods_3::СoefficNewtonCotes(T,static_cast<double>(1), static_cast<double>(9)).set_output_mode(output_mode::FULL) << "\n";
     //std::cout << "T :\n" << T << "\n";
-    
+    auto F = [](double x) {return x * x-1; };
+    std::cout << "F(3)=" << F(3) << '\n';
+    GetaPartialIntegralSum_Singlethreaded([](double x) {return x*x*4+2*x*x; }, -1, 1, 1, { {0,0.25,0.5,0.75,1} });
     system("pause");
     return 0;
 }
