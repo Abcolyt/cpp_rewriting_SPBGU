@@ -169,7 +169,6 @@
     <ClInclude Include="file_h\eigenvalues.h" />
     <ClInclude Include="file_h\fraction.h" />
     <ClInclude Include="file_h\matrix.h" />
-    <ClInclude Include="file_h\project_libraries.h" />
     <ClInclude Include="file_h\polynomial.h" />
     <ClInclude Include="file_h\project_libraries.h" />
     <ClInclude Include="file_h\Spline.h" />
