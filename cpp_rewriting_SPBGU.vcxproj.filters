@@ -104,6 +104,9 @@
     <ClInclude Include="file_h\project_libraries.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="file_h\project_libraries.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="image\abs_diff_spline(3,2) and nuton polynom.bmp">
