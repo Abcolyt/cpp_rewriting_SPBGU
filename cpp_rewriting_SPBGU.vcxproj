@@ -147,6 +147,7 @@
     <ClCompile Include="_cpp_realisation_file\fraction.cpp" />
     <ClCompile Include="_cpp_realisation_file\Matrix.cpp" />
     <ClCompile Include="_cpp_realisation_file\polynomial.cpp" />
+    <ClCompile Include="_cpp_realisation_file\Works.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
