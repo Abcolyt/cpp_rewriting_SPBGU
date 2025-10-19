@@ -3,7 +3,7 @@
 template<typename T>matrix<T>::matrix(const matrix<T>& other)
     : ptr(nullptr), colsize(other.colsize), rowsize(other.rowsize), out_mode(other.out_mode) {
 
-    if (colsize > 0 && rowsize > 0) {
+    if (colsize > 0 && rowsize > 0 && other.ptr != nullptr) {
         ptr = new T[colsize * rowsize];
         for (uint64_t i = 0; i < colsize * rowsize; ++i) {
             ptr[i] = other.ptr[i];

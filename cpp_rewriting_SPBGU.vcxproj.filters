@@ -39,9 +39,6 @@
     <ClCompile Include="_cpp_realisation_file\polynomial.cpp">
       <Filter>Файлы ресурсов</Filter>
     </ClCompile>
-    <ClCompile Include="_cpp_realisation_file\Works.cpp">
-      <Filter>Файлы ресурсов</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
@@ -69,6 +66,7 @@
     <None Include="documents\document_cpp\tests_cpp.docx">
       <Filter>Исходные файлы\_docx_documents</Filter>
     </None>
+    <None Include="cpp_rewriting_SPBGU.runsettings" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="file_h\polynomial.h">
@@ -101,7 +99,7 @@
     <ClInclude Include="file_h\eigenvalues.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="file_h\counting_methods_3.h">
+    <ClInclude Include="file_h\integral.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="file_h\project_libraries.h">

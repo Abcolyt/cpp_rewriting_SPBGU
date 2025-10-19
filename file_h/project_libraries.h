@@ -25,4 +25,4 @@
 #include "../file_h/Spline.h"
 #include "../file_h/eigenvalues.h"//empty file
 
-#include "../file_h/counting_methods_3.h"
+#include "../file_h/integral.h"

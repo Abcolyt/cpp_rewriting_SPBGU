@@ -54,30 +54,34 @@ namespace polynomialfunctions {
 		return { x_new, iterations };
 	}
 
-	template<typename P>std::vector<std::pair<P, int>> plnm_roots(polynomial<P> plnm, P x0)
-	{
+	template<typename P>
+	std::vector<std::pair<P, int>> plnm_roots(polynomial<P> plnm, P x0) {
+		polynomial<P> original_plnm = plnm; // Сохраняем исходный полином
 		std::vector<std::pair<P, int>> ans_roots;
 		polynomial<P> b;
-		size_t deg = plnm.get_deg() - 1;
-		//std::cout << plnm << "  deg" << plnm.get_deg() << "\n";
+		size_t deg = plnm.get_deg();
 
-		for (size_t i = 0; i < deg; i++)
-		{
-			//std::cout << "plnm:" << plnm << "\nnew plnm" << b << "\nnew iter" << "'" << i << "' \n";
+		for (size_t i = 0; i < deg - 1; i++) {
 			auto ans = solve_tangents<P>(plnm, x0, LDBL_EPSILON);
-			//std::cout << "ans" << solve_tangents<P>(plnm, x0, LDBL_EPSILON).first << "\n";
-			//std::cout <<"root["<<i<<"]=" << ans.first << '\n';
+
+
+			auto refined_ans = solve_tangents<P>(original_plnm, ans.first, LDBL_EPSILON);
+
+			ans_roots.push_back(refined_ans);
+
 			b.newsize(2);
 			b[1] = 1;
-			b[0] = (ans.first) *(P) (-1.0);
-
-			plnm = (plnm / b);
-			//std::cout << "plnm after:" << plnm<<"\n";
-			ans_roots.push_back(ans);
+			b[0] = (refined_ans.first)* ( - 1.0);
+			plnm = original_plnm; 
+			for (auto& root : ans_roots) {
+				polynomial<P> divisor; divisor.newsize(2);
+				divisor[1] = 1;
+				divisor[0] = (root.first) * (-1.0);
+				plnm = plnm / divisor; 
+			}
 		}
 		return ans_roots;
 	}
-
 	template<typename P>polynomial<P> filter_large_epsilon(polynomial<P> pol, P eps) {
 		for (uint64_t i = 0; i < pol.get_deg(); i++)
 		{
@@ -104,8 +108,11 @@ template<typename P>polynomial<P> polynomial<P>::operator>>(const uint64_t power
 
 template<typename P>polynomial<P> polynomial<P>::operator<<(const uint64_t power)const
 {
-	polynomial result; result.newsize(deg - power);
-	for (uint64_t i = 0; i < (deg - power); i++)
+	polynomial result;
+	if(deg >= power)
+	 result.newsize(deg - power);
+	else result.newsize(0);
+	for (uint64_t i = 0; i < result.get_deg(); i++)
 	{
 		result.ptr[i] = ptr[i + power];
 	}

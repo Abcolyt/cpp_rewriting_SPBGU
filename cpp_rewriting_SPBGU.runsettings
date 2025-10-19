@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+	<RunConfiguration>
+		<ResultsDirectory>$(SolutionDir)TestResults</ResultsDirectory>
+		<MaxCpuCount>4</MaxCpuCount>
+	</RunConfiguration>
+
+	<GoogleTestAdapterSettings>
+		<DebugMode>false</DebugMode>
+		<ParallelTestExecution>true</ParallelTestExecution>
+		<TraitsDiscovery>Enabled</TraitsDiscovery>
+		<TestDiscoveryRegex>.*Google_Test_cpprewriting_1_16_0.*\.exe</TestDiscoveryRegex>
+		<WorkingDir>$(ExecutableDir)</WorkingDir>
+		<PathExtension>$(SolutionDir)..\vcpkg\installed\x64-windows\bin</PathExtension>
+		<AdditionalTestExecutionParam>--gtest_output=xml</AdditionalTestExecutionParam>
+		<TestDiscoveryTimeoutInSeconds>30</TestDiscoveryTimeoutInSeconds>
+		<TestExecutionTimeoutInSeconds>360</TestExecutionTimeoutInSeconds>
+		<SkipOriginCheck>false</SkipOriginCheck>
+		<ShuffleTests>false</ShuffleTests>
+		<ShuffleTestsSeed>0</ShuffleTestsSeed>
+		<ForceListContent>true</ForceListContent>
+	</GoogleTestAdapterSettings>
+</RunSettings>
