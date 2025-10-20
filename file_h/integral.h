@@ -248,7 +248,6 @@ namespace counting_methods_3 {
         }
 
         if (j <= 30) {
-            // Прямой метод для малых j
             long double C1 = std::pow(b - a, 1 - alpha - beta);
             long double C2 = std::pow(a, j);
             long double C3 = (b - a) / a;
@@ -259,6 +258,7 @@ namespace counting_methods_3 {
 
             for (int k = 0; k <= j; ++k) {
                 long double beta_val = std::exp(log_beta_function(k - alpha + 1, 1 - beta));
+                //std::cout << k - alpha + 1 <<" "<< 1 - beta <<" " << beta_val << '\n';
                 sum += binom_coeff * C3_power * beta_val;
 
                 if (k < j) {
