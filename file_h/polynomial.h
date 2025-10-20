@@ -27,6 +27,8 @@ namespace polynomialfunctions {
 	template<typename P>polynomial<P> filter_large_epsilon(polynomial<P>, P eps);
 
 }
+
+
 template<typename P> std::ostream& operator<<(std::ostream& out, const polynomial<P>& plnm);
 template<typename P> std::istream& operator>>(std::istream& in, polynomial<P>& plnm);
 template<typename P> class polynomial

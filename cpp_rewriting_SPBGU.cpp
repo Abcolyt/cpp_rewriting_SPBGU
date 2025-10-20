@@ -421,13 +421,60 @@ namespace sem_4 {
 }
 
 namespace sem_5 {
+    template<typename TResult, typename TArg, counting_methods_3::IntegrateMethod integrate_method>
+    void DispAbsBeatwen(std::function<TResult(TArg)> experimental_function, TArg a, TArg b, TResult integral_of_the_function, counting_methods_3::PFeature p_feature={0,0},int n=1) {
+        std::vector<TResult> abs_external_vector;
+        for (int i = 0; i < n; i++)
+        {
+            abs_external_vector.push_back(std::abs(counting_methods_3::integrate<TResult, TArg, integrate_method>(experimental_function, a, b, i, p_feature) - integral_of_the_function));
+
+        }
+        auto f_abs_n = [&abs_external_vector](double x) -> double {
+            int index = static_cast<int>(std::floor(x)); 
+            if (index >= 0 && index < abs_external_vector.size()) {
+                return abs_external_vector[index];
+            }
+            return 0.0; 
+            };
+        std::vector<std::function<double(double)>> funcs;
+        funcs.push_back(f_abs_n);
+#if __has_include(<SFML/Graphics.hpp>)
+        draw_functions(funcs, 0.0, static_cast<double>(n + 1));
+
+#else
+        std::cout << "\n__has_include(<SFML/Graphics.hpp>)==0\n"
+            << "not working draw_functions(functions_normal)\n"
+            << "not working draw_functions(functions_ortog)\n";
+#endif
+        //std::cout << "end ALL\n";
+        //draw_functions(std::vector{ f_abs_n }, 0,0, static_cast<double>(n + 1));
+    }
+
+    //show all the absolute values of the differences with the reference
+    template<typename TResult, typename TArg>
+    void DispAllAbs(std::function<TResult(TArg)> experimental_function, TArg a, TArg b, TResult integral_of_the_function, counting_methods_3::PFeature p_feature = { 0,0 }, int n = 1) {
+        for (int i=0; i< static_cast<int>(counting_methods_3::IntegrateMethod::LEFT_RECTANGLE); i++)
+        {
+            DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(i)>(experimental_function, a,b,integral_of_the_function, p_feature, n);
+        }
+    }
     void sem_5() {
-        struct p_function {
-        long double a, b,
-            alpha, beta;
-        };
-        p_function p = { 1,3,0.5,0.5 };
-        auto f = [](double x) {return x*x*x+3*x+std::sin(x); };
+        counting_methods_3::PFeature p={ 0,0};
+        auto f = [](double x) {return x*x*x*x; };
+
+        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::GAUS_3_POINT>(f, 1.0, 3.0, 8.5327773, {1.0/5.0,0}, 10);
+        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::GAUS_4_POINT>(f, 1.0, 3.0, 8.5327773, { 1.0 / 5.0,0 }, 10);
+
+        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(0)>(f, 1.0, 3.0, 26.0/3, p, 100);
+        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(1)>(f, 1.0, 3.0, 26.0 / 3, p, 100);
+        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(2)>(f, 1.0, 3.0, 26.0 / 3, p, 100);
+        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(3)>(f, 1.0, 3.0, 26.0 / 3, p, 100);
+        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(4)>(f, 1.0, 3.0, 26.0 / 3, p, 100);
+        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(5)>(f, 1.0, 3.0, 26.0 / 3, p, 100);
+        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(6)>(f, 1.0, 3.0, 26.0 / 3, p, 100);
+
+
+
 
         //counting_methods_3::integrate<double,double,counting_methods_3::IntegrateMethod::LEFT_RECTANGLE>(f,p.a,p.b);
 
@@ -505,219 +552,6 @@ inline double ApproximateValueOfTheIntegral(matrix<double> nodes_in_the_integrat
 #endif
 /////////////////////////////////////////////////////////
 
-// Вспомогательные функции для аналитического решения
-const double EPSILON = 1e-10;
-
-// Решение кубического уравнения: x³ + a·x² + b·x + c = 0
-std::vector<std::complex<double>> solveCubic(double a, double b, double c) {
-    std::vector<std::complex<double>> roots;
-
-    // Приводим к виду: y³ + p·y + q = 0
-    double p = b - a * a / 3.0;
-    double q = c - a * b / 3.0 + 2.0 * a * a * a / 27.0;
-
-    // Дискриминант
-    double D = std::pow(q / 2.0, 2) + std::pow(p / 3.0, 3);
-
-    std::complex<double> u, v;
-    if (D >= 0) {
-        u = std::pow(-q / 2.0 + std::sqrt(D), 1.0 / 3.0);
-        v = std::pow(-q / 2.0 - std::sqrt(D), 1.0 / 3.0);
-    }
-    else {
-        u = std::pow(-q / 2.0 + std::sqrt(std::complex<double>(D)), 1.0 / 3.0);
-        v = std::pow(-q / 2.0 - std::sqrt(std::complex<double>(D)), 1.0 / 3.0);
-    }
-
-    // Кубические корни из единицы
-    std::complex<double> w1(-0.5, std::sqrt(3.0) / 2.0);
-    std::complex<double> w2(-0.5, -std::sqrt(3.0) / 2.0);
-
-    std::complex<double> y1 = u + v;
-    std::complex<double> y2 = w1 * u + w2 * v;
-    std::complex<double> y3 = w2 * u + w1 * v;
-
-    roots.push_back(y1 - a / 3.0);
-    roots.push_back(y2 - a / 3.0);
-    roots.push_back(y3 - a / 3.0);
-
-    return roots;
-}
-
-// Решение уравнения 4-й степени: a·x⁴ + b·x³ + c·x² + d·x + e = 0
-std::vector<std::complex<double>> solveQuartic(double a, double b, double c, double d, double e) {
-    if (std::abs(a) < EPSILON) {
-        throw std::invalid_argument("Коэффициент a не может быть нулевым");
-    }
-
-    // Нормализация коэффициентов
-    double p = b / a;
-    double q = c / a;
-    double r = d / a;
-    double s = e / a;
-
-    // Убираем член с x³ заменой x = y - p/4
-    double A = q - 3.0 * p * p / 8.0;
-    double B = r - p * q / 2.0 + p * p * p / 8.0;
-    double C = s - p * r / 4.0 + p * p * q / 16.0 - 3.0 * p * p * p * p / 256.0;
-
-    // Решаем резольвентное кубическое уравнение
-    std::vector<std::complex<double>> cubicRoots = solveCubic(A / 2.0, (A * A - 4.0 * C) / 16.0, -B * B / 64.0);
-
-    // Выбираем ненулевой корень
-    std::complex<double> z = cubicRoots[0];
-    for (const auto& root : cubicRoots) {
-        if (std::abs(root) > EPSILON) {
-            z = root;
-            break;
-        }
-    }
-
-    std::vector<std::complex<double>> roots;
-    std::complex<double> alpha = std::sqrt(2.0 * z - A);
-    std::complex<double> beta = (std::abs(alpha) > EPSILON) ? B / alpha : 0.0;
-
-    // Решаем два квадратных уравнения
-    std::complex<double> D1 = alpha * alpha - 4.0 * (z + beta);
-    std::complex<double> D2 = alpha * alpha - 4.0 * (z - beta);
-
-    roots.push_back((-alpha + std::sqrt(D1)) / 2.0 - p / 4.0);
-    roots.push_back((-alpha - std::sqrt(D1)) / 2.0 - p / 4.0);
-    roots.push_back((alpha + std::sqrt(D2)) / 2.0 - p / 4.0);
-    roots.push_back((alpha - std::sqrt(D2)) / 2.0 - p / 4.0);
-
-    return roots;
-}
-
-// Вычисление значения полинома в точке
-std::complex<double> evaluatePolynomial(double a, double b, double c, double d, double e, std::complex<double> x) {
-    return a * x * x * x * x + b * x * x * x + c * x * x + d * x + e;
-}
-
-// Проверка корня (должно быть близко к 0)
-bool isRootValid(double a, double b, double c, double d, double e, std::complex<double> root, double tolerance = EPSILON) {
-    return std::abs(evaluatePolynomial(a, b, c, d, e, root)) < tolerance;
-}
-
-// Тестирование
-void runTests() {
-    std::cout << "Запуск тестов..." << std::endl;
-
-    // Тест 1: Простое уравнение с вещественными корнями x⁴ - 10x³ + 35x² - 50x + 24 = 0
-    // Корни: 1, 2, 3, 4
-    {
-        std::cout << "Тест 1: x⁴ - 10x³ + 35x² - 50x + 24 = 0" << std::endl;
-        auto roots = solveQuartic(1, -10, 35, -50, 24);
-        int validRoots = 0;
-        for (const auto& root : roots) {
-            if (isRootValid(1, -10, 35, -50, 24, root)) {
-                validRoots++;
-                std::cout << "  Корень: " << root << " ✓" << std::endl;
-            }
-            else {
-                std::cout << "  Корень: " << root << " ✗" << std::endl;
-            }
-        }
-        assert(validRoots == 4);
-        std::cout << "Тест 1 пройден!" << std::endl << std::endl;
-    }
-
-    // Тест 2: Уравнение с кратными корнями x⁴ - 4x³ + 6x² - 4x + 1 = 0
-    // Корень: 1 (кратности 4)
-    {
-        std::cout << "Тест 2: x⁴ - 4x³ + 6x² - 4x + 1 = 0" << std::endl;
-        auto roots = solveQuartic(1, -4, 6, -4, 1);
-        int validRoots = 0;
-        for (const auto& root : roots) {
-            if (isRootValid(1, -4, 6, -4, 1, root, 1e-8)) {
-                validRoots++;
-                std::cout << "  Корень: " << root << " ✓" << std::endl;
-            }
-            else {
-                std::cout << "  Корень: " << root << " ✗" << std::endl;
-            }
-        }
-        assert(validRoots == 4);
-        std::cout << "Тест 2 пройден!" << std::endl << std::endl;
-    }
-
-    // Тест 3: Уравнение с двумя парами комплексно-сопряженных корней x⁴ + 2x² + 1 = 0
-    // Корни: i, -i (кратности 2)
-    {
-        std::cout << "Тест 3: x⁴ + 2x² + 1 = 0" << std::endl;
-        auto roots = solveQuartic(1, 0, 2, 0, 1);
-        int validRoots = 0;
-        for (const auto& root : roots) {
-            if (isRootValid(1, 0, 2, 0, 1, root)) {
-                validRoots++;
-                std::cout << "  Корень: " << root << " ✓" << std::endl;
-            }
-            else {
-                std::cout << "  Корень: " << root << " ✗" << std::endl;
-            }
-        }
-        assert(validRoots == 4);
-        std::cout << "Тест 3 пройден!" << std::endl << std::endl;
-    }
-
-    // Тест 4: Уравнение с двумя вещественными и двумя комплексными корнями x⁴ + x³ + x² + x + 1 = 0
-    {
-        std::cout << "Тест 4: x⁴ + x³ + x² + x + 1 = 0" << std::endl;
-        auto roots = solveQuartic(1, 1, 1, 1, 1);
-        int validRoots = 0;
-        for (const auto& root : roots) {
-            if (isRootValid(1, 1, 1, 1, 1, root)) {
-                validRoots++;
-                std::cout << "  Корень: " << root << " ✓" << std::endl;
-            }
-            else {
-                std::cout << "  Корень: " << root << " ✗" << std::endl;
-            }
-        }
-        assert(validRoots == 4);
-        std::cout << "Тест 4 пройден!" << std::endl << std::endl;
-    }
-
-    // Тест 5: Уравнение с вещественными корнями x⁴ - 5x² + 4 = 0
-    // Корни: -2, -1, 1, 2
-    {
-        std::cout << "Тест 5: x⁴ - 5x² + 4 = 0" << std::endl;
-        auto roots = solveQuartic(1, 0, -5, 0, 4);
-        int validRoots = 0;
-        for (const auto& root : roots) {
-            if (isRootValid(1, 0, -5, 0, 4, root)) {
-                validRoots++;
-                std::cout << "  Корень: " << root << " ✓" << std::endl;
-            }
-            else {
-                std::cout << "  Корень: " << root << " ✗" << std::endl;
-            }
-        }
-        assert(validRoots == 4);
-        std::cout << "Тест 5 пройден!" << std::endl << std::endl;
-    }
-
-    // Тест для кубического уравнения
-    {
-        std::cout << "Тест кубического уравнения: x³ - 6x² + 11x - 6 = 0" << std::endl;
-        auto roots = solveCubic(-6, 11, -6);
-        int validRoots = 0;
-        for (const auto& root : roots) {
-            std::complex<double> value = root * root * root - 6.0 * root * root + 11.0 * root - 6.0;
-            if (std::abs(value) < EPSILON) {
-                validRoots++;
-                std::cout << "  Корень: " << root << " ✓" << std::endl;
-            }
-            else {
-                std::cout << "  Корень: " << root << " ✗" << std::endl;
-            }
-        }
-        assert(validRoots == 3);
-        std::cout << "Тест кубического уравнения пройден!" << std::endl << std::endl;
-    }
-
-    std::cout << "Все тесты успешно пройдены!" << std::endl;
-}
 
 #if 0
 template<typename P>
@@ -881,11 +715,11 @@ int main() {
    // std::cout << "T2 :\n" << T2 << "\n";
    // std::cout << "IntegrateMethod::GAUS_4_POINT :" << (int)counting_methods_3::IntegrateMethod::GAUS_4_POINT << "\n";
    // 
-   // std::cout << "coeff :\n" << counting_methods_3::СoefficIntegralNewtonCotes<double>(n).set_output_mode(output_mode::FULL) << "\n";*/
+   // std::cout << "coeff :\n" << counting_methods_3::GetNormalizedСoefficentsNewtonCotes<double>(n).set_output_mode(output_mode::FULL) << "\n";*/
    // std::cout << "coeff :\n" << counting_methods_3::integrate<double, double, counting_methods_3::IntegrateMethod::NEWTON_COTES_4_POINT>([](double x) { return x * x; }, 0.0, 1.0, 100) << "\n";
 
    // 
-   // std::cout << "end: :\n" << counting_methods_3::СoefficIntegralNewtonCotes<double>(4);
+   // std::cout << "end: :\n" << counting_methods_3::GetNormalizedСoefficentsNewtonCotes<double>(4);
 
    // //std::cout << "T :\n" << T << "\n";
    // /*auto F = [](double x) {return x * x-1; };
@@ -900,87 +734,9 @@ int main() {
    // //method_ans << mtrx.inverse_M();
    // //std::cout << method_ans.str();
     #endif
+    sem_5::sem_5();
 
 
-#if 1
-    //input
-    //n - число узлов;
-    uint64_t n = 4;
-    double a=1, b=3 ;
-    double alpha=.5, beta=0.7;
-    std::cout <<  a<< '\n';
-    std::cout << b << '\n';
-    std::cout << alpha << '\n';
-    std::cout <<  beta<< '\n';
-
-    matrix<double> A(n, n), B(n, 1);
-    auto miu = counting_methods_3::fill_integral_map(a, b, alpha, beta, n);
-    
-
-    for (uint64_t i = 0; i < n; i++)
-    {
-        B[i][0] = -miu[n+i];
-        for (uint64_t j = 0; j < n; j++)
-        {
-            A[i][j] = miu[i + j];
-        }
-    }
-    std::cout << A<<'\n';
-
-    std::cout << B << '\n';
-    matrix<double> coeff = matrixfunction::solve_system(A, B);
-    std::cout<<"coeff" << coeff << '\n';
-
-    std::cout << "A*coeff" << A*coeff << '\n';
-
-
-
-    polynomial<double> polyn(1); 
-    for (uint64_t i = 0; i < n; i++)
-    {
-        std::cout <<"i="<< i<< "  (coeff[i][0])" << (coeff[i][0])<<"\n";
-        polyn = (polyn >> 1);
-        polyn[0]=(coeff[n-1-i][0]);
-        
-    }
-    std::cout << "polyn:" << polyn << '\n';
-    //auto roots = polyn.plnm_roots();
-    auto roots = polyn.plnm_roots();
-    std::vector<long double> nodes_in_the_integration_gap;
-
-    for (auto& i : roots) {
-        std::cout << "x_i:" <<i.first << '\n';
-        nodes_in_the_integration_gap.push_back(i.first);
-    }
-
-
-
-    int size = nodes_in_the_integration_gap.size();
-    //
-    using T = long double;
-    matrix<T>A2(size), B2(size, 1);
-    //std::cout << "3:" << nodes_in_the_integration_gap << '\n';
-    for (int i = 0; i < size; i++) {
-        A2[0][i] = 1;//nodes_in_the_integration_gap[i];
-        B2[i][0] = miu[i];
-        for (int j = 1; j < size; j++) {
-            A2[j][i] = nodes_in_the_integration_gap[i] * A2[j - 1][i];
-        }
-    }
-
-    std::cout << "A:" << A2 << "\n";
-    std::cout << "b:" << B2 << "\n";
-    matrix<T> coeff2 = matrixfunction::solve_system(A2, B2);
-    //std::cout << "с_i++:" << A.inverse_M()*b << "\n";
-
-    std::cout << "c_i:" << coeff2 << '\n';
-
-    //counting_methods_3::test_integral_p_x_();
-#else
-
-runTests();
-   // test_analytical_roots<double>();
-#endif
 
     system("pause");
     return 0;

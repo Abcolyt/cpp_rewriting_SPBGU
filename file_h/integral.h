@@ -32,9 +32,10 @@ namespace counting_methods_3 {
         return M;
     }
 
-    //get c[j] : Integral(a,b) of function =~= Sum(j=1,n){c[j]*F(x_j)} 
+    //get n normalized newton cotes coefficients(i.e. for [a=0,b=1]
+    //get c[j] : Integral[a=0,b=1]F(x)dx of function =~= Sum(j=1,n){c[j]*F(x_j)} 
     template<typename T>
-    matrix<T> СoefficIntegralNewtonCotes(int n) {
+    matrix<T> GetNormalizedСoefficentsNewtonCotes(int n) {
         matrix<T> nodes_in_the_integration_gap = getrange(n);
 
         if (nodes_in_the_integration_gap.is_vector()) {
@@ -62,16 +63,16 @@ namespace counting_methods_3 {
                 }
             }
 
-            std::cout << "A:" << A << "\n";
-            std::cout << "b:" << b << "\n";
+            //std::cout << "A:" << A << "\n";
+            //std::cout << "b:" << b << "\n";
             matrix<T> coeff = matrixfunction::solve_system(A, b);
             //std::cout << "с_i++:" << A.inverse_M()*b << "\n";
             
-            std::cout << "c_i:" << coeff << '\n';
+            //std::cout << "c_i:" << coeff << '\n';
             return coeff;
         }
     }
-
+#if 0
     //get c[j] : Integral(a,b) of function =~= Sum(j=1,n){(b-a)*c[j]*F(x_j)} 
     template<typename T>
     matrix<T> СoefficNewtonCotes(matrix<T> nodes_in_the_integration_gap, T beginning_of_the_integration_interval, T end_of_the_integration_interval) {
@@ -104,220 +105,128 @@ namespace counting_methods_3 {
             return coeff;
         }
     }
-
-
-    
-    ////
-    // Calculating the logarithm of the beta function: ln(B(p, q))
-    long double log_beta_function(long double p, long double q) {
-        return std::lgamma(p) + std::lgamma(q) - std::lgamma(p + q);
-    }
-    //Calculating the beta function
-    double beta_function(double p, double q) {
-        return std::tgamma(p) * std::tgamma(q) / std::tgamma(p + q);
-    }
-    ////
-    
-
-
-    // Calculation of the integral I = ∫[a,b] x^j / ((x-a)^α * (b-x)^β) dx
-    double compute_integral(double a, double b, double alpha, double beta, int j) {
-        // Проверка корректности параметров
-        if (a >= b) {
-            throw std::invalid_argument("a must be less than b");
+#endif
+    namespace special {
+        ////
+        // Calculating the logarithm of the beta function: ln(B(p, q))
+        long double log_beta_function(long double p, long double q) {
+            return std::lgamma(p) + std::lgamma(q) - std::lgamma(p + q);
         }
-        if (j < 0) {
-            throw std::invalid_argument("j must be non-negative");
+        //Calculating the beta function
+        double beta_function(double p, double q) {
+            return std::tgamma(p) * std::tgamma(q) / std::tgamma(p + q);
         }
+        
 
-        // Особый случай: a = 0
-        if (a == 0.0) {
-            double C1 = std::pow(b - a, 1 - alpha - beta + j);
-            return C1 * beta_function(j - alpha + 1, 1 - beta);
-        }
+        //Calculation of the integral I = ∫[a, b] x ^ j / ((x - a) ^ α * (b - x) ^ β) dx
+        long double compute_integral_optimized(long double a, long double b,
+            long double alpha, long double beta, int j) {
 
-        // Общий случай: a ≠ 0
-        double C1 = std::pow(b - a, 1 - alpha - beta);
-        double C2 = std::pow(a, j);
-        double C3 = (b - a) / a;
 
-        double sum = 0.0;
-        double binom_coeff = 1.0;  // Начинаем с C(j,0) = 1
-        double C3_power = 1.0;     // Начинаем с C3^0 = 1
 
-        for (int k = 0; k <= j; ++k) {
-            // Вычисляем бета-функцию для текущего k
-            double beta_val = beta_function(k - alpha + 1, 1 - beta);
+            if (a >= b) throw std::invalid_argument("a must be less than b");
+            if (j < 0) throw std::invalid_argument("j must be non-negative");
 
-            // Добавляем текущий член к сумме
-            sum += binom_coeff * C3_power * beta_val;
-
-            // Обновляем биномиальный коэффициент для следующей итерации
-            if (k < j) {
-                binom_coeff *= static_cast<double>(j - k) / (k + 1);
+            // Особый случай: a = 0
+            if (a == 0.0L) {
+                long double C1 = std::pow(b - a, 1 - alpha - beta + j);
+                return C1 * std::exp(log_beta_function(j - alpha + 1, 1 - beta));
             }
 
-            // Обновляем степень C3 для следующей итерации
-            C3_power *= C3;
-        }
+            if (j <= 30) {
+                long double C1 = std::pow(b - a, 1 - alpha - beta);
+                long double C2 = std::pow(a, j);
+                long double C3 = (b - a) / a;
 
-        return C1 * C2 * sum;
-    }
+                long double sum = 0.0L;
+                long double binom_coeff = 1.0L;
+                long double C3_power = 1.0L;
 
-    // Calculating the integral using logarithmic calculations : 
-    long double compute_integral_log(long double a, long double b,
-        long double alpha, long double beta, int j) {
-        // Проверка корректности параметров
-        if (a >= b) {
-            throw std::invalid_argument("a must be less than b");
-        }
-        if (j < 0) {
-            throw std::invalid_argument("j must be non-negative");
-        }
+                for (int k = 0; k <= j; ++k) {
+                    long double beta_val = std::exp(log_beta_function(k - alpha + 1, 1 - beta));
+                    //std::cout << k - alpha + 1 <<" "<< 1 - beta <<" " << beta_val << '\n';
+                    sum += binom_coeff * C3_power * beta_val;
 
-        // Особый случай: a = 0
-        if (a == 0.0L) {
-            long double log_C1 = (1 - alpha - beta + j) * std::log(b - a);
-            long double log_beta = log_beta_function(j - alpha + 1, 1 - beta);
-            return std::exp(log_C1 + log_beta);
-        }
-
-        // Общий случай: a ≠ 0
-        long double log_C1 = (1 - alpha - beta) * std::log(b - a);
-        long double log_C2 = j * std::log(a);
-        long double log_C3 = std::log(b - a) - std::log(a);
-        //
-
-
-        // Вектор для хранения логарифмов членов суммы
-        std::vector<long double> log_terms(j + 1);
-
-        // Вычисляем логарифмы всех членов суммы
-        long double log_binom = 0.0L; // ln(C(j,0)) = ln(1) = 0
-
-        for (int k = 0; k <= j; ++k) {
-            // Логарифм биномиального коэффициента + k*ln(C3)
-            long double log_binom_C3 = log_binom + k * log_C3;
-
-            // Логарифм бета-функции
-            long double log_beta_val = log_beta_function(k - alpha + 1, 1 - beta);
-
-            // Суммируем: ln(term_k) = ln(binom) + k*ln(C3) + ln(B(...))
-            log_terms[k] = log_binom_C3 + log_beta_val;
-
-            // Обновляем логарифм биномиального коэффициента для следующей итерации
-            if (k < j) {
-                // ln(C(j,k+1)) = ln(C(j,k)) + ln(j-k) - ln(k+1)
-                log_binom += std::log(j - k) - std::log(k + 1);
-            }
-        }
-
-        // Находим максимальный логарифм для численной стабильности
-        long double max_log = log_terms[0];
-        for (int k = 1; k <= j; ++k) {
-            if (log_terms[k] > max_log) {
-                max_log = log_terms[k];
-            }
-        }
-
-        // Суммируем exp(log_terms[k] - max_log) и затем умножаем на exp(max_log)
-        long double sum_exp = 0.0L;
-        for (int k = 0; k <= j; ++k) {
-            sum_exp += std::exp(log_terms[k] - max_log);
-        }
-
-        // Итоговый результат: C1 * C2 * sum
-        long double log_result = log_C1 + log_C2 + max_log + std::log(sum_exp);
-        return std::exp(log_result);
-    }
-    ////
-    
-    //Calculation of the integral I = ∫[a, b] x ^ j / ((x - a) ^ α * (b - x) ^ β) dx
-    long double compute_integral_optimized(long double a, long double b,
-        long double alpha, long double beta, int j) {
-
-
-
-        if (a >= b) throw std::invalid_argument("a must be less than b");
-        if (j < 0) throw std::invalid_argument("j must be non-negative");
-
-        // Особый случай: a = 0
-        if (a == 0.0L) {
-            long double C1 = std::pow(b - a, 1 - alpha - beta + j);
-            return C1 * std::exp(log_beta_function(j - alpha + 1, 1 - beta));
-        }
-
-        if (j <= 30) {
-            long double C1 = std::pow(b - a, 1 - alpha - beta);
-            long double C2 = std::pow(a, j);
-            long double C3 = (b - a) / a;
-
-            long double sum = 0.0L;
-            long double binom_coeff = 1.0L;
-            long double C3_power = 1.0L;
-
-            for (int k = 0; k <= j; ++k) {
-                long double beta_val = std::exp(log_beta_function(k - alpha + 1, 1 - beta));
-                //std::cout << k - alpha + 1 <<" "<< 1 - beta <<" " << beta_val << '\n';
-                sum += binom_coeff * C3_power * beta_val;
-
-                if (k < j) {
-                    binom_coeff *= static_cast<long double>(j - k) / (k + 1);
+                    if (k < j) {
+                        binom_coeff *= static_cast<long double>(j - k) / (k + 1);
+                    }
+                    C3_power *= C3;
                 }
-                C3_power *= C3;
+
+                return C1 * C2 * sum;
             }
+            else {
+                // Общий случай: a ≠ 0
+                long double log_C1 = (1 - alpha - beta) * std::log(b - a);
+                long double log_C2 = j * std::log(a);
+                long double log_C3 = std::log(b - a) - std::log(a);
 
-            return C1 * C2 * sum;
+                std::vector<long double> log_terms(j + 1);
+
+                long double log_binom = 0.0L; // ln(C(j,0)) = ln(1) = 0
+
+                for (int k = 0; k <= j; ++k) {
+                    // Логарифм биномиального коэффициента + k*ln(C3)
+                    long double log_binom_C3 = log_binom + k * log_C3;
+
+                    // log beta function
+                    long double log_beta_val = log_beta_function(k - alpha + 1, 1 - beta);
+
+                    // summ: ln(term_k) = ln(binom) + k*ln(C3) + ln(B(...))
+                    log_terms[k] = log_binom_C3 + log_beta_val;
+
+                    if (k < j) {
+                        // ln(C(j,k+1)) = ln(C(j,k)) + ln(j-k) - ln(k+1)
+                        log_binom += std::log(j - k) - std::log(k + 1);
+                    }
+                }
+
+                long double max_log = log_terms[0];
+                for (int k = 1; k <= j; ++k) {
+                    if (log_terms[k] > max_log) {
+                        max_log = log_terms[k];
+                    }
+                }
+
+                // Суммируем exp(log_terms[k] - max_log) и затем умножаем на exp(max_log)
+                long double sum_exp = 0.0L;
+                for (int k = 0; k <= j; ++k) {
+                    sum_exp += std::exp(log_terms[k] - max_log);
+                }
+
+                long double log_result = log_C1 + log_C2 + max_log + std::log(sum_exp);
+                return std::exp(log_result);
+            }
         }
-        else {
-            // Общий случай: a ≠ 0
-            long double log_C1 = (1 - alpha - beta) * std::log(b - a);
-            long double log_C2 = j * std::log(a);
-            long double log_C3 = std::log(b - a) - std::log(a);
 
-            // Вектор для хранения логарифмов членов суммы
-            std::vector<long double> log_terms(j + 1);
+        std::unordered_map<int, long double> fill_integral_map(
+            long double a, long double b,
+            long double alpha, long double beta,
+            int n) {
 
-            // Вычисляем логарифмы всех членов суммы
-            long double log_binom = 0.0L; // ln(C(j,0)) = ln(1) = 0
+            std::unordered_map<int, long double> integral_map;
 
-            for (int k = 0; k <= j; ++k) {
-                // Логарифм биномиального коэффициента + k*ln(C3)
-                long double log_binom_C3 = log_binom + k * log_C3;
+            // for j = 0,..., 2*n-1
+            for (int j = 0; j < 2 * n; ++j) {
+                try {
+                    long double value = compute_integral_optimized(a, b, alpha, beta, j);
+                    integral_map[j] = value;
 
-                // log beta function
-                long double log_beta_val = log_beta_function(k - alpha + 1, 1 - beta);
+                    //std::cout << "j = " << j << ", I = " << value << std::endl;
 
-                // summ: ln(term_k) = ln(binom) + k*ln(C3) + ln(B(...))
-                log_terms[k] = log_binom_C3 + log_beta_val;
-
-                // Обновляем логарифм биномиального коэффициента для следующей итерации
-                if (k < j) {
-                    // ln(C(j,k+1)) = ln(C(j,k)) + ln(j-k) - ln(k+1)
-                    log_binom += std::log(j - k) - std::log(k + 1);
+                }
+                catch (const std::exception& e) {
+                    std::cerr << "Error computing integral for j=" << j
+                        << ": " << e.what() << std::endl;
+                    integral_map[j] = 0.0L;
                 }
             }
 
-            // Находим максимальный логарифм для численной стабильности
-            long double max_log = log_terms[0];
-            for (int k = 1; k <= j; ++k) {
-                if (log_terms[k] > max_log) {
-                    max_log = log_terms[k];
-                }
-            }
-
-            // Суммируем exp(log_terms[k] - max_log) и затем умножаем на exp(max_log)
-            long double sum_exp = 0.0L;
-            for (int k = 0; k <= j; ++k) {
-                sum_exp += std::exp(log_terms[k] - max_log);
-            }
-
-            // Итоговый результат: C1 * C2 * sum
-            long double log_result = log_C1 + log_C2 + max_log + std::log(sum_exp);
-            return std::exp(log_result);
+            return integral_map;
         }
     }
-
+    using namespace special;
+#if 0
     void test_integral_p_x_() {
         try {
             long double a = 1.0L, b = 3.0L;
@@ -350,32 +259,83 @@ namespace counting_methods_3 {
         }
 
     }
+#endif
+    //coeff - nodes, coeff2 - weights
+    template<typename T= double>
+    std::pair<matrix<T>,matrix<T>> GetNGausCoefficientWithP_x_FunctionConstants(uint64_t n,double a = 1, double b = 3, double alpha = .5, double beta = 0.7) {
 
-    std::unordered_map<int, long double> fill_integral_map(
-        long double a, long double b,
-        long double alpha, long double beta,
-        int n) {
+        //input
+    //n - число узлов;
+      
+        /*std::cout << a << '\n';
+        std::cout << b << '\n';
+        std::cout << alpha << '\n';
+        std::cout << beta << '\n';*/
 
-        std::unordered_map<int, long double> integral_map;
+        matrix<double> A(n, n), B(n, 1);
+        auto miu = counting_methods_3::fill_integral_map(a, b, alpha, beta, n);
 
-        // for j = 0,..., 2*n-1
-        for (int j = 0; j < 2 * n; ++j) {
-            try {
-                long double value = compute_integral_optimized(a, b, alpha, beta, j);
-                integral_map[j] = value;
 
-                std::cout << "j = " << j << ", I = " << value << std::endl;
-
+        for (uint64_t i = 0; i < n; i++)
+        {
+            B[i][0] = -miu[n + i];
+            for (uint64_t j = 0; j < n; j++)
+            {
+                A[i][j] = miu[i + j];
             }
-            catch (const std::exception& e) {
-                std::cerr << "Error computing integral for j=" << j
-                    << ": " << e.what() << std::endl;
-                integral_map[j] = 0.0L; 
+        }
+        //std::cout << A << '\n';
+
+       // std::cout << B << '\n';
+        matrix<double> coeff = matrixfunction::solve_system(A, B);
+        //std::cout << "coeff" << coeff << '\n';
+
+        //std::cout << "A*coeff" << A * coeff << '\n';
+
+
+
+        polynomial<double> polyn(1);
+        for (uint64_t i = 0; i < n; i++)
+        {
+            //std::cout << "i=" << i << "  (coeff[i][0])" << (coeff[i][0]) << "\n";
+            polyn = (polyn >> 1);
+            polyn[0] = (coeff[n - 1 - i][0]);
+
+        }
+        //std::cout << "polyn:" << polyn << '\n';
+        //auto roots = polyn.plnm_roots();
+        auto roots = polyn.plnm_roots();
+        std::vector<long double> nodes_in_the_integration_gap;
+
+        for (auto& i : roots) {
+            //std::cout << "x_i:" << i.first << '\n';
+            nodes_in_the_integration_gap.push_back(i.first);
+        }
+
+
+
+        int size = nodes_in_the_integration_gap.size();
+        //
+        matrix<T>A2(size), B2(size, 1);
+        //std::cout << "3:" << nodes_in_the_integration_gap << '\n';
+        for (int i = 0; i < size; i++) {
+            A2[0][i] = 1;//nodes_in_the_integration_gap[i];
+            B2[i][0] = miu[i];
+            for (int j = 1; j < size; j++) {
+                A2[j][i] = nodes_in_the_integration_gap[i] * A2[j - 1][i];
             }
         }
 
-        return integral_map;
+        //std::cout << "A:" << A2 << "\n";
+        //std::cout << "b:" << B2 << "\n";
+        matrix<T> coeff2 = matrixfunction::solve_system(A2, B2);
+        //std::cout << "с_i++:" << A.inverse_M()*b << "\n";
+
+        //std::cout << "c_i:" << coeff2 << '\n';
+        return { coeff, coeff2};
     }
+
+    
     void fill_umap_test() {
         try {
             // Фиксированные параметры
@@ -413,70 +373,95 @@ namespace counting_methods_3 {
             
         }
     }
+
     enum class IntegrateMethod {    
-        LEFT_RECTANGLE,
+        LEFT_RECTANGLE=0,
         MIDDLE_RECTANGLE,
         TRAPEZOID,
         SIMPSON,
-        NEWTON_COTES_3_POINT=3,
-        NEWTON_COTES_4_POINT=4,
+        NEWTON_COTES_3_POINT=4,
+        NEWTON_COTES_4_POINT=5,
         NEWTON_COTES_5_POINT,
         NEWTON_COTES_6_POINT,
         NEWTON_COTES_7_POINT,
         NEWTON_COTES_8_POINT,
-        NEWTON_COTES_9_POINT,
+        NEWTON_COTES_9_POINT=10,
         GAUS_3_POINT,
         GAUS_4_POINT
     };
-    // Исправленная сигнатура функции интегрирования
-    template<typename TResult, typename TArg, IntegrateMethod Method>
-    TResult integrate(std::function<TResult(TArg)> f, TArg a, TArg b, int points) {
+
+    struct PFeature {
+        double alpha, beta;
+    };
+
+
+    /*template<typename TResult, typename TArg, IntegrateMethod Method>
+    TResult integrate(std::function<TResult(TArg)> f, TArg a, TArg b, int points_of_division, PFeature p_feature ={0,0}) {
+        if (p_feature == PFeature{ 0, 0 })return integrate(f,  a,  b, points_of_division);
+        if (a > b)throw("a>b");
         TResult sum = 0;
+        TResult h = (b - a) / static_cast<TArg>(points_of_division);
+        auto a_ = a,b_=a_+h;
+        for (uint64_t i = 0; i < points_of_division; i++)
+        {
+            auto{ dots,veight } = GetNGausCoefficientWithP_x_FunctionConstants(Method, a_, b_, p_feature.alpha, p_feature.beta);
+            for (int j = 0; j < dots.getcol(); j++) {
+                sum += f(dots[0][j]) * veight[0][j];
+            }
+            a_ += h, b_ += b_ + h;
+        }
+
+
+    }*/
+
+   //main integrate function. 
+    //if (p_feature == { 0, 0 })return integrate(f,  a,  b, int points_of_division);
+    //if (a > b)throw("a>b");
+    template<typename TResult, typename TArg, IntegrateMethod Method>
+    TResult integrate(std::function<TResult(TArg)> f, TArg a, TArg b, int points_of_division, PFeature p_feature = { 0,0 }) {
+        TResult sum = 0;
+        if (a > b)throw("a>b");
+        TArg h = (b - a) / static_cast<TArg>(points_of_division);
         if constexpr (Method == IntegrateMethod::LEFT_RECTANGLE) {
-            TResult h = (b - a) / static_cast<TArg>(points);
             sum = 0;
-            for (int i = 0; i < points; ++i) {
+            for (int i = 0; i < points_of_division; ++i) {
                 sum += f(a + i * h);
             }
             return sum * h;
         }
         else if constexpr (Method == IntegrateMethod::MIDDLE_RECTANGLE) {
-            TArg h = (b - a) / static_cast<TArg>(points);
             sum = 0;
-            for (int i = 1; i < points; ++i) {
+            for (int i = 1; i < points_of_division; ++i) {
                 sum += f(a + i * h - h / 2);
             }
             return sum * h;
         }
         else if constexpr (Method == IntegrateMethod::TRAPEZOID) {
-            TArg h = (b - a) / static_cast<TArg>(points);
             sum = (f(a) + f(b)) / 2;
-            for (int i = 1; i < points; ++i) {
+            for (int i = 1; i < points_of_division; ++i) {
                 sum += f(a + i * h);
             }
             return sum * h;
         }
         else if constexpr (Method == IntegrateMethod::SIMPSON) {
-            TArg h = (b - a) / static_cast<TArg>(points);
             sum = f(a) + f(b);
 
-            for (int i = 1; i < points; ++i) {
+            for (int i = 1; i < points_of_division; ++i) {
                 TResult coefficient = (i % 2 == 1) ? 4 : 2;
                 sum += coefficient * f(a + i * h);
             }
 
             return sum * h / 3;
         }
-        else if constexpr ((static_cast<int>(IntegrateMethod::NEWTON_COTES_4_POINT) <= static_cast<int>(Method)) && (static_cast<int>(Method) <= static_cast<int>(IntegrateMethod::NEWTON_COTES_9_POINT))) {
-            std::cout << "good" << '\n';
-            TResult h = (b - a) / static_cast<TArg>(points);
+        else if constexpr ((static_cast<int>(IntegrateMethod::NEWTON_COTES_3_POINT) <= static_cast<int>(Method)) && (static_cast<int>(Method) <= static_cast<int>(IntegrateMethod::NEWTON_COTES_9_POINT))) {
+            //std::cout << "good" << '\n';
             sum = 0;
             int n = static_cast<int>(Method);
             TResult micro_h = h / static_cast<TArg>(n-1);
-            matrix<TResult> M = СoefficIntegralNewtonCotes<TResult>(n);
+            matrix<TResult> M = GetNormalizedСoefficentsNewtonCotes<TResult>(n);
 
-            std::cout<<"M:" << M;
-            for (int j = 0; j < points; j++)
+            //std::cout<<"M:" << M;
+            for (int j = 0; j < points_of_division; j++)
             {
                 for (int i = 0; i < n; ++i) {
                    
@@ -486,17 +471,36 @@ namespace counting_methods_3 {
 
             return sum * h;
         }
-        //else if constexpr (Method == IntegrateMethod::GAUS_3_POINT) {
-
-        //}
-        //else if constexpr (Method == IntegrateMethod::GAUS_4_POINT) 
-
-        //}
-
-        // ... другие методы
+        else if constexpr (Method == IntegrateMethod::GAUS_3_POINT) {
+            auto a_ = a, b_ = a_ + h;
+            for (uint64_t i = 0; i < points_of_division; i++)
+            {
+                std::pair<matrix<TArg>, matrix<TResult>> M = GetNGausCoefficientWithP_x_FunctionConstants(3, a_, b_, p_feature.alpha, p_feature.beta);
+                auto dots = M.first, weight = M.second;
+                for (int j = 0; j < dots.getcol(); j++) {
+                    sum += f(dots[0][j]) *weight[0][j];
+                }
+                a_ += h, b_ += b_ + h;
+            }
+        }
+        else if constexpr (Method == IntegrateMethod::GAUS_4_POINT)
+        {
+            auto a_ = a, b_ = a_ + h;
+            for (uint64_t i = 0; i < points_of_division; i++)
+            {
+                std::pair<matrix<TArg>, matrix<TResult>> M = GetNGausCoefficientWithP_x_FunctionConstants(4, a_, b_, p_feature.alpha, p_feature.beta);
+                auto dots = M.first, weight = M.second;
+                for (int j = 0; j < dots.getcol(); j++) {
+                    sum += f(dots[0][j]) * weight[0][j];
+                }
+                a_ += h, b_ += b_ + h;
+            }
+        }
         else {
             static_assert(1!=0, "Unknown integration method");
         }
         return 17171;
     }
+
+
 }

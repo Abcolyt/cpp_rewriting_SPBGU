@@ -72,7 +72,7 @@ const double modifire = 1*/) {
 
 template<class T>void draw_functions(const std::vector<std::function<T(T)>>& functions, T a = (T)0, T b = (T)0, const std::vector<std::pair<T, T>>& points = std::vector<std::pair<T, T>>{}, const std::string& window_name = "y(x)=", const std::vector<std::function<T(T)>>& cyan_functions = std::vector<std::function<T(T)>>{}) {
     sf::RenderWindow window(sf::VideoMode(Drawing_Window_Size), window_name);
-    
+
     window.setVerticalSyncEnabled(true);
     //sf::ContextSettings settings = window.getSettings();
     //glPointSize(5);
