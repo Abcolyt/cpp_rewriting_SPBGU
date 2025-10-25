@@ -458,14 +458,51 @@ namespace sem_5 {
             DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(i)>(experimental_function, a,b,integral_of_the_function, p_feature, n);
         }
     }
+    template<typename TArg, typename TResult>
+    struct TestConfig {
+        std::function<TResult(TArg)> function;      // Интегрируемая функция
+        std::function<TResult(TArg)> reference;     // Первообразная (эталонная функция)
+        TArg a;
+        TArg b;
+        TResult expected;                           // Ожидаемый результат
+        TResult tolerance;                          // Допустимая погрешность
+        int points;
+        std::string name;                           // Имя конфигурации( для отладки)
+        TArg alpha;                                 // Дополнительный параметр
+        TArg beta;
+        int max_iteration = 10;
+    };
+
+    TestConfig<double, double> conf{
+           [](double x) { return 1.3 * cos(3.5 * x) * exp(2 * x / 3) + 6 * sin(4.5 * x) * exp(-x / 8) + 5 * x;  },
+           [](double x) { return (-109680 * sin((9 * x) / 2) - 3948480 * cos((9 * x) / 2) + 1062243 * exp((19 * x) / (24)) * sin((7 * x) / 2) + 202332 * exp((19 * x) / (24)) * cos((7 * x) / 2)) / (2963645 * exp(x / 8)) + (5 * x * x) / 2 + 3746148 / (2963645); },
+           0.7, 3.2,
+           20.235345,
+           1e-9,
+           30,
+           "variant_10_alpha_beta_0",
+           0.0,0.0,
+           1
+    };
+    TestConfig<double, double> conf2{
+           [](double x) { return 1.3 * cos(3.5 * x) * exp(2 * x / 3) + 6 * sin(4.5 * x) * exp(-x / 8) + 5 * x;  },
+           [](double x) { return (-109680 * sin((9 * x) / 2) - 3948480 * cos((9 * x) / 2) + 1062243 * exp((19 * x) / (24)) * sin((7 * x) / 2) + 202332 * exp((19 * x) / (24)) * cos((7 * x) / 2)) / (2963645 * exp(x / 8)) + (5 * x * x) / 2 + 3746148 / (2963645); },
+           0.7, 3.2,
+           20.235345,
+           1e-9,
+           30,
+           "variant_10_alpha_beta_0",
+           0.0,1.0/4,
+           1
+    };
     void sem_5() {
         counting_methods_3::PFeature p={ 0,0};
-        auto f = [](double x) {return x*x*x*x; };
+        auto f = [](double x) {return 13*std::cos(35*x) *std::exp(2*x/ 3) + 6*std:: sin(45*x) *exp(x /8) + 5*x; };
+        
+        //((e ^ 2) ^ (1 / 5) * (103296 * sin(144) - 37186560 * cos(144)) + (e ^ 2) ^ (1 / 15) * (103554360 * e ^ 2 * sin(112) + 1972464 * e ^ 2 * cos(112)) + (e ^ 7) ^ (1 / 80) * (37186560 * cos(63 / 2) - 103296 * sin(63 / 2)) + (e ^ 7) ^ (1 / 15) * (-103554360 * sin(49 / 2) - 1972464 * cos(49 / 2)) + 6798220455) / (278901352) = 21.92472
 
-        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::GAUS_3_POINT>(f, 1.0, 3.0, 8.5327773, {1.0/5.0,0}, 10);
-        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::GAUS_4_POINT>(f, 1.0, 3.0, 8.5327773, { 1.0 / 5.0,0 }, 10);
 
-        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(0)>(f, 1.0, 3.0, 26.0/3, p, 100);
+        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(0)>(f, 1.0, 3.0, 21.92472, p, 100);
         DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(1)>(f, 1.0, 3.0, 26.0 / 3, p, 100);
         DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(2)>(f, 1.0, 3.0, 26.0 / 3, p, 100);
         DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(3)>(f, 1.0, 3.0, 26.0 / 3, p, 100);
@@ -473,6 +510,10 @@ namespace sem_5 {
         DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(5)>(f, 1.0, 3.0, 26.0 / 3, p, 100);
         DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(6)>(f, 1.0, 3.0, 26.0 / 3, p, 100);
 
+
+
+        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::GAUS_3_POINT>(f, 1.0, 3.0, 8.5327773, {1.0/5,0}, 10);
+        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::GAUS_4_POINT>(f, 1.0, 3.0, 8.5327773, {1.0/5,0}, 10);
 
 
 
@@ -696,45 +737,77 @@ void test_analytical_roots() {
 }
 #endif
 
-/////////////////////////////////////////////////////////
 int main() {
-    #if 1
-   // //matrix< double> T{ {1,5,9}};
-   // //std::cout << "T :\n" << T<<"\n";
-   // ////T=T.transpose();
-   // //std::cout << "coeff :\n" << counting_methods_3::СoefficNewtonCotes(T,static_cast<double>(1), static_cast<double>(9)).set_output_mode(output_mode::FULL) << "\n";
-   // 
-   ///* int n = 3;
-   // matrix<double> T2;
-   // std::cin >> n;
-   // T2.setcol(1);
-   // T2.setrow(n);
-   // for (int i = 0; i < n; i++) {
-   //     T2[0][i] = i*(1.0 / ((double)( n-1 )));
-   // }
-   // std::cout << "T2 :\n" << T2 << "\n";
-   // std::cout << "IntegrateMethod::GAUS_4_POINT :" << (int)counting_methods_3::IntegrateMethod::GAUS_4_POINT << "\n";
-   // 
-   // std::cout << "coeff :\n" << counting_methods_3::GetNormalizedСoefficentsNewtonCotes<double>(n).set_output_mode(output_mode::FULL) << "\n";*/
-   // std::cout << "coeff :\n" << counting_methods_3::integrate<double, double, counting_methods_3::IntegrateMethod::NEWTON_COTES_4_POINT>([](double x) { return x * x; }, 0.0, 1.0, 100) << "\n";
+#if 0
+    try {
+        double x = 0.5;
+        double a = 2.0;
+        double b = 3.0;
 
-   // 
-   // std::cout << "end: :\n" << counting_methods_3::GetNormalizedСoefficentsNewtonCotes<double>(4);
+        double I_x = beta_regularized(x, a, b);
+        double B_x = beta_incomplete(x, a, b);
+        double B = beta_function(a, b);
 
-   // //std::cout << "T :\n" << T << "\n";
-   // /*auto F = [](double x) {return x * x-1; };
-   // std::cout << "F(3)=" << F(3) << '\n';
-   // GetaPartialIntegralSum_Singlethreaded([](double x) {return x*x*4+2*x*x; }, -1, 1, 1, { {0,0.25,0.5,0.75,1} });*/
+        std::cout << std::setprecision(10);
+        std::cout << "I_" << x << "(" << a << ", " << b << ") = " << I_x << std::endl;
+        std::cout << "B_" << x << "(" << a << ", " << b << ") = " << B_x << std::endl;
+        std::cout << "B(" << a << ", " << b << ") = " << B << std::endl;
+        std::cout << "Proverka: B_x / B = " << B_x / B << std::endl;
 
-   // //std::stringstream ss("2\n2\n2\n1\n1\n1\n1\n2\n1\n2\n1\n1\n2\n1\n3\n1\n1\n4\n1\n2\n3\n4\n1\n1\n");
-   // //matrix<fraction<polynomial<double>>> mtrx;//there used to be a problem with %, and it only worked with int, now it seems to have disappeared
-   // //ss >> mtrx;
-   // //std::stringstream method_ans;
-   // //std::cout << mtrx;
-   // //method_ans << mtrx.inverse_M();
-   // //std::cout << method_ans.str();
-    #endif
-    sem_5::sem_5();
+        // Пример вычисления интеграла для j=2, c=0.3, d=0.4
+        double j = 2.0;
+        double c = 0.3;
+        double d = 0.4;
+        double h1 = 0.2;
+        double h2 = 0.8;
+        double a_point = 0.0;
+        double b_point = 1.0;
+
+        double t1 = (h1 - a_point) / (b_point - a_point);
+        double t2 = (h2 - a_point) / (b_point - a_point);
+
+        double integral = 0.0;
+        for (int k = 0; k <= j; ++k) {
+            double term = std::tgamma(j + 1) / (std::tgamma(k + 1) * std::tgamma(j - k + 1));
+            term *= std::pow(a_point, j - k) * std::pow(b_point - a_point, k);
+            term *= (beta_regularized(t2, k - c + 1, 1 - d) -
+                beta_regularized(t1, k - c + 1, 1 - d));
+            integral += term;
+        }
+        integral *= std::pow(b_point - a_point, 1 - c - d);
+
+        std::cout << "Integral = " << integral << std::endl;
+
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+
+#else
+    using namespace counting_methods_3;
+    using namespace sem_5;  
+
+    //std::cout << special::ComputeBetaZeroIntegral<double>(1., 10., 1., 1., 2)<<"\n";
+    // 
+    //std::cout << "First"  << std::fixed << std::setprecision(12) << special::integrated_function<double>(1., 7., 0., 8., 0., 0.99, 2) << "\n";
+    //std::cout << "Second" << std::fixed << std::setprecision(12) << special::integrated_function<double>(1., 7., 1., 0., 0.7, 0., 2) << "\n";
+    //First52.888989776304
+    //Second48.299771618350
+
+    std::cout << "Second" << std::fixed << std::setprecision(12) <<special::incomplete_beta(0.3,2.,3.) << "\n";
+
+    std::cout << "Second" << std::fixed << std::setprecision(30) << special::IntegralManager<double>(1., 7., 1., 8., 0.7, 0.99, 2);
+    
+    //sem_5::sem_5();
+    //GetNGausCoefficientWithP_x_FunctionConstants(3);
+    //GetNGausCoefficientWithP_x_FunctionConstants(3, 0.7, 3.2, 0, 0);
+    //auto Tay = conf2;
+    //std::cout << "ANS:" << integrate<double, double, counting_methods_3::IntegrateMethod::GAUS_3_POINT>(Tay.function, Tay.a, Tay.b, 30, { Tay.alpha,Tay.beta }) << "end\n";
+
+   // std::cout << "ANS:" << integrate<double, double, counting_methods_3::IntegrateMethod::NEWTON_COTES_5_POINT>(conf.function, conf.a, conf.b, conf.points, { conf.alpha,conf.beta })<<"end\n";
+    //std::cout << "ANS:" << integrate<double, double, counting_methods_3::IntegrateMethod::NEWTON_COTES_3_POINT>(conf2.function, conf2.a, conf2.b, 1'00'000'000, { conf2.alpha,conf2.beta }) << "end\n";
+
+#endif
 
 
 

@@ -63,8 +63,6 @@ namespace polynomialfunctions {
 
 		for (size_t i = 0; i < deg - 1; i++) {
 			auto ans = solve_tangents<P>(plnm, x0, LDBL_EPSILON);
-
-
 			auto refined_ans = solve_tangents<P>(original_plnm, ans.first, LDBL_EPSILON);
 
 			ans_roots.push_back(refined_ans);

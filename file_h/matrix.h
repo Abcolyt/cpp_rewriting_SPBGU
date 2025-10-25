@@ -486,8 +486,8 @@ public:
     void setrow(uint64_t rowsize) { this->rowsize = rowsize; this->allocateMemory(); }
     matrix<T>& set_output_mode(output_mode mode) { this->out_mode = mode; return *this; }
     enum class output_mode get_output_mode()const { return (this->out_mode); }
-    //to index1 row access operator
-    T* operator[](const uint64_t index1) const { return ptr + index1 * rowsize; }
+    //to index row access operator
+    T* operator[](const uint64_t row_index) const { return ptr + row_index * rowsize; }
     matrix<T> get_column(uint64_t col) const;
     matrix<T> get_row(uint64_t row) const;
 
