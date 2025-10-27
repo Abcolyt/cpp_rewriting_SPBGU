@@ -422,11 +422,21 @@ namespace sem_4 {
 
 namespace sem_5 {
     template<typename TResult, typename TArg, counting_methods_3::IntegrateMethod integrate_method>
-    void DispAbsBeatwen(std::function<TResult(TArg)> experimental_function, TArg a, TArg b, TResult integral_of_the_function, counting_methods_3::PFeature p_feature={0,0},int n=1) {
+    void DispAbsBeatwen(std::function<TResult(TArg)> experimental_function,
+        TArg a, TArg b, TResult integral_of_the_function,
+        counting_methods_3::PFeature p_feature={0,0},int n=1) {
         std::vector<TResult> abs_external_vector;
         for (int i = 0; i < n; i++)
         {
+            try
+            {
             abs_external_vector.push_back(std::abs(counting_methods_3::integrate<TResult, TArg, integrate_method>(experimental_function, a, b, i, p_feature) - integral_of_the_function));
+            std::cout << "continued i:" << i<<"\n";
+            }
+            catch (const std::exception&)
+            {
+                continue;
+            }
 
         }
         auto f_abs_n = [&abs_external_vector](double x) -> double {
@@ -488,32 +498,57 @@ namespace sem_5 {
            [](double x) { return 1.3 * cos(3.5 * x) * exp(2 * x / 3) + 6 * sin(4.5 * x) * exp(-x / 8) + 5 * x;  },
            [](double x) { return (-109680 * sin((9 * x) / 2) - 3948480 * cos((9 * x) / 2) + 1062243 * exp((19 * x) / (24)) * sin((7 * x) / 2) + 202332 * exp((19 * x) / (24)) * cos((7 * x) / 2)) / (2963645 * exp(x / 8)) + (5 * x * x) / 2 + 3746148 / (2963645); },
            0.7, 3.2,
-           20.235345,
+           24.142092678433,
            1e-9,
            30,
            "variant_10_alpha_beta_0",
            0.0,1.0/4,
            1
     };
+    TestConfig<double, double> conf3{
+               [](double x) { return 1.5 * cos(3.7 * x) * exp(4 * x / 7) + 3 * sin(2.5 * x) * exp(3 * x / 4) + 3 * x;  },
+               [](double x) { return (27195 * exp((4 * x) / 7) * sin((3.7 * x))) / (68681) + (4200 * exp((4 * x) / 7) * cos(3.7 * x)) / (68681) + (36 * exp(0.75 * x) * sin(2.5 * x)) / (109) - (120 * exp(0.75 * x) * cos(2.5 * x)) / (109) + (3 * x * x) / 2 + 7783920 / (7486229); },
+               1.5, 3.0,
+               5.6085702,
+               1e-9,
+               30,
+               "variant_20_alpha_0_beta_5__6",
+               0,5.0 / 6,
+               3
+    };
     void sem_5() {
         counting_methods_3::PFeature p={ 0,0};
-        auto f = [](double x) {return 13*std::cos(35*x) *std::exp(2*x/ 3) + 6*std:: sin(45*x) *exp(x /8) + 5*x; };
+        auto f = [](double x) {return 13*std::cos(3.5*x) *std::exp(2*x/ 3) + 6*std:: sin(4.5*x) *exp(x /8) + 5*x; };
         
         //((e ^ 2) ^ (1 / 5) * (103296 * sin(144) - 37186560 * cos(144)) + (e ^ 2) ^ (1 / 15) * (103554360 * e ^ 2 * sin(112) + 1972464 * e ^ 2 * cos(112)) + (e ^ 7) ^ (1 / 80) * (37186560 * cos(63 / 2) - 103296 * sin(63 / 2)) + (e ^ 7) ^ (1 / 15) * (-103554360 * sin(49 / 2) - 1972464 * cos(49 / 2)) + 6798220455) / (278901352) = 21.92472
 
-
-        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(0)>(f, 1.0, 3.0, 21.92472, p, 100);
-        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(1)>(f, 1.0, 3.0, 26.0 / 3, p, 100);
-        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(2)>(f, 1.0, 3.0, 26.0 / 3, p, 100);
-        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(3)>(f, 1.0, 3.0, 26.0 / 3, p, 100);
-        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(4)>(f, 1.0, 3.0, 26.0 / 3, p, 100);
-        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(5)>(f, 1.0, 3.0, 26.0 / 3, p, 100);
-        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(6)>(f, 1.0, 3.0, 26.0 / 3, p, 100);
+        auto configurate_alp_bet_eq0 = conf,configurate = conf2;
 
 
 
-        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::GAUS_3_POINT>(f, 1.0, 3.0, 8.5327773, {1.0/5,0}, 10);
-        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::GAUS_4_POINT>(f, 1.0, 3.0, 8.5327773, {1.0/5,0}, 10);
+        auto result = counting_methods_3::adaptive_integrate_richardson<double, double,
+            counting_methods_3::IntegrateMethod::NEWTON_COTES_3_POINT>(
+                configurate.function, configurate.a, configurate.b, 1e-6, 1, { 0, 0 });
+
+        std::cout << "RESULT STATISTIC:" << std::endl;
+        std::cout << "integral value : " << result.value << std::endl;
+        std::cout << "refined_value: " << result.refined_value << std::endl;
+        std::cout << "estimated_error: " << result.estimated_error << std::endl;
+        std::cout << "step_size: " << result.step_size << std::endl;
+        std::cout << "final_intervals number: " << result.final_intervals << std::endl;
+
+        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::GAUS_3_POINT>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
+        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::GAUS_4_POINT>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 20);
+
+
+        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(0)>(configurate_alp_bet_eq0.function, configurate_alp_bet_eq0.a, configurate_alp_bet_eq0.b, 20.235345, { configurate_alp_bet_eq0.alpha,configurate_alp_bet_eq0.beta }, 100);
+        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(1)>(configurate_alp_bet_eq0.function, configurate_alp_bet_eq0.a, configurate_alp_bet_eq0.b, 20.235345, { configurate_alp_bet_eq0.alpha,configurate_alp_bet_eq0.beta }, 100);
+        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(2)>(configurate_alp_bet_eq0.function, configurate_alp_bet_eq0.a, configurate_alp_bet_eq0.b, 20.235345, { configurate_alp_bet_eq0.alpha,configurate_alp_bet_eq0.beta }, 100);
+        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(3)>(configurate_alp_bet_eq0.function, configurate_alp_bet_eq0.a, configurate_alp_bet_eq0.b, 20.235345, { configurate_alp_bet_eq0.alpha,configurate_alp_bet_eq0.beta }, 100);
+        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(4)>(configurate_alp_bet_eq0.function, configurate_alp_bet_eq0.a, configurate_alp_bet_eq0.b, 20.235345, { configurate_alp_bet_eq0.alpha,configurate_alp_bet_eq0.beta }, 100);
+        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(5)>(configurate_alp_bet_eq0.function, configurate_alp_bet_eq0.a, configurate_alp_bet_eq0.b, 20.235345, { configurate_alp_bet_eq0.alpha,configurate_alp_bet_eq0.beta }, 100);
+        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(6)>(configurate_alp_bet_eq0.function, configurate_alp_bet_eq0.a, configurate_alp_bet_eq0.b, 20.235345, { configurate_alp_bet_eq0.alpha,configurate_alp_bet_eq0.beta }, 100);
+
 
 
 
@@ -738,50 +773,9 @@ void test_analytical_roots() {
 #endif
 
 int main() {
-#if 0
-    try {
-        double x = 0.5;
-        double a = 2.0;
-        double b = 3.0;
-
-        double I_x = beta_regularized(x, a, b);
-        double B_x = beta_incomplete(x, a, b);
-        double B = beta_function(a, b);
-
-        std::cout << std::setprecision(10);
-        std::cout << "I_" << x << "(" << a << ", " << b << ") = " << I_x << std::endl;
-        std::cout << "B_" << x << "(" << a << ", " << b << ") = " << B_x << std::endl;
-        std::cout << "B(" << a << ", " << b << ") = " << B << std::endl;
-        std::cout << "Proverka: B_x / B = " << B_x / B << std::endl;
-
-        // Пример вычисления интеграла для j=2, c=0.3, d=0.4
-        double j = 2.0;
-        double c = 0.3;
-        double d = 0.4;
-        double h1 = 0.2;
-        double h2 = 0.8;
-        double a_point = 0.0;
-        double b_point = 1.0;
-
-        double t1 = (h1 - a_point) / (b_point - a_point);
-        double t2 = (h2 - a_point) / (b_point - a_point);
-
-        double integral = 0.0;
-        for (int k = 0; k <= j; ++k) {
-            double term = std::tgamma(j + 1) / (std::tgamma(k + 1) * std::tgamma(j - k + 1));
-            term *= std::pow(a_point, j - k) * std::pow(b_point - a_point, k);
-            term *= (beta_regularized(t2, k - c + 1, 1 - d) -
-                beta_regularized(t1, k - c + 1, 1 - d));
-            integral += term;
-        }
-        integral *= std::pow(b_point - a_point, 1 - c - d);
-
-        std::cout << "Integral = " << integral << std::endl;
-
-    }
-    catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-    }
+#if 1
+   
+    sem_5::sem_5();
 
 #else
     using namespace counting_methods_3;
@@ -794,10 +788,18 @@ int main() {
     //First52.888989776304
     //Second48.299771618350
 
-    std::cout << "Second" << std::fixed << std::setprecision(12) <<special::incomplete_beta(0.3,2.,3.) << "\n";
-
-    std::cout << "Second" << std::fixed << std::setprecision(30) << special::IntegralManager<double>(1., 7., 1., 8., 0.7, 0.99, 2);
+    std::cout << "Second" /*<< std::fixed << std::setprecision(12)*/ <<special::incomplete_beta(0.3,2.,3.) << "\n";
+    auto configurate = conf2;
     
+
+
+
+    std::cout << "Second" /*<< std::fixed << std::setprecision(30) */<< special::IntegralManager<double>(1., 7., 1., 8., 0.7, 0.99, 2)<<"\n";
+    
+    std::cout << "NEWTON_COTES_3_POINT, ANS:" << integrate<double, double, counting_methods_3::IntegrateMethod::NEWTON_COTES_3_POINT>(configurate.function, configurate.a, configurate.b, 10'000, { configurate.alpha,configurate.beta}) << "end\n";
+
+    std::cout << "GAUS_3_POINT, ANS:" << integrate<double, double, counting_methods_3::IntegrateMethod::GAUS_3_POINT>(configurate.function, configurate.a, configurate.b, 100, { configurate.alpha,configurate.beta }) << "end\n";
+
     //sem_5::sem_5();
     //GetNGausCoefficientWithP_x_FunctionConstants(3);
     //GetNGausCoefficientWithP_x_FunctionConstants(3, 0.7, 3.2, 0, 0);

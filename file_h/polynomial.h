@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include<iostream>
 #include <sstream>
 #include <complex.h>
@@ -25,7 +25,6 @@ namespace polynomialfunctions {
 	template<typename P>std::pair<P, int> solve_tangents(polynomial<P> plnm, P x0, double e, uint64_t max_iter_number = 1'000'000);
 	template<typename P>std::vector<std::pair<P, int>> plnm_roots(polynomial<P> plnm, P x0 = FLT_EPSILON);
 	template<typename P>polynomial<P> filter_large_epsilon(polynomial<P>, P eps);
-
 }
 
 
@@ -170,7 +169,69 @@ public:
 	P maximum()const;
 
 	std::vector<std::pair<P, int>> plnm_roots( P x0 = FLT_EPSILON) const {
-		return polynomialfunctions::plnm_roots(*this);
+		
+		if (deg != 4) {
+			return polynomialfunctions::plnm_roots(*this);
+		}
+
+		//std::cout << "Kard root\n";
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+		P a = ptr[3];
+		P b = ptr[2];
+		P c = ptr[1];
+		P d = ptr[0];
+
+		P a2 = a * a;
+		P a3 = a2 * a;
+		P b2 = b * b;
+		P b3 = b2 * b;
+
+		P p = (3 * a * c - b2) / (9 * a2);
+		P q = (2 * b3 - 9 * a * b * c + 27 * a2 * d) / (54 * a3);
+
+		P discriminant = q * q + p * p * p;
+
+		std::vector<std::pair<P, int>> roots;
+		P shift = -b / (3 * a);
+
+		if (discriminant < 0) {
+			P r = std::sqrt(std::abs(p));
+			if (q < 0) r = -r; // sign(r) = sign(q)
+
+			P phi = std::acos(q / (r * r * r));
+
+			P y1 = -2 * r * std::cos(phi / 3);
+			P y2 = 2 * r * std::cos(M_PI / 3 - phi / 3);
+			P y3 = 2 * r * std::cos(M_PI / 3 + phi / 3);
+
+			roots.emplace_back(y1 + shift, 1);
+			roots.emplace_back(y2 + shift, 1);
+			roots.emplace_back(y3 + shift, 1);
+		}
+		else if (discriminant == 0) {
+			P u = std::cbrt(q);
+
+			P y1 = u;
+			P y2 = u;
+			P y3 = -2 * u;
+
+			roots.emplace_back(y1 + shift, 1);
+			roots.emplace_back(y2 + shift, 1);
+			roots.emplace_back(y3 + shift, 1);
+		}
+		else {
+			P sqrt_d = std::sqrt(discriminant);
+			P u = std::cbrt(-q + sqrt_d);
+			P v = std::cbrt(-q - sqrt_d);
+
+			P y1 = u + v;
+			roots.emplace_back(y1 + shift, 1);
+		}
+
+		return roots;
+
 	};
 };
 template<typename P> output_mode polynomial<P>::default_output_mode = output_mode::SHORT;

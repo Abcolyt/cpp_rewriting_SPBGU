@@ -2,6 +2,10 @@
 #include "../file_h/matrix.h"
 #include <vector>
 namespace counting_methods_3 {
+    struct PFeature {
+        double alpha, beta;
+    }; 
+
 #if 0
     template<typename T>
 	matrix<T> СoefficNewtonCotes(std::vector<T> nodes_in_the_integration_gap, T beginning_of_the_integration_interval, T end_of_the_integration_interval) {
@@ -21,57 +25,6 @@ namespace counting_methods_3 {
 		return  coeff;
  }
 #endif
-    matrix<double> getrange(int n) {
-        matrix<double> M;
-        M.setcol(1);
-        M.setrow(n);
-        for (int i = 0; i < n; i++) {
-            M[0][i] = i * (1.0 / (n - 1));
-        }
-
-        return M;
-    }
-
-    //get n normalized newton cotes coefficients(i.e. for [a=0,b=1]
-    //get c[j] : Integral[a=0,b=1]F(x)dx of function =~= Sum(j=1,n){c[j]*F(x_j)} 
-    template<typename T>
-    matrix<T> GetNormalizedСoefficentsNewtonCotes(int n) {
-        matrix<T> nodes_in_the_integration_gap = getrange(n);
-
-        if (nodes_in_the_integration_gap.is_vector()) {
-
-            //std::cout << "nodes_in_the_integration_gap:\n" << nodes_in_the_integration_gap << "\n";
-            if (nodes_in_the_integration_gap.getcol() == 1) { nodes_in_the_integration_gap = nodes_in_the_integration_gap.transpose(); }
-            T beginning_of_the_integration_interval = 0;
-            T end_of_the_integration_interval       = 1;
-
-
-            //std::cout << "1:" << nodes_in_the_integration_gap <<'\n';
-            if (beginning_of_the_integration_interval != 0 || end_of_the_integration_interval != 1) {
-                //std::cout << "2:" << (nodes_in_the_integration_gap - (matrix<T>::ones(nodes_in_the_integration_gap.getcol(), nodes_in_the_integration_gap.getrow()))) << "\n";
-                nodes_in_the_integration_gap = (nodes_in_the_integration_gap - (matrix<T>::ones(nodes_in_the_integration_gap.getcol(), nodes_in_the_integration_gap.getrow())));
-                nodes_in_the_integration_gap = nodes_in_the_integration_gap /(end_of_the_integration_interval - beginning_of_the_integration_interval);
-            }
-            uint64_t size= std::max(nodes_in_the_integration_gap.getrow(), nodes_in_the_integration_gap.getcol());
-            matrix<T>A(size), b(size, 1);
-            //std::cout << "3:" << nodes_in_the_integration_gap << '\n';
-            for (int i = 0; i < size; i++) {
-                A[0][i] = 1;//nodes_in_the_integration_gap[i];
-                b[i][0] = 1 / (static_cast<T>(1 + i));
-                for (int j = 1; j < size; j++) {
-                    A[j][i] = nodes_in_the_integration_gap[i][0] * A[j - 1][i];
-                }
-            }
-
-            //std::cout << "A:" << A << "\n";
-            //std::cout << "b:" << b << "\n";
-            matrix<T> coeff = matrixfunction::solve_system(A, b);
-            //std::cout << "с_i++:" << A.inverse_M()*b << "\n";
-            
-            //std::cout << "c_i:" << coeff << '\n';
-            return coeff;
-        }
-    }
 
 #if 0
     //get c[j] : Integral(a,b) of function =~= Sum(j=1,n){(b-a)*c[j]*F(x_j)} 
@@ -537,7 +490,8 @@ namespace counting_methods_3 {
                 if ((a >= b && beta != 0)) {
                     throw std::invalid_argument("a must be less than b");
                 }
-                if (t0 < a || (T > b && beta != 0) || t0 > T) {
+                if ((t0 < a && alpha!=0) || (T > b && beta != 0) || t0 > T) {
+                    std::cout << "err\n";
                     throw std::invalid_argument("Invalid integration limits: a <= t0 <= T <= b required");
                 }
                 if (!(alpha < 1)) {
@@ -620,7 +574,7 @@ namespace counting_methods_3 {
                     TResult value = feature_function(t0,T,a, b, alpha, beta, j);
                     integral_map[j] = value;
 
-                    std::cout << "j = " << j << ", I = " << value << std::endl;
+                    //std::cout << "j = " << j << ", I = " << value << std::endl;
 
                 }
                 catch (const std::exception& e) {
@@ -707,6 +661,13 @@ namespace counting_methods_3 {
 
                 nodes_in_the_integration_gap.push_back(roots[i].first);
                 Coeff[i][0] = roots[i].first;
+                if (Coeff[i][0] < 0)
+                {
+                    if (Coeff[i][0] < 1e-9) { Coeff[i][0] = 0; }
+                    else {
+                        std::cout << "\n" << Coeff[i][0]; throw std::domain_error(" Detected A_i <0 " + std::to_string(Coeff[i][0]));
+                    }
+                }
             }
 #if Debug == 1
             std::cout << "Coeff" << Coeff << '\n';
@@ -738,6 +699,7 @@ namespace counting_methods_3 {
 #endif  
 
 
+            
             return { Coeff, coeff2 };
         }
 
@@ -850,6 +812,103 @@ namespace counting_methods_3 {
         }
 
 
+
+
+        matrix<double> getrange(int n) {
+            matrix<double> M;
+            M.setcol(1);
+            M.setrow(n);
+            for (int i = 0; i < n; i++) {
+                M[0][i] = i * (1.0 / (n - 1));
+            }
+
+            return M;
+        }
+
+        //get n normalized newton cotes coefficients(i.e. for [a=0,b=1]
+        //get c[j] : Integral[a=0,b=1]F(x)dx of function =~= Sum(j=1,n){c[j]*F(x_j)} 
+        template<typename T>
+        matrix<T> GetNormalizedСoefficentsNewtonCotes(int n) {
+            matrix<T> nodes_in_the_integration_gap = getrange(n);
+
+            if (nodes_in_the_integration_gap.is_vector()) {
+
+                //std::cout << "nodes_in_the_integration_gap:\n" << nodes_in_the_integration_gap << "\n";
+                if (nodes_in_the_integration_gap.getcol() == 1) { nodes_in_the_integration_gap = nodes_in_the_integration_gap.transpose(); }
+                T beginning_of_the_integration_interval = 0;
+                T end_of_the_integration_interval = 1;
+
+
+                //std::cout << "1:" << nodes_in_the_integration_gap <<'\n';
+                if (beginning_of_the_integration_interval != 0 || end_of_the_integration_interval != 1) {
+                    //std::cout << "2:" << (nodes_in_the_integration_gap - (matrix<T>::ones(nodes_in_the_integration_gap.getcol(), nodes_in_the_integration_gap.getrow()))) << "\n";
+                    nodes_in_the_integration_gap = (nodes_in_the_integration_gap - (matrix<T>::ones(nodes_in_the_integration_gap.getcol(), nodes_in_the_integration_gap.getrow())));
+                    nodes_in_the_integration_gap = nodes_in_the_integration_gap / (end_of_the_integration_interval - beginning_of_the_integration_interval);
+                }
+                uint64_t size = std::max(nodes_in_the_integration_gap.getrow(), nodes_in_the_integration_gap.getcol());
+                matrix<T>A(size), b(size, 1);
+                //std::cout << "3:" << nodes_in_the_integration_gap << '\n';
+                for (int i = 0; i < size; i++) {
+                    A[0][i] = 1;//nodes_in_the_integration_gap[i];
+                    b[i][0] = 1 / (static_cast<T>(1 + i));
+                    for (int j = 1; j < size; j++) {
+                        A[j][i] = nodes_in_the_integration_gap[i][0] * A[j - 1][i];
+                    }
+                }
+
+                //std::cout << "A:" << A << "\n";
+                //std::cout << "b:" << b << "\n";
+                matrix<T> coeff = matrixfunction::solve_system(A, b);
+                //std::cout << "с_i++:" << A.inverse_M()*b << "\n";
+
+                //std::cout << "c_i:" << coeff << '\n';
+                return coeff;
+            }
+        }
+
+        template<typename TResult, typename TArg>
+        matrix<TResult> GetSingularityNewtonKotesCoefficients(int n, TArg a, TArg b, PFeature p_feature = { 0,0 },
+            std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function = euler_type::IntegralManager<TResult, TArg>) {
+            using T = TResult;
+            matrix<T> nodes_in_the_integration_gap = getrange(n);
+
+            if (nodes_in_the_integration_gap.is_vector()) {
+
+                //std::cout << "nodes_in_the_integration_gap:\n" << nodes_in_the_integration_gap << "\n";
+                if (nodes_in_the_integration_gap.getcol() == 1) { nodes_in_the_integration_gap = nodes_in_the_integration_gap.transpose(); }
+                TResult beginning_of_the_integration_interval = 0;
+                TResult end_of_the_integration_interval = 1;
+
+
+                //std::cout << "1:" << nodes_in_the_integration_gap <<'\n';
+                if (beginning_of_the_integration_interval != 0 || end_of_the_integration_interval != 1) {
+                    //std::cout << "2:" << (nodes_in_the_integration_gap - (matrix<T>::ones(nodes_in_the_integration_gap.getcol(), nodes_in_the_integration_gap.getrow()))) << "\n";
+                    nodes_in_the_integration_gap = (nodes_in_the_integration_gap - (matrix<T>::ones(nodes_in_the_integration_gap.getcol(), nodes_in_the_integration_gap.getrow())));
+                    nodes_in_the_integration_gap = nodes_in_the_integration_gap / (end_of_the_integration_interval - beginning_of_the_integration_interval);
+                }
+                uint64_t size = std::max(nodes_in_the_integration_gap.getrow(), nodes_in_the_integration_gap.getcol());
+                matrix<TResult>A(size), b_(size, 1);
+                std::cout << "nodes_in_the_integration_gap" << nodes_in_the_integration_gap << '\n';
+
+
+                for (int i = 0; i < size; i++) {
+                    A[0][i] = 1;//nodes_in_the_integration_gap[i];
+                    b_[i][0] = feature_function(0,1,0,1, p_feature.alpha, p_feature.beta, i)/*/std::pow(b-a,1- p_feature.alpha- p_feature.beta)*/;
+                    for (int j = 1; j < size; j++) {
+                        A[j][i] = nodes_in_the_integration_gap[i][0] * A[j - 1][i];
+                    }
+                }
+
+                std::cout << "A:" << A << "\n";
+                std::cout << "b:" << b_ << "\n";
+                matrix<TResult> coeff = matrixfunction::solve_system(A, b_);
+                //std::cout << "с_i++:" << A.inverse_M()*b << "\n";
+
+                //std::cout << "c_i:" << coeff << '\n';
+                return coeff;
+            }
+        }
+
         }
         using namespace auxiliary;
     }
@@ -937,9 +996,7 @@ namespace counting_methods_3 {
    //main integrate function. 
     //if (p_feature == { 0, 0 })return integrate(f,  a,  b, int points_of_division);
     //if (a > b)throw("a>b");
-    struct PFeature {
-        double alpha, beta;
-    };
+   
 #define integrate_version 2
 #if integrate_version == 1
     template<typename TResult, typename TArg, IntegrateMethod Method>
@@ -1030,7 +1087,9 @@ namespace counting_methods_3 {
         return 404;
     }
 #else
-
+//feature_function need if p_feature != { 0,0 }
+//   *euler_type::IntegralManager<TResult, TArg>:  return Int[t0;T] x^j/((x-a)^alpha * (b-x)^beta) dx
+//p_feature={alpha,beta}
 template<typename TResult, typename TArg, IntegrateMethod Method>
 TResult integrate(std::function<TResult(TArg)> f,
     TArg a, TArg b, uint64_t interval_of_division, PFeature p_feature = { 0,0 },
@@ -1079,9 +1138,18 @@ TResult integrate(std::function<TResult(TArg)> f,
         return sum * h / 3;
     }
     else if constexpr ((static_cast<int>(IntegrateMethod::NEWTON_COTES_3_POINT) <= static_cast<int>(Method)) && (static_cast<int>(Method) <= static_cast<int>(IntegrateMethod::NEWTON_COTES_9_POINT))) {
-        int n = static_cast<int>(Method);
+        int n = static_cast<int>(Method)-1;
         TResult micro_h = h / static_cast<TArg>(n - 1);
-        matrix<TResult> M = GetNormalizedСoefficentsNewtonCotes<TResult>(n);
+        matrix<TResult> M;
+        if (p_feature.alpha== 0 && p_feature.beta == 0) {
+            M = GetNormalizedСoefficentsNewtonCotes<TResult>(n);
+        }
+        else {
+            
+            M = GetSingularityNewtonKotesCoefficients<TResult,TArg>(n,a,b, p_feature, feature_function);
+            std::cout <<M<< "\n";
+        }
+
         if (p_feature.alpha == 0)sum += M[0][0] * f(a);
         for (int j = 0; j < interval_of_division; j++)
         {
@@ -1106,13 +1174,34 @@ TResult integrate(std::function<TResult(TArg)> f,
 #if 0
             std::pair<matrix<TArg>, matrix<TResult>> M = GetNGausCoefficientWithP_x_FunctionConstants(static_cast<int>(Method) - 8, a_ ,b_,a,b, p_feature.alpha, p_feature.beta, feature_function);
 #else
+            //if (i==98||(a_ + 1e-14 < a && p_feature.alpha!=0) || (b_ - 1e-14 > b && p_feature.beta != 0) || a_ > b_) {
+            //    
+            //    std::cout << "err\n";
+            //}
+            if ((b_  > b && p_feature.beta != 0)) {
+                if (!(b_ - 1e-14 > b)) {
+                    b_ = b;
+                }
+            }
             auto miu_coeff = counting_methods_3::fill_integral_map(a_,b_,a,b, p_feature.alpha, p_feature.beta, static_cast<int>(Method) - 8, feature_function);
+
             std::pair<matrix<TArg>, matrix<TResult>> M = GetNGausCoefficientWithP_x_FunctionConstants(miu_coeff);
+
+            
 #endif
+           // std::cout << "\nM>FIRST " << M.first << "\nM>SECOND " << M.second << "\n";
             auto dots = M.first, weight = M.second;
             for (int j = 0; j < dots.getcol(); j++) {
+                if (dots[0][j] > b || dots[0][j] < a)
+                {
+                    std::cout <<"Detected x_i <a or x_i>b" << std::to_string(dots[0][j]);
+                    std::cout << "dots:" << dots<<"\n";
+                    std::cout << "weight:" << weight << "\n";
+                    throw std::domain_error(" Detected x_i <a or x_i>b " + std::to_string(dots[0][j]));
+                }
                 sum += f(dots[0][j]) * weight[0][j];
             }
+            //std::cout <<"sum:" << sum << "\n";
             a_ += h, b_ += h;
         }
         return sum;
@@ -1126,4 +1215,157 @@ TResult integrate(std::function<TResult(TArg)> f,
 
 #endif
 
+
+// Вспомогательная структура для возврата результатов
+template<typename T>
+struct IntegrationResult {
+    T value;                    // Значение интеграла
+    T refined_value;            // Уточненное значение по Ричардсону
+    T estimated_error;          // Оценка погрешности
+    uint64_t final_intervals;   // Количество разбиений
+    T step_size;               // Длина шага
+    std::vector<T> approximations; // Все приближения
+    std::vector<T> convergence_rates; // Скорости сходимости
+};
+#if 0
+template<typename TResult, typename TArg, IntegrateMethod Method>
+IntegrationResult<TResult> adaptive_integrate_richardson(
+    std::function<TResult(TArg)> f, TArg a, TArg b, TResult epsilon = 1e-6, uint64_t intervals = 1, PFeature p_feature = { 0, 0 },
+    std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function = euler_type::IntegralManager<TResult, TArg>) {
+    IntegrationResult<TResult> Ans;
+    int m = 4;
+
+
+    auto h = (b - a) / intervals;
+    for (uint64_t size = 0; size < 50; size++)
+    {
+
+    matrix<TResult>A(size), b(size, 1);
+
+    for (int i = 0; i < size; i++) {
+        A[0][i] = 1;//nodes_in_the_integration_gap[i];
+        b[i][0] = integrate<TResult, TArg, Method>(f, a, b, intervals, p_feature, feature_function);
+        Ans.approximations.push_back(b[i][0]);
+
+        for (int j = 1; j < size-1; j++) {
+            A[j][i] = std::pow(h * std::pow(1.0/2,i), m);
+        }
+        A[size - 1][i] = -1;
+    }
+    std::cout << A << "\n" << b << "\n";
+    matrix<TResult> coeff = matrixfunction::solve_system(A, b);
+    }
+    return Ans;
+
+}
+#else
+
+template<typename TResult>
+TResult aitken_convergence_rate(TResult I_h, TResult I_h2, TResult I_h4) {
+    // p ≈ log2( (I_h2 - I_h) / (I_h4 - I_h2) )
+    if (std::abs(I_h4 - I_h2) < 1e-15) {
+        return 0;
+    }
+    return std::log2(std::abs((I_h2 - I_h) / (I_h4 - I_h2)));
+}
+
+template<typename TResult, typename TArg, counting_methods_3::IntegrateMethod Method>
+IntegrationResult<TResult> adaptive_integrate_richardson(
+    std::function<TResult(TArg)> f, TArg a, TArg b, TResult epsilon = 1e-6,
+    uint64_t initial_intervals = 1, PFeature p_feature = { 0, 0 },
+    std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function = euler_type::IntegralManager<TResult, TArg>) {
+
+    IntegrationResult<TResult> Ans;
+    uint64_t current_intervals = initial_intervals;
+    std::vector<TResult> approximations;
+    std::vector<TResult> convergence_rates;
+
+    int m = 3; 
+    int max_iterations = 20;
+
+    for (int iter = 0; iter < max_iterations; iter++) {
+        TResult current_approx = integrate<TResult, TArg, Method>(
+            f, a, b, current_intervals, p_feature, feature_function);
+        approximations.push_back(current_approx);
+
+        int size = approximations.size();
+        auto h = (b - a) / current_intervals;
+
+        if (size >= 2) {
+            matrix<TResult> A(size, size);
+            matrix<TResult> b_vec(size, 1);
+
+            for (int i = 0; i < size; i++) {
+                auto current_h = (b - a) / (initial_intervals * std::pow(2, i));
+
+                
+
+                //  C_m, C_{m+1}, ...
+                for (int j = 0; j < size - 1; j++) {
+                    A[i][j] = std::pow(current_h, m + j - 1);
+                }
+
+                A[i][ size - 1] = -1.0;
+
+                b_vec[i][0] = approximations[i];
+            }
+
+            //std::cout << "A_ " << iter << ":\n" << A << std::endl;
+            //std::cout << "b_:\n" << b_vec << std::endl;
+
+            try {
+                matrix<TResult> coeff = matrixfunction::solve_system(A, b_vec);
+
+                // coeff : [C_m, C_{m+1}, ..., J(f)]^T
+                TResult J_estimate = coeff[size - 1][0]; // J(f)
+                TResult error_estimate = std::abs(J_estimate - current_approx);
+
+                if (size >= 3) {
+                    TResult conv_rate = aitken_convergence_rate(
+                        approximations[size - 3], approximations[size - 2], approximations[size - 1]);
+                    convergence_rates.push_back(conv_rate);
+                    std::cout << "Speed Convergence: " << conv_rate << std::endl;
+                }
+
+                std::cout << "Iteration " << iter << ": N = " << current_intervals
+                    << ", h = " << h
+                    << ", I = " << current_approx
+                    << ", J(f) estimation = " << J_estimate
+                    << ", error rate = " << error_estimate << std::endl;
+
+                if (error_estimate < epsilon) {
+                    Ans.value = current_approx;
+                    Ans.refined_value = J_estimate;
+                    Ans.estimated_error = error_estimate;
+                    Ans.final_intervals = current_intervals;
+                    Ans.step_size = h;
+                    Ans.approximations = approximations;
+                    Ans.convergence_rates = convergence_rates;
+                    std::cout << "The required accuracy has been achieved!" << std::endl;
+                    return Ans;
+                }
+            }
+            catch (const std::exception& e) {
+                std::cout << "System solution error: " << e.what() << std::endl;
+            }
+        }
+
+        current_intervals *= 2;
+    }
+
+    // If you have not reached the accuracy
+    Ans.value = approximations.back();
+    Ans.refined_value = approximations.back();
+    Ans.estimated_error = epsilon * 10; // > accuracy
+    Ans.final_intervals = current_intervals / 2;
+    Ans.step_size = (b - a) / Ans.final_intervals;
+    Ans.approximations = approximations;
+    Ans.convergence_rates = convergence_rates;
+
+    std::cout << "The maximum number of iterations has been reached" << std::endl;
+    return Ans;
+}
+
+
+#endif
 }
