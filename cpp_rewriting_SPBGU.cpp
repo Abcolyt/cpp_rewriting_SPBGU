@@ -498,7 +498,7 @@ namespace sem_5 {
            [](double x) { return 1.3 * cos(3.5 * x) * exp(2 * x / 3) + 6 * sin(4.5 * x) * exp(-x / 8) + 5 * x;  },
            [](double x) { return (-109680 * sin((9 * x) / 2) - 3948480 * cos((9 * x) / 2) + 1062243 * exp((19 * x) / (24)) * sin((7 * x) / 2) + 202332 * exp((19 * x) / (24)) * cos((7 * x) / 2)) / (2963645 * exp(x / 8)) + (5 * x * x) / 2 + 3746148 / (2963645); },
            0.7, 3.2,
-           24.142092678433,
+           24.1420'926'784'33,
            1e-9,
            30,
            "variant_10_alpha_beta_0",
@@ -528,7 +528,7 @@ namespace sem_5 {
 
         auto result = counting_methods_3::adaptive_integrate_richardson<double, double,
             counting_methods_3::IntegrateMethod::NEWTON_COTES_3_POINT>(
-                configurate.function, configurate.a, configurate.b, 1e-6, 1, { 0, 0 });
+                configurate.function, configurate.a, configurate.b, 1e-9, 1, { 0, 5.0/6 });
 
         std::cout << "RESULT STATISTIC:" << std::endl;
         std::cout << "integral value : " << result.value << std::endl;

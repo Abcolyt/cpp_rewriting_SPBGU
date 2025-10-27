@@ -888,7 +888,7 @@ namespace counting_methods_3 {
                 }
                 uint64_t size = std::max(nodes_in_the_integration_gap.getrow(), nodes_in_the_integration_gap.getcol());
                 matrix<TResult>A(size), b_(size, 1);
-                std::cout << "nodes_in_the_integration_gap" << nodes_in_the_integration_gap << '\n';
+                //std::cout << "nodes_in_the_integration_gap" << nodes_in_the_integration_gap << '\n';
 
 
                 for (int i = 0; i < size; i++) {
@@ -899,8 +899,8 @@ namespace counting_methods_3 {
                     }
                 }
 
-                std::cout << "A:" << A << "\n";
-                std::cout << "b:" << b_ << "\n";
+                //std::cout << "A:" << A << "\n";
+                //std::cout << "b:" << b_ << "\n";
                 matrix<TResult> coeff = matrixfunction::solve_system(A, b_);
                 //std::cout << "с_i++:" << A.inverse_M()*b << "\n";
 
@@ -1147,10 +1147,10 @@ TResult integrate(std::function<TResult(TArg)> f,
         else {
             
             M = GetSingularityNewtonKotesCoefficients<TResult,TArg>(n,a,b, p_feature, feature_function);
-            std::cout <<M<< "\n";
+            //std::cout <<M<< "\n";
         }
 
-        if (p_feature.alpha == 0)sum += M[0][0] * f(a);
+        /*if (p_feature.alpha == 0)*/sum += M[0][0] * f(a);
         for (int j = 0; j < interval_of_division; j++)
         {
             for (int i = 1; i < n - 1; ++i) {
@@ -1162,23 +1162,17 @@ TResult integrate(std::function<TResult(TArg)> f,
         {
             sum += 2 * M[0][0] * f(a + h * j);
         }
-        if (p_feature.beta == 0)sum += M[0][0] * f(b);
+       /* if (p_feature.beta == 0)*/sum += M[0][0] * f(b);
 
         return sum * h;
     }
     else if constexpr ((static_cast<int>(IntegrateMethod::GAUS_3_POINT) <= static_cast<int>(Method)) && (static_cast<int>(Method) <= static_cast<int>(IntegrateMethod::GAUS_6_POINT))) {
         auto a_ = a, b_ = a_ + h;
-        //std::cout << a;
         for (uint64_t i = 0; i < interval_of_division; i++)
         {
-#if 0
-            std::pair<matrix<TArg>, matrix<TResult>> M = GetNGausCoefficientWithP_x_FunctionConstants(static_cast<int>(Method) - 8, a_ ,b_,a,b, p_feature.alpha, p_feature.beta, feature_function);
-#else
-            //if (i==98||(a_ + 1e-14 < a && p_feature.alpha!=0) || (b_ - 1e-14 > b && p_feature.beta != 0) || a_ > b_) {
-            //    
-            //    std::cout << "err\n";
-            //}
-            if ((b_  > b && p_feature.beta != 0)) {
+
+            
+            if ((b_ - 1e-14 > b && p_feature.beta != 0)) {
                 if (!(b_ - 1e-14 > b)) {
                     b_ = b;
                 }
@@ -1188,8 +1182,7 @@ TResult integrate(std::function<TResult(TArg)> f,
             std::pair<matrix<TArg>, matrix<TResult>> M = GetNGausCoefficientWithP_x_FunctionConstants(miu_coeff);
 
             
-#endif
-           // std::cout << "\nM>FIRST " << M.first << "\nM>SECOND " << M.second << "\n";
+
             auto dots = M.first, weight = M.second;
             for (int j = 0; j < dots.getcol(); j++) {
                 if (dots[0][j] > b || dots[0][j] < a)
@@ -1201,7 +1194,6 @@ TResult integrate(std::function<TResult(TArg)> f,
                 }
                 sum += f(dots[0][j]) * weight[0][j];
             }
-            //std::cout <<"sum:" << sum << "\n";
             a_ += h, b_ += h;
         }
         return sum;
@@ -1216,7 +1208,6 @@ TResult integrate(std::function<TResult(TArg)> f,
 #endif
 
 
-// Вспомогательная структура для возврата результатов
 template<typename T>
 struct IntegrationResult {
     T value;                    // Значение интеграла
@@ -1280,10 +1271,10 @@ IntegrationResult<TResult> adaptive_integrate_richardson(
     std::vector<TResult> approximations;
     std::vector<TResult> convergence_rates;
 
-    int m = 3; 
-    int max_iterations = 20;
+    int m = 4; 
+    int max_iterations = 50;
 
-    for (int iter = 0; iter < max_iterations; iter++) {
+    for (int iter = 1; iter < max_iterations; iter++) {
         TResult current_approx = integrate<TResult, TArg, Method>(
             f, a, b, current_intervals, p_feature, feature_function);
         approximations.push_back(current_approx);
@@ -1307,7 +1298,7 @@ IntegrationResult<TResult> adaptive_integrate_richardson(
 
                 A[i][ size - 1] = -1.0;
 
-                b_vec[i][0] = approximations[i];
+                b_vec[i][0] = -approximations[i];
             }
 
             //std::cout << "A_ " << iter << ":\n" << A << std::endl;
