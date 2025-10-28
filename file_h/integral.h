@@ -2,64 +2,68 @@
 #include "../file_h/matrix.h"
 #include <vector>
 namespace counting_methods_3 {
+    enum class IntegrateMethod {
+        LEFT_RECTANGLE = 0,
+        MIDDLE_RECTANGLE,
+        TRAPEZOID,
+        SIMPSON,
+        NEWTON_COTES_3_POINT = 4,
+        NEWTON_COTES_4_POINT = 5,
+        NEWTON_COTES_5_POINT,
+        NEWTON_COTES_6_POINT,
+        NEWTON_COTES_7_POINT,
+        NEWTON_COTES_8_POINT,
+        NEWTON_COTES_9_POINT = 10,
+        GAUS_3_POINT,
+        GAUS_4_POINT,
+        GAUS_5_POINT,
+        GAUS_6_POINT
+    };
+
     struct PFeature {
         double alpha, beta;
     }; 
 
-#if 0
     template<typename T>
-	matrix<T> СoefficNewtonCotes(std::vector<T> nodes_in_the_integration_gap, T beginning_of_the_integration_interval, T end_of_the_integration_interval) {
-        
-        matrix<T>A(nodes_in_the_integration_gap.size()), b(nodes_in_the_integration_gap.size(), 1);
+    struct IntegrationResult {
+        T a;
+        T b;
+        T alpha;
+        T beta;
+        T value_of_integral;                // The value of the integral
+        T refined_value;                    // Updated Richardson value
+        T estimated_error;                  // Error estimation
+        uint64_t final_intervals;           // Number of splits
+        T step_size;                        // Step length
+        std::vector<T> approximations;      // All approximations
+        std::vector<T> convergence_rates;   // Convergence rates
 
-        for (int i = 0; i < nodes_in_the_integration_gap.size(); i++) {
-            A[0][i] = 1;//nodes_in_the_integration_gap[i];
-            b[i][0] = 1 / (static_cast<T>(1 + i));
-            for (int j = 1; j < nodes_in_the_integration_gap.size(); j++) {
-                A[j][i] = nodes_in_the_integration_gap[i] * A[j - 1][i];
+
+        friend std::ostream& operator<<(std::ostream& os, const IntegrationResult<T>& result) {
+            os << "RESULT STATISTIC:" << std::endl;
+            os << "[a;b]=[" << result.a << ";" << result.b << "]" << std::endl;
+            os << "alpha=" << result.alpha << std::endl;
+            os << "beta=" << result.beta << std::endl;
+            os << "integral value : " << result.value_of_integral << std::endl;
+            os << "refined_value: " << std::fixed << std::setprecision(12) << result.refined_value << std::endl;//<--
+            os << std::defaultfloat << std::setprecision(6);
+            os << "estimated_error: " << result.estimated_error << std::endl;
+            os << "step_size: " << result.step_size << std::endl;
+            os << "final_intervals number: " << result.final_intervals << std::endl;
+            os << "convergence_rates: " << result.convergence_rates.back() << std::endl;
+
+            if (!result.approximations.empty()) {
+                os << "number of approximations: " << result.approximations.size() << std::endl;
             }
+            if (!result.convergence_rates.empty()) {
+                os << "number of convergence rates: " << result.convergence_rates.size() << std::endl;
+            }
+
+            return os;
         }
-		
-		matrix<T> coeff = (end_of_the_integration_interval - beginning_of_the_integration_interval) * matrixfunction::solve_system(A,b);
+    };
 
-		return  coeff;
- }
-#endif
 
-#if 0
-    //get c[j] : Integral(a,b) of function =~= Sum(j=1,n){(b-a)*c[j]*F(x_j)} 
-    template<typename T>
-    matrix<T> СoefficNewtonCotes(matrix<T> nodes_in_the_integration_gap, T beginning_of_the_integration_interval, T end_of_the_integration_interval) {
-        if (nodes_in_the_integration_gap.is_vector()) {
-            //std::cout << "nodes_in_the_integration_gap:\n" << nodes_in_the_integration_gap << "\n";
-            if (nodes_in_the_integration_gap.getcol() == 1) { nodes_in_the_integration_gap = nodes_in_the_integration_gap.transpose(); }
-            std::cout <<"1:" << nodes_in_the_integration_gap << '\n';
-            if (beginning_of_the_integration_interval != 0 || end_of_the_integration_interval != 1) {
-                std::cout << "2:" << (nodes_in_the_integration_gap - (matrix<T>::ones(nodes_in_the_integration_gap.getcol(), nodes_in_the_integration_gap.getrow()))) << "\n";
-                nodes_in_the_integration_gap = (nodes_in_the_integration_gap - (matrix<T>::ones(nodes_in_the_integration_gap.getcol(), nodes_in_the_integration_gap.getrow())));
-                nodes_in_the_integration_gap = nodes_in_the_integration_gap / (end_of_the_integration_interval - beginning_of_the_integration_interval);
-            }
-            uint64_t size = std::max(nodes_in_the_integration_gap.getrow(), nodes_in_the_integration_gap.getcol());
-            matrix<T>A(size), b(size, 1);
-
-            std::cout << "3:" << nodes_in_the_integration_gap << '\n';
-
-            for (int i = 0; i < size; i++) {
-                A[0][i] = 1;//nodes_in_the_integration_gap[i];
-                b[i][0] = 1 / (static_cast<T>(1 + i));
-                for (int j = 1; j < size; j++) {
-                    A[j][i] = nodes_in_the_integration_gap[i][0] * A[j - 1][i];
-                }
-            }
-            std::cout << "A:" << A<<"\n";
-            std::cout << "b:" << b << "\n";
-
-            matrix<T> coeff =  matrixfunction::solve_system(A, b);
-            std::cout << "c_i:" << coeff << '\n';
-            return coeff;
-        }
-    }
-#endif
     namespace special {
         //beta,logbeta,incompletebeta
         namespace betas {
@@ -530,34 +534,6 @@ namespace counting_methods_3 {
         }
         using namespace euler_type;
         namespace auxiliary {
-#define integrate_version 2
-#if integrate_version == 1
-        std::unordered_map<int, long double> fill_integral_map(
-            long double a, long double b,
-            long double alpha, long double beta,
-            int n) {
-
-            std::unordered_map<int, long double> integral_map;
-
-            // for j = 0,..., 2*n-1
-            for (int j = 0; j < 2 * n; ++j) {
-                try {
-                    long double value = compute_integral_optimized(a, b, alpha, beta, j);
-                    integral_map[j] = value;
-
-                    std::cout << "j = " << j << ", I = " << value << std::endl;
-
-                }
-                catch (const std::exception& e) {
-                    std::cerr << "Error computing integral for j=" << j
-                        << ": " << e.what() << std::endl;
-                    integral_map[j] = 0.0L;
-                }
-            }
-
-            return integral_map;
-        }
-#elif integrate_version==2
         
         template<typename TResult, typename TArg>
         std::unordered_map<int, TResult> fill_integral_map(TArg t0, TArg T,
@@ -586,327 +562,310 @@ namespace counting_methods_3 {
 
             return integral_map;
         }
-#endif
+        namespace integration_coefficients {
+            ////
+            matrix<double> getrange(int n) {
+                matrix<double> M;
+                M.setcol(1);
+                M.setrow(n);
+                for (int i = 0; i < n; i++) {
+                    M[0][i] = i * (1.0 / (n - 1));
+                }
 
-////
+                return M;
+            }
+
+            //get n normalized newton cotes coefficients(i.e. for [a=0,b=1]
+            //get c[j] : Integral[a=0,b=1]F(x)dx of function =~= Sum(j=1,n){c[j]*F(x_j)} 
+            template<typename T>
+            matrix<T> GetNormalizedСoefficentsNewtonCotes(int n) {
+
+                matrix<T> nodes_in_the_integration_gap = getrange(n);
+
+                if (nodes_in_the_integration_gap.is_vector()) {
+
+                    if (nodes_in_the_integration_gap.getcol() == 1) { nodes_in_the_integration_gap = nodes_in_the_integration_gap.transpose(); }
+                    T beginning_of_the_integration_interval = 0;
+                    T end_of_the_integration_interval = 1;
+
+
+                    if (beginning_of_the_integration_interval != 0 || end_of_the_integration_interval != 1) {
+                        nodes_in_the_integration_gap = (nodes_in_the_integration_gap - (matrix<T>::ones(nodes_in_the_integration_gap.getcol(), nodes_in_the_integration_gap.getrow())));
+                        nodes_in_the_integration_gap = nodes_in_the_integration_gap / (end_of_the_integration_interval - beginning_of_the_integration_interval);
+                    }
+                    uint64_t size = std::max(nodes_in_the_integration_gap.getrow(), nodes_in_the_integration_gap.getcol());
+                    matrix<T>A(size), b(size, 1);
+                    for (int i = 0; i < size; i++) {
+                        A[0][i] = 1;//nodes_in_the_integration_gap[i];
+                        b[i][0] = 1 / (static_cast<T>(1 + i));
+                        for (int j = 1; j < size; j++) {
+                            A[j][i] = nodes_in_the_integration_gap[i][0] * A[j - 1][i];
+                        }
+                    }
+
+
+                    matrix<T> coeff = matrixfunction::solve_system(A, b);
+
+                    return coeff;
+                }
+            }
+
+            template<typename TResult, typename TArg>
+            matrix<TResult> GetSingularityNewtonKotesCoefficients(int n, TArg a, TArg b, PFeature p_feature = { 0,0 },
+                std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function = euler_type::IntegralManager<TResult, TArg>) {
+                using T = TResult;
+                matrix<T> nodes_in_the_integration_gap = getrange(n);
+
+                if (nodes_in_the_integration_gap.is_vector()) {
+
+                    if (nodes_in_the_integration_gap.getcol() == 1) { nodes_in_the_integration_gap = nodes_in_the_integration_gap.transpose(); }
+                    TResult beginning_of_the_integration_interval = 0;
+                    TResult end_of_the_integration_interval = 1;
+
+
+                    if (beginning_of_the_integration_interval != 0 || end_of_the_integration_interval != 1) {
+                        nodes_in_the_integration_gap = (nodes_in_the_integration_gap - (matrix<T>::ones(nodes_in_the_integration_gap.getcol(), nodes_in_the_integration_gap.getrow())));
+                        nodes_in_the_integration_gap = nodes_in_the_integration_gap / (end_of_the_integration_interval - beginning_of_the_integration_interval);
+                    }
+                    uint64_t size = std::max(nodes_in_the_integration_gap.getrow(), nodes_in_the_integration_gap.getcol());
+                    matrix<TResult>A(size), b_(size, 1);
+
+
+                    for (int i = 0; i < size; i++) {
+                        A[0][i] = 1;//nodes_in_the_integration_gap[i];
+                        b_[i][0] = feature_function(0, 1, 0, 1, p_feature.alpha, p_feature.beta, i);
+                        for (int j = 1; j < size; j++) {
+                            A[j][i] = nodes_in_the_integration_gap[i][0] * A[j - 1][i];
+                        }
+                    }
+                    matrix<TResult> coeff = matrixfunction::solve_system(A, b_);
+                    return coeff;
+                }
+            }
+            ////
+
 
 #define Debug 0
     //main function
-        template<typename T = double>
-        std::pair<matrix<T>, matrix<T>> GetNGausCoefficientWithP_x_FunctionConstants(const std::unordered_map<int, T>& miu) {
+            template<typename T = double>
+            std::pair<matrix<T>, matrix<T>> GetNGausCoefficientWithP_x_FunctionConstants(const std::unordered_map<int, T>& miu) {
 
-            int n = miu.size() / 2;
-            matrix<T> A(n, n), B(n, 1);
-            //auto miu = counting_methods_3::fill_integral_map(a, b, alpha, beta, n);
-            //input
-        //n - число узлов;
+                int n = miu.size() / 2;
+                matrix<T> A(n, n), B(n, 1);
+                //auto miu = counting_methods_3::fill_integral_map(a, b, alpha, beta, n);
+                //input
+            //n - число узлов;
 #if Debug == 1
-            std::cout << "n=" << n << '\n';
-            std::cout << "a=" << a << '\n';
-            std::cout << "b=" << b << '\n';
-            std::cout << "alpha=" << alpha << '\n';
-            std::cout << "beta=" << beta << '\n';
+                std::cout << "n=" << n << '\n';
+                std::cout << "a=" << a << '\n';
+                std::cout << "b=" << b << '\n';
+                std::cout << "alpha=" << alpha << '\n';
+                std::cout << "beta=" << beta << '\n';
 
 #endif
 
 
 
-            for (uint64_t i = 0; i < n; i++)
-            {
-                B[i][0] = -miu.at(n + i);
-                for (uint64_t j = 0; j < n; j++)
+                for (uint64_t i = 0; i < n; i++)
                 {
-                    A[i][j] = miu.at(i + j);
-                }
-            }
-
-#if Debug == 1
-            std::cout << "A" << A << '\n';
-            std::cout << "B" << B << '\n';
-#endif
-            matrix<T> coeff = matrixfunction::solve_system(A, B);
-#if Debug == 1
-            std::cout << "coeff" << coeff << '\n';
-            std::cout << "A*coeff" << A * coeff << '\n';
-#endif
-
-
-
-
-
-            polynomial<T> polyn(1);
-            for (uint64_t i = 0; i < n; i++)
-            {
-                //std::cout << "i=" << i << "  (coeff[i][0])" << (coeff[i][0]) << "\n";
-                polyn = (polyn >> 1);
-                polyn[0] = (coeff[n - 1 - i][0]);
-
-
-            }
-#if Debug == 1
-            std::cout << "polyn:" << polyn << '\n';
-
-#endif
-            auto roots = polyn.plnm_roots();
-            std::vector<T> nodes_in_the_integration_gap;
-
-            int size = roots.size();
-            matrix<T>Coeff(size, 1), A2(size), B2(size, 1);
-
-            for (int i = 0; i < size; i++) {
-#if Debug == 1
-
-                std::cout << "x_i:" << roots[i].first << '\n';
-#endif
-
-                nodes_in_the_integration_gap.push_back(roots[i].first);
-                Coeff[i][0] = roots[i].first;
-                if (Coeff[i][0] < 0)
-                {
-                    if (Coeff[i][0] < 1e-9) { Coeff[i][0] = 0; }
-                    else {
-                        std::cout << "\n" << Coeff[i][0]; throw std::domain_error(" Detected A_i <0 " + std::to_string(Coeff[i][0]));
+                    B[i][0] = -miu.at(n + i);
+                    for (uint64_t j = 0; j < n; j++)
+                    {
+                        A[i][j] = miu.at(i + j);
                     }
                 }
-            }
-#if Debug == 1
-            std::cout << "Coeff" << Coeff << '\n';
-#endif  
-
-
-
-            //
-            //matrix<T>A2(size), B2(size, 1);
-            //std::cout << "3:" << nodes_in_the_integration_gap << '\n';
-            for (int i = 0; i < size; i++) {
-                A2[0][i] = 1;//nodes_in_the_integration_gap[i];
-                B2[i][0] = miu.at(i);
-                for (int j = 1; j < size; j++) {
-                    A2[j][i] = nodes_in_the_integration_gap[i] * A2[j - 1][i];
-                }
-            }
 
 #if Debug == 1
-
-            std::cout << "A':" << A2 << "\n";
-            std::cout << "B':" << B2 << "\n";
+                std::cout << "A" << A << '\n';
+                std::cout << "B" << B << '\n';
 #endif
-            matrix<T> coeff2 = matrixfunction::solve_system(A2, B2);
-            //std::cout << "с'_j:" << A.inverse_M()*b << "\n";
+                matrix<T> coeff = matrixfunction::solve_system(A, B);
+#if Debug == 1
+                std::cout << "coeff" << coeff << '\n';
+                std::cout << "A*coeff" << A * coeff << '\n';
+#endif
+
+
+
+
+
+                polynomial<T> polyn(1);
+                for (uint64_t i = 0; i < n; i++)
+                {
+                    //std::cout << "i=" << i << "  (coeff[i][0])" << (coeff[i][0]) << "\n";
+                    polyn = (polyn >> 1);
+                    polyn[0] = (coeff[n - 1 - i][0]);
+
+
+                }
+#if Debug == 1
+                std::cout << "polyn:" << polyn << '\n';
+
+#endif
+                auto roots = polyn.plnm_roots();
+                std::vector<T> nodes_in_the_integration_gap;
+
+                int size = roots.size();
+                matrix<T>Coeff(size, 1), A2(size), B2(size, 1);
+
+                for (int i = 0; i < size; i++) {
 #if Debug == 1
 
-            std::cout << "c'_j:" << coeff2 << '\n';
+                    std::cout << "x_i:" << roots[i].first << '\n';
+#endif
+
+                    nodes_in_the_integration_gap.push_back(roots[i].first);
+                    Coeff[i][0] = roots[i].first;
+                    if (Coeff[i][0] < 0)
+                    {
+                        if (Coeff[i][0] < 1e-9) { Coeff[i][0] = 0; }
+                        else {
+                            std::cout << "\n" << Coeff[i][0]; throw std::domain_error(" Detected A_i <0 " + std::to_string(Coeff[i][0]));
+                        }
+                    }
+                }
+#if Debug == 1
+                std::cout << "Coeff" << Coeff << '\n';
 #endif  
 
 
-            
-            return { Coeff, coeff2 };
-        }
+
+                //
+                //matrix<T>A2(size), B2(size, 1);
+                //std::cout << "3:" << nodes_in_the_integration_gap << '\n';
+                for (int i = 0; i < size; i++) {
+                    A2[0][i] = 1;//nodes_in_the_integration_gap[i];
+                    B2[i][0] = miu.at(i);
+                    for (int j = 1; j < size; j++) {
+                        A2[j][i] = nodes_in_the_integration_gap[i] * A2[j - 1][i];
+                    }
+                }
+
+#if Debug == 1
+
+                std::cout << "A':" << A2 << "\n";
+                std::cout << "B':" << B2 << "\n";
+#endif
+                matrix<T> coeff2 = matrixfunction::solve_system(A2, B2);
+                //std::cout << "с'_j:" << A.inverse_M()*b << "\n";
+#if Debug == 1
+
+                std::cout << "c'_j:" << coeff2 << '\n';
+#endif  
+
+
+
+                return { Coeff, coeff2 };
+            }
 
 #define Debug 1
 
-        //coeff - nodes, coeff2 - weights
-        template<typename TResult, typename TArg, typename T_type = double>
-        std::pair<matrix<T_type>, matrix<T_type>> GetNGausCoefficientWithP_x_FunctionConstants(uint64_t n, double t0, double T, double a, double b, double alpha, double beta, std::function<TResult(TArg, TArg, TArg, TArg, TArg, TArg, int)> feature_function = {}) {
-            //return GetNGausCoefficientWithP_x_FunctionConstants(counting_methods_3::fill_integral_map(a, b, alpha, beta, n));
+            //coeff - nodes, coeff2 - weights
+            template<typename TResult, typename TArg, typename T_type = double>
+            std::pair<matrix<T_type>, matrix<T_type>> GetNGausCoefficientWithP_x_FunctionConstants(uint64_t n, double t0, double T, double a, double b, double alpha, double beta, std::function<TResult(TArg, TArg, TArg, TArg, TArg, TArg, int)> feature_function = {}) {
+                //return GetNGausCoefficientWithP_x_FunctionConstants(counting_methods_3::fill_integral_map(a, b, alpha, beta, n));
 
 #if 1
         //input
     //n - число узлов;
 #if Debug == 1
-            std::cout << "n=" << n << '\n';
-            std::cout << "a=" << a << '\n';
-            std::cout << "b=" << b << '\n';
-            std::cout << "alpha=" << alpha << '\n';
-            std::cout << "beta=" << beta << '\n';
+                std::cout << "n=" << n << '\n';
+                std::cout << "a=" << a << '\n';
+                std::cout << "b=" << b << '\n';
+                std::cout << "alpha=" << alpha << '\n';
+                std::cout << "beta=" << beta << '\n';
 
 #endif
 
-            matrix<double> A(n, n), B(n, 1);
-            auto miu = fill_integral_map(t0, T, a, b, alpha, beta, n, feature_function);
+                matrix<double> A(n, n), B(n, 1);
+                auto miu = fill_integral_map(t0, T, a, b, alpha, beta, n, feature_function);
 
 
-            for (uint64_t i = 0; i < n; i++)
-            {
-                B[i][0] = -miu[n + i];
-                for (uint64_t j = 0; j < n; j++)
+                for (uint64_t i = 0; i < n; i++)
                 {
-                    A[i][j] = miu[i + j];
+                    B[i][0] = -miu[n + i];
+                    for (uint64_t j = 0; j < n; j++)
+                    {
+                        A[i][j] = miu[i + j];
+                    }
                 }
-            }
 
 #if Debug == 1
-            std::cout << "A" << A << '\n';
-            std::cout << "B" << B << '\n';
+                std::cout << "A" << A << '\n';
+                std::cout << "B" << B << '\n';
 #endif
-            matrix<double> coeff = matrixfunction::solve_system(A, B);
+                matrix<double> coeff = matrixfunction::solve_system(A, B);
 #if Debug == 1
-            std::cout << "coeff" << coeff << '\n';
-            std::cout << "A*coeff" << A * coeff << '\n';
-#endif
-
-
-
-
-
-            polynomial<double> polyn(1);
-            for (uint64_t i = 0; i < n; i++)
-            {
-                //std::cout << "i=" << i << "  (coeff[i][0])" << (coeff[i][0]) << "\n";
-                polyn = (polyn >> 1);
-                polyn[0] = (coeff[n - 1 - i][0]);
-
-
-            }
-#if Debug == 1
-            std::cout << "polyn:" << polyn << '\n';
-
-#endif
-            auto roots = polyn.plnm_roots();
-            std::vector<long double> nodes_in_the_integration_gap;
-
-            int size = roots.size();
-            matrix<T_type>Coeff(size, 1), A2(size), B2(size, 1);
-
-            for (int i = 0; i < size; i++) {
-#if Debug == 1
-
-                std::cout << "x_i:" << roots[i].first << '\n';
+                std::cout << "coeff" << coeff << '\n';
+                std::cout << "A*coeff" << A * coeff << '\n';
 #endif
 
-                nodes_in_the_integration_gap.push_back(roots[i].first);
-                Coeff[i][0] = roots[i].first;
-            }
+
+
+
+
+                polynomial<double> polyn(1);
+                for (uint64_t i = 0; i < n; i++)
+                {
+                    //std::cout << "i=" << i << "  (coeff[i][0])" << (coeff[i][0]) << "\n";
+                    polyn = (polyn >> 1);
+                    polyn[0] = (coeff[n - 1 - i][0]);
+
+
+                }
 #if Debug == 1
-            std::cout << "Coeff" << Coeff << '\n';
+                std::cout << "polyn:" << polyn << '\n';
+
+#endif
+                auto roots = polyn.plnm_roots();
+                std::vector<long double> nodes_in_the_integration_gap;
+
+                int size = roots.size();
+                matrix<T_type>Coeff(size, 1), A2(size), B2(size, 1);
+
+                for (int i = 0; i < size; i++) {
+#if Debug == 1
+
+                    std::cout << "x_i:" << roots[i].first << '\n';
+#endif
+
+                    nodes_in_the_integration_gap.push_back(roots[i].first);
+                    Coeff[i][0] = roots[i].first;
+                }
+#if Debug == 1
+                std::cout << "Coeff" << Coeff << '\n';
 #endif  
 
 
 
-            //
-            //matrix<T>A2(size), B2(size, 1);
-            //std::cout << "3:" << nodes_in_the_integration_gap << '\n';
-            for (int i = 0; i < size; i++) {
-                A2[0][i] = 1;//nodes_in_the_integration_gap[i];
-                B2[i][0] = miu[i];
-                for (int j = 1; j < size; j++) {
-                    A2[j][i] = nodes_in_the_integration_gap[i] * A2[j - 1][i];
-                }
-            }
-
-#if Debug == 1
-
-            std::cout << "A':" << A2 << "\n";
-            std::cout << "B':" << B2 << "\n";
-#endif
-            matrix<T_type> coeff2 = matrixfunction::solve_system(A2, B2);
-            //std::cout << "с'_j:" << A.inverse_M()*b << "\n";
-#if Debug == 1
-
-            std::cout << "c'_j:" << coeff2 << '\n';
-#endif  
-
-
-            return { Coeff, coeff2 };
-#endif
-        }
-
-
-
-
-        matrix<double> getrange(int n) {
-            matrix<double> M;
-            M.setcol(1);
-            M.setrow(n);
-            for (int i = 0; i < n; i++) {
-                M[0][i] = i * (1.0 / (n - 1));
-            }
-
-            return M;
-        }
-
-        //get n normalized newton cotes coefficients(i.e. for [a=0,b=1]
-        //get c[j] : Integral[a=0,b=1]F(x)dx of function =~= Sum(j=1,n){c[j]*F(x_j)} 
-        template<typename T>
-        matrix<T> GetNormalizedСoefficentsNewtonCotes(int n) {
-            matrix<T> nodes_in_the_integration_gap = getrange(n);
-
-            if (nodes_in_the_integration_gap.is_vector()) {
-
-                //std::cout << "nodes_in_the_integration_gap:\n" << nodes_in_the_integration_gap << "\n";
-                if (nodes_in_the_integration_gap.getcol() == 1) { nodes_in_the_integration_gap = nodes_in_the_integration_gap.transpose(); }
-                T beginning_of_the_integration_interval = 0;
-                T end_of_the_integration_interval = 1;
-
-
-                //std::cout << "1:" << nodes_in_the_integration_gap <<'\n';
-                if (beginning_of_the_integration_interval != 0 || end_of_the_integration_interval != 1) {
-                    //std::cout << "2:" << (nodes_in_the_integration_gap - (matrix<T>::ones(nodes_in_the_integration_gap.getcol(), nodes_in_the_integration_gap.getrow()))) << "\n";
-                    nodes_in_the_integration_gap = (nodes_in_the_integration_gap - (matrix<T>::ones(nodes_in_the_integration_gap.getcol(), nodes_in_the_integration_gap.getrow())));
-                    nodes_in_the_integration_gap = nodes_in_the_integration_gap / (end_of_the_integration_interval - beginning_of_the_integration_interval);
-                }
-                uint64_t size = std::max(nodes_in_the_integration_gap.getrow(), nodes_in_the_integration_gap.getcol());
-                matrix<T>A(size), b(size, 1);
+                //
+                //matrix<T>A2(size), B2(size, 1);
                 //std::cout << "3:" << nodes_in_the_integration_gap << '\n';
                 for (int i = 0; i < size; i++) {
-                    A[0][i] = 1;//nodes_in_the_integration_gap[i];
-                    b[i][0] = 1 / (static_cast<T>(1 + i));
+                    A2[0][i] = 1;//nodes_in_the_integration_gap[i];
+                    B2[i][0] = miu[i];
                     for (int j = 1; j < size; j++) {
-                        A[j][i] = nodes_in_the_integration_gap[i][0] * A[j - 1][i];
+                        A2[j][i] = nodes_in_the_integration_gap[i] * A2[j - 1][i];
                     }
                 }
 
-                //std::cout << "A:" << A << "\n";
-                //std::cout << "b:" << b << "\n";
-                matrix<T> coeff = matrixfunction::solve_system(A, b);
-                //std::cout << "с_i++:" << A.inverse_M()*b << "\n";
+#if Debug == 1
 
-                //std::cout << "c_i:" << coeff << '\n';
-                return coeff;
+                std::cout << "A':" << A2 << "\n";
+                std::cout << "B':" << B2 << "\n";
+#endif
+                matrix<T_type> coeff2 = matrixfunction::solve_system(A2, B2);
+                //std::cout << "с'_j:" << A.inverse_M()*b << "\n";
+#if Debug == 1
+
+                std::cout << "c'_j:" << coeff2 << '\n';
+#endif  
+
+
+                return { Coeff, coeff2 };
+#endif
             }
-        }
 
-        template<typename TResult, typename TArg>
-        matrix<TResult> GetSingularityNewtonKotesCoefficients(int n, TArg a, TArg b, PFeature p_feature = { 0,0 },
-            std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function = euler_type::IntegralManager<TResult, TArg>) {
-            using T = TResult;
-            matrix<T> nodes_in_the_integration_gap = getrange(n);
-
-            if (nodes_in_the_integration_gap.is_vector()) {
-
-                //std::cout << "nodes_in_the_integration_gap:\n" << nodes_in_the_integration_gap << "\n";
-                if (nodes_in_the_integration_gap.getcol() == 1) { nodes_in_the_integration_gap = nodes_in_the_integration_gap.transpose(); }
-                TResult beginning_of_the_integration_interval = 0;
-                TResult end_of_the_integration_interval = 1;
-
-
-                //std::cout << "1:" << nodes_in_the_integration_gap <<'\n';
-                if (beginning_of_the_integration_interval != 0 || end_of_the_integration_interval != 1) {
-                    //std::cout << "2:" << (nodes_in_the_integration_gap - (matrix<T>::ones(nodes_in_the_integration_gap.getcol(), nodes_in_the_integration_gap.getrow()))) << "\n";
-                    nodes_in_the_integration_gap = (nodes_in_the_integration_gap - (matrix<T>::ones(nodes_in_the_integration_gap.getcol(), nodes_in_the_integration_gap.getrow())));
-                    nodes_in_the_integration_gap = nodes_in_the_integration_gap / (end_of_the_integration_interval - beginning_of_the_integration_interval);
-                }
-                uint64_t size = std::max(nodes_in_the_integration_gap.getrow(), nodes_in_the_integration_gap.getcol());
-                matrix<TResult>A(size), b_(size, 1);
-                //std::cout << "nodes_in_the_integration_gap" << nodes_in_the_integration_gap << '\n';
-
-
-                for (int i = 0; i < size; i++) {
-                    A[0][i] = 1;//nodes_in_the_integration_gap[i];
-                    b_[i][0] = feature_function(0,1,0,1, p_feature.alpha, p_feature.beta, i)/*/std::pow(b-a,1- p_feature.alpha- p_feature.beta)*/;
-                    for (int j = 1; j < size; j++) {
-                        A[j][i] = nodes_in_the_integration_gap[i][0] * A[j - 1][i];
-                    }
-                }
-
-                //std::cout << "A:" << A << "\n";
-                //std::cout << "b:" << b_ << "\n";
-                matrix<TResult> coeff = matrixfunction::solve_system(A, b_);
-                //std::cout << "с_i++:" << A.inverse_M()*b << "\n";
-
-                //std::cout << "c_i:" << coeff << '\n';
-                return coeff;
-            }
         }
 
         }
@@ -914,182 +873,17 @@ namespace counting_methods_3 {
     }
     using namespace special;
     using namespace auxiliary;
+    using namespace integration_coefficients;
 
-#if 0
-    void test_integral_p_x_() {
-        try {
-            long double a = 1.0L, b = 3.0L;
-            long double alpha = 0.5L, beta = 0.5L;
 
-            std::cout << "Comparison of calculation methods:" << std::endl;
-            std::cout << "a=" << a << ", b=" << b << ", α=" << alpha << ", β=" << beta << std::endl;
-
-            for (int j = 0; j <= 10; j++) {
-                long double result_log = counting_methods_3::compute_integral_log(a, b, alpha, beta, j);
-                long double result_direct = counting_methods_3::compute_integral(a, b, alpha, beta, j);
-                long double result_optim = counting_methods_3::compute_integral_optimized(a, b, alpha, beta, j);
-                std::cout << "j=" << j << ": log_method=" << result_log
-                    << ", direct_method=" << result_direct
-                    << ", diff(log - opt)=" << std::abs(result_log - result_optim)
-                    << ", diff(dir-opt)=" << std::abs(result_direct - result_optim) << std::endl;
-            }
-
-            // Тест с большими значениями j
-            std::cout << "\nThe Big j test:" << std::endl;
-            int large_j = 70;
-            long double result_large = counting_methods_3::compute_integral_log(a, b, alpha, beta, large_j);
-            long double opt_large = counting_methods_3::compute_integral_optimized(a, b, alpha, beta, large_j);
-            std::cout << "j=" << large_j << ": result=" << result_large
-                << ", diff+large(dir-opt)=" << std::abs(result_large - opt_large) << std::endl;
-
-        }
-        catch (const std::exception& e) {
-            std::cerr << "Error: " << e.what() << std::endl;
-        }
-
-    }
-#endif
 
     
 
-    enum class IntegrateMethod {    
-        LEFT_RECTANGLE=0,
-        MIDDLE_RECTANGLE,
-        TRAPEZOID,
-        SIMPSON,
-        NEWTON_COTES_3_POINT=4,
-        NEWTON_COTES_4_POINT=5,
-        NEWTON_COTES_5_POINT,
-        NEWTON_COTES_6_POINT,
-        NEWTON_COTES_7_POINT,
-        NEWTON_COTES_8_POINT,
-        NEWTON_COTES_9_POINT=10,
-        GAUS_3_POINT,
-        GAUS_4_POINT,
-        GAUS_5_POINT,
-        GAUS_6_POINT
-    };
 
-
-
-    /*template<typename TResult, typename TArg, IntegrateMethod Method>
-    TResult integrate(std::function<TResult(TArg)> f, TArg a, TArg b, int points_of_division, PFeature p_feature ={0,0}) {
-        if (p_feature == PFeature{ 0, 0 })return integrate(f,  a,  b, points_of_division);
-        if (a > b)throw("a>b");
-        TResult sum = 0;
-        TResult h = (b - a) / static_cast<TArg>(points_of_division);
-        auto a_ = a,b_=a_+h;
-        for (uint64_t i = 0; i < points_of_division; i++)
-        {
-            auto{ dots,veight } = GetNGausCoefficientWithP_x_FunctionConstants(Method, a_, b_, p_feature.alpha, p_feature.beta);
-            for (int j = 0; j < dots.getcol(); j++) {
-                sum += f(dots[0][j]) * veight[0][j];
-            }
-            a_ += h, b_ += b_ + h;
-        }
-
-
-    }*/
-
-
-
-   //main integrate function. 
-    //if (p_feature == { 0, 0 })return integrate(f,  a,  b, int points_of_division);
-    //if (a > b)throw("a>b");
-   
-#define integrate_version 2
-#if integrate_version == 1
-    template<typename TResult, typename TArg, IntegrateMethod Method>
-    TResult integrate(std::function<TResult(TArg)> f, TArg a, TArg b, uint64_t interval_of_division, PFeature p_feature = { 0,0 }) {
-        TResult sum = 0;
-        if (a > b){ throw("a>b"); }
-
-        TArg h = (b - a) / static_cast<TArg>(interval_of_division);
-
-        if constexpr (Method == IntegrateMethod::LEFT_RECTANGLE) {
-            if (p_feature.alpha == 0)sum += f(a);
-            for (int i = 1; i < interval_of_division; ++i) {
-                sum += f(a + i * h);
-            }
-            return sum * h;
-        }
-        else if constexpr (Method == IntegrateMethod::MIDDLE_RECTANGLE) {
-            for (int i = 1; i < interval_of_division; ++i) {
-                sum += f(a + i * h - h / 2);
-            }
-            return sum * h;
-        }
-        else if constexpr (Method == IntegrateMethod::TRAPEZOID) {
-            if (p_feature.alpha == 0) { sum += f(a)/2; }
-            if (p_feature.beta == 0) { sum += f(b)/2; }
-            for (int i = 1; i < interval_of_division; ++i) {
-                sum += f(a + i * h);
-            }
-            return sum * h;
-        }
-        else if constexpr (Method == IntegrateMethod::SIMPSON) {
-            if(p_feature.alpha == 0){ sum+=f(a); }
-            if(p_feature.beta  == 0){ sum+=f(b); }
-            TResult sum_x4 = 0;
-            TResult sum_x2 = 0;
-            for (int i = 1; i < interval_of_division; i += 2) {
-                sum_x4 += f(a + i * h);
-            }
-            for (int i = 2; i < interval_of_division; i += 2) {
-                sum_x2 += f(a + i * h);
-            }
-            sum += 4 * sum_x4 + 2 * sum_x2;
-            return sum * h / 3;
-        }
-        else if constexpr ((static_cast<int>(IntegrateMethod::NEWTON_COTES_3_POINT) <= static_cast<int>(Method)) && (static_cast<int>(Method) <= static_cast<int>(IntegrateMethod::NEWTON_COTES_9_POINT))) {
-            int n = static_cast<int>(Method);
-            TResult micro_h = h / static_cast<TArg>(n-1);
-            matrix<TResult> M = GetNormalizedСoefficentsNewtonCotes<TResult>(n);
-            if (p_feature.alpha== 0)sum += M[0][0] * f(a);
-            for (int j = 0; j < interval_of_division; j++)
-            {
-                for (int i = 1; i < n-1; ++i) {
-
-                    sum += M[0][i] * f(a + h * j + micro_h * i);
-                }
-            }
-            for (int j = 1; j < interval_of_division; j++)
-            {
-                sum += 2*M[0][0] * f(a + h * j);
-            }
-            if (p_feature.beta == 0)sum += M[0][0] * f(b);
-
-            return sum * h;
-        }
-        else if constexpr ((static_cast<int>(IntegrateMethod::GAUS_3_POINT) <= static_cast<int>(Method)) && (static_cast<int>(Method) <= static_cast<int>(IntegrateMethod::GAUS_6_POINT))) {
-            auto a_ = a, b_ = a_ + h;
-            auto miu_coeff = counting_methods_3::fill_integral_map(0, h, p_feature.alpha, p_feature.beta, static_cast<int>(Method) - 8);
-            //std::cout << a;
-            for (uint64_t i = 0; i < interval_of_division; i++)
-            {
-#if 1
-                std::pair<matrix<TArg>, matrix<TResult>> M = GetNGausCoefficientWithP_x_FunctionConstants(static_cast<int>(Method) - 8,a_, b_, p_feature.alpha, p_feature.beta);
-#else
-                std::pair<matrix<TArg>, matrix<TResult>> M = GetNGausCoefficientWithP_x_FunctionConstants(miu_coeff);
-#endif
-                auto dots = M.first, weight = M.second;
-                for (int j = 0; j < dots.getcol(); j++) {
-                    sum += f(dots[0][j]) * weight[0][j];
-                }
-                a_ += h, b_ += h;
-            }
-            return sum;
-        }
-
-        else {
-            static_assert(1!=0, "Unknown integration method");
-        }
-        return 404;
-    }
-#else
 //feature_function need if p_feature != { 0,0 }
 //   *euler_type::IntegralManager<TResult, TArg>:  return Int[t0;T] x^j/((x-a)^alpha * (b-x)^beta) dx
 //p_feature={alpha,beta}
+//if (a > b)throw("a>b");
 template<typename TResult, typename TArg, IntegrateMethod Method>
 TResult integrate(std::function<TResult(TArg)> f,
     TArg a, TArg b, uint64_t interval_of_division, PFeature p_feature = { 0,0 },
@@ -1147,10 +941,9 @@ TResult integrate(std::function<TResult(TArg)> f,
         else {
             
             M = GetSingularityNewtonKotesCoefficients<TResult,TArg>(n,a,b, p_feature, feature_function);
-            //std::cout <<M<< "\n";
         }
 
-        /*if (p_feature.alpha == 0)*/sum += M[0][0] * f(a);
+        sum += M[0][0] * f(a);
         for (int j = 0; j < interval_of_division; j++)
         {
             for (int i = 1; i < n - 1; ++i) {
@@ -1162,34 +955,31 @@ TResult integrate(std::function<TResult(TArg)> f,
         {
             sum += 2 * M[0][0] * f(a + h * j);
         }
-       /* if (p_feature.beta == 0)*/sum += M[0][0] * f(b);
+       sum += M[0][0] * f(b);
 
         return sum * h;
     }
     else if constexpr ((static_cast<int>(IntegrateMethod::GAUS_3_POINT) <= static_cast<int>(Method)) && (static_cast<int>(Method) <= static_cast<int>(IntegrateMethod::GAUS_6_POINT))) {
         auto a_ = a, b_ = a_ + h;
         for (uint64_t i = 0; i < interval_of_division; i++)
-        {
-
-            
-            if ((b_ - 1e-14 > b && p_feature.beta != 0)) {
-                if (!(b_ - 1e-14 > b)) {
+        {            
+            if ((b_ > b && p_feature.beta != 0)) {
+                /*if (!(b_ - 1e-14 > b)) {
+                }*/
                     b_ = b;
-                }
             }
             auto miu_coeff = counting_methods_3::fill_integral_map(a_,b_,a,b, p_feature.alpha, p_feature.beta, static_cast<int>(Method) - 8, feature_function);
-
             std::pair<matrix<TArg>, matrix<TResult>> M = GetNGausCoefficientWithP_x_FunctionConstants(miu_coeff);
-
-            
-
             auto dots = M.first, weight = M.second;
             for (int j = 0; j < dots.getcol(); j++) {
                 if (dots[0][j] > b || dots[0][j] < a)
                 {
-                    std::cout <<"Detected x_i <a or x_i>b" << std::to_string(dots[0][j]);
-                    std::cout << "dots:" << dots<<"\n";
-                    std::cout << "weight:" << weight << "\n";
+                    std::cout << "\ndots[0][j] > b:" << (dots[0][j] > b)<< "delta:"<< dots[0][j] - b ;
+                    std::cout << "\ndots[0][j] < a:" << (dots[0][j] < a)<< "delta:"<< dots[0][j] - a;
+
+                    std::cout <<"\nDetected x_i <a or x_i>b" << std::to_string(dots[0][j]);
+                    std::cout << "\ndots:" << dots<<"\n";
+                    std::cout << "\nweight:" << weight << "\n";
                     throw std::domain_error(" Detected x_i <a or x_i>b " + std::to_string(dots[0][j]));
                 }
                 sum += f(dots[0][j]) * weight[0][j];
@@ -1205,80 +995,62 @@ TResult integrate(std::function<TResult(TArg)> f,
     return 404;
 }
 
-#endif
 
 
-template<typename T>
-struct IntegrationResult {
-    T value;                    // Значение интеграла
-    T refined_value;            // Уточненное значение по Ричардсону
-    T estimated_error;          // Оценка погрешности
-    uint64_t final_intervals;   // Количество разбиений
-    T step_size;               // Длина шага
-    std::vector<T> approximations; // Все приближения
-    std::vector<T> convergence_rates; // Скорости сходимости
-};
-#if 0
-template<typename TResult, typename TArg, IntegrateMethod Method>
-IntegrationResult<TResult> adaptive_integrate_richardson(
-    std::function<TResult(TArg)> f, TArg a, TArg b, TResult epsilon = 1e-6, uint64_t intervals = 1, PFeature p_feature = { 0, 0 },
-    std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function = euler_type::IntegralManager<TResult, TArg>) {
-    IntegrationResult<TResult> Ans;
-    int m = 4;
 
 
-    auto h = (b - a) / intervals;
-    for (uint64_t size = 0; size < 50; size++)
-    {
-
-    matrix<TResult>A(size), b(size, 1);
-
-    for (int i = 0; i < size; i++) {
-        A[0][i] = 1;//nodes_in_the_integration_gap[i];
-        b[i][0] = integrate<TResult, TArg, Method>(f, a, b, intervals, p_feature, feature_function);
-        Ans.approximations.push_back(b[i][0]);
-
-        for (int j = 1; j < size-1; j++) {
-            A[j][i] = std::pow(h * std::pow(1.0/2,i), m);
-        }
-        A[size - 1][i] = -1;
-    }
-    std::cout << A << "\n" << b << "\n";
-    matrix<TResult> coeff = matrixfunction::solve_system(A, b);
-    }
-    return Ans;
-
-}
-#else
 
 template<typename TResult>
 TResult aitken_convergence_rate(TResult I_h, TResult I_h2, TResult I_h4) {
-    // p ≈ log2( (I_h2 - I_h) / (I_h4 - I_h2) )
+    // m ≈ log2( (I_h2 - I_h) / (I_h4 - I_h2) )
     if (std::abs(I_h4 - I_h2) < 1e-15) {
         return 0;
     }
     return std::log2(std::abs((I_h2 - I_h) / (I_h4 - I_h2)));
 }
 
+//pair.second is error code. if (pair.second==1) => integral is correct(first value)
 template<typename TResult, typename TArg, counting_methods_3::IntegrateMethod Method>
-IntegrationResult<TResult> adaptive_integrate_richardson(
-    std::function<TResult(TArg)> f, TArg a, TArg b, TResult epsilon = 1e-6,
-    uint64_t initial_intervals = 1, PFeature p_feature = { 0, 0 },
-    std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function = euler_type::IntegralManager<TResult, TArg>) {
+std::pair<TResult, int> safe_integrate(
+    std::function<TResult(TArg)> f,
+    TArg a, TArg b,
+    uint64_t intervals,
+    PFeature p_feature,
+    std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function) {
 
-    IntegrationResult<TResult> Ans;
+    try {
+        TResult result = integrate<TResult, TArg, Method>(f, a, b, intervals, p_feature, feature_function);
+        return std::make_pair(result, 1);
+    }
+    catch (const std::exception& e) {
+        return std::make_pair(TResult(), 3);
+    }
+}
+
+//adaptive_integrate_richardson
+template<typename TResult, typename TArg, counting_methods_3::IntegrateMethod Method>
+IntegrationResult<TResult> adaptive_integrate(
+    std::function<TResult(TArg)> f,
+    TArg a, TArg b,
+    TResult epsilon = 1e-6, uint64_t initial_intervals = 1,
+    PFeature p_feature = { 0, 0 },
+    std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function = euler_type::IntegralManager<TResult, TArg>) {
+#define DEBUG_INPUT _DEBUG
+#define DEBUG_INPUT 0
+
+    IntegrationResult<TResult> Ans; Ans.a = a; Ans.b = b; Ans.alpha = p_feature.alpha; Ans.beta = p_feature.beta;
+
     uint64_t current_intervals = initial_intervals;
     std::vector<TResult> approximations;
     std::vector<TResult> convergence_rates;
-
-    int m = 4; 
+    
+    int m = 2; 
     int max_iterations = 50;
-
+    
     for (int iter = 1; iter < max_iterations; iter++) {
-        TResult current_approx = integrate<TResult, TArg, Method>(
-            f, a, b, current_intervals, p_feature, feature_function);
-        approximations.push_back(current_approx);
+        TResult current_approx = integrate<TResult, TArg, Method>(f, a, b, current_intervals, p_feature, feature_function);
 
+        approximations.push_back(current_approx);
         int size = approximations.size();
         auto h = (b - a) / current_intervals;
 
@@ -1312,27 +1084,33 @@ IntegrationResult<TResult> adaptive_integrate_richardson(
                 TResult error_estimate = std::abs(J_estimate - current_approx);
 
                 if (size >= 3) {
-                    TResult conv_rate = aitken_convergence_rate(
-                        approximations[size - 3], approximations[size - 2], approximations[size - 1]);
-                    convergence_rates.push_back(conv_rate);
-                    std::cout << "Speed Convergence: " << conv_rate << std::endl;
-                }
+                    TResult conv_rate = aitken_convergence_rate(approximations[size - 3], approximations[size - 2], approximations[size - 1]);
 
-                std::cout << "Iteration " << iter << ": N = " << current_intervals
+                    m = static_cast<int>(conv_rate);
+                    convergence_rates.push_back(conv_rate);
+#if DEBUG_INPUT==1
+                    std::cout << "Speed Convergence: " << conv_rate << std::endl;
+#endif
+                }
+#if DEBUG_INPUT==1
+                std::cout << "Iteration " << iter
+                    << ": N = " << current_intervals
                     << ", h = " << h
                     << ", I = " << current_approx
                     << ", J(f) estimation = " << J_estimate
                     << ", error rate = " << error_estimate << std::endl;
-
+#endif
                 if (error_estimate < epsilon) {
-                    Ans.value = current_approx;
+                    Ans.refined_value = current_approx;
                     Ans.refined_value = J_estimate;
                     Ans.estimated_error = error_estimate;
                     Ans.final_intervals = current_intervals;
                     Ans.step_size = h;
                     Ans.approximations = approximations;
                     Ans.convergence_rates = convergence_rates;
+#if DEBUG_INPUT==1
                     std::cout << "The required accuracy has been achieved!" << std::endl;
+#endif  
                     return Ans;
                 }
             }
@@ -1345,18 +1123,92 @@ IntegrationResult<TResult> adaptive_integrate_richardson(
     }
 
     // If you have not reached the accuracy
-    Ans.value = approximations.back();
+    Ans.refined_value= approximations.back();
     Ans.refined_value = approximations.back();
     Ans.estimated_error = epsilon * 10; // > accuracy
     Ans.final_intervals = current_intervals / 2;
     Ans.step_size = (b - a) / Ans.final_intervals;
     Ans.approximations = approximations;
     Ans.convergence_rates = convergence_rates;
-
+#if DEBUG_INPUT==1
     std::cout << "The maximum number of iterations has been reached" << std::endl;
+#endif
     return Ans;
 }
 
 
+
+template<typename TResult, typename TArg, counting_methods_3::IntegrateMethod Method>
+IntegrationResult<TResult> optimized_adaptive_integration(
+    std::function<TResult(TArg)> f, TArg a, TArg b, TResult epsilon = 1e-6,
+    PFeature p_feature = { 0, 0 },
+    std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function = euler_type::IntegralManager<TResult, TArg>) {
+#define DEBUG_INPUT _DEBUG
+#define DEBUG_INPUT 0
+
+    IntegrationResult<TResult> result;
+    std::vector<TResult> approximations;
+    std::vector<TResult> convergence_rates;
+#if DEBUG_INPUT
+    std::cout << "=== OPTIMIZED AITKEN INTEGRATION ===" << std::endl;
 #endif
+    // Теоретический порядок для 3-точечной формулы Ньютона-Котеса
+    const int theoretical_m = 4;
+
+    // Шаг 1: Вычисление на трех сетках с малым числом шагов
+    std::vector<uint64_t> test_intervals = { 1, 2, 4 };
+    std::vector<TResult> test_results;
+    std::vector<TResult> step_sizes;
+
+    for (uint64_t intervals : test_intervals) {
+        TResult approx = integrate<TResult, TArg, Method>(f, a, b, intervals, p_feature, feature_function);
+        test_results.push_back(approx);
+        step_sizes.push_back((b - a) / intervals);
+#if DEBUG_INPUT
+        std::cout << "Test with N=" << intervals << ", h=" << step_sizes.back()
+            << ", I=" << approx << std::endl;
+#endif
+    }
+
+    // Шаг 2: Оценка фактического порядка сходимости по правилу Эйткена
+    TResult actual_order = aitken_convergence_rate(test_results[0], test_results[1], test_results[2]);
+
+    // Используем фактический порядок, если он разумен, иначе теоретический
+    int m = theoretical_m;
+    if (actual_order > 1.0 && actual_order < 8.0) {
+        m = static_cast<int>(std::round(actual_order));
+#if DEBUG_INPUT
+        std::cout << "Using actual convergence order: " << m << std::endl;
+#endif
+    }
+    else {
+#if DEBUG_INPUT
+        std::cout << "Using theoretical convergence order: " << m << std::endl;
+#endif
+    }
+    TResult &h1 = step_sizes[0];      
+    TResult &S_h1 = test_results[0];  
+    TResult &S_h2 = test_results[1];  
+    TResult R_h1 = (S_h2 - S_h1) / (std::pow(2, m) - 1);
+    // h_opt = h_1 * (ε / |R_{h_1}|)^(1/m)
+    TResult h_opt = h1 * std::pow(epsilon / std::abs(R_h1), 1.0 / m);
+
+    uint64_t optimal_intervals = static_cast<uint64_t>(std::ceil((b - a) / h_opt));
+
+#if DEBUG_INPUT
+    std::cout << "Runge error estimate R_h1: " << R_h1 << std::endl;
+    std::cout << "Optimal step h_opt: " << h_opt << " (N=" << optimal_intervals << ")" << std::endl;
+
+    std::cout << "Starting adaptive integration with optimal step..." << std::endl;
+#endif
+    result = adaptive_integrate<TResult, TArg, Method>(
+        f, a, b, epsilon, optimal_intervals, p_feature, feature_function);
+
+    // Сохраняем тестовые приближения и порядки сходимости
+    result.approximations.insert(result.approximations.begin(), test_results.begin(), test_results.end());
+    result.convergence_rates.push_back(actual_order);
+
+    return result;
+}
+
 }

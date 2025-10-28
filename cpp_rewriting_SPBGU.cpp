@@ -460,14 +460,7 @@ namespace sem_5 {
         //draw_functions(std::vector{ f_abs_n }, 0,0, static_cast<double>(n + 1));
     }
 
-    //show all the absolute values of the differences with the reference
-    template<typename TResult, typename TArg>
-    void DispAllAbs(std::function<TResult(TArg)> experimental_function, TArg a, TArg b, TResult integral_of_the_function, counting_methods_3::PFeature p_feature = { 0,0 }, int n = 1) {
-        for (int i=0; i< static_cast<int>(counting_methods_3::IntegrateMethod::LEFT_RECTANGLE); i++)
-        {
-            DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(i)>(experimental_function, a,b,integral_of_the_function, p_feature, n);
-        }
-    }
+    
     template<typename TArg, typename TResult>
     struct TestConfig {
         std::function<TResult(TArg)> function;      // Интегрируемая функция
@@ -487,7 +480,7 @@ namespace sem_5 {
            [](double x) { return 1.3 * cos(3.5 * x) * exp(2 * x / 3) + 6 * sin(4.5 * x) * exp(-x / 8) + 5 * x;  },
            [](double x) { return (-109680 * sin((9 * x) / 2) - 3948480 * cos((9 * x) / 2) + 1062243 * exp((19 * x) / (24)) * sin((7 * x) / 2) + 202332 * exp((19 * x) / (24)) * cos((7 * x) / 2)) / (2963645 * exp(x / 8)) + (5 * x * x) / 2 + 3746148 / (2963645); },
            0.7, 3.2,
-           20.235345,
+           20.235344669492576,
            1e-9,
            30,
            "variant_10_alpha_beta_0",
@@ -497,86 +490,43 @@ namespace sem_5 {
     TestConfig<double, double> conf2{
            [](double x) { return 1.3 * cos(3.5 * x) * exp(2 * x / 3) + 6 * sin(4.5 * x) * exp(-x / 8) + 5 * x;  },
            [](double x) { return (-109680 * sin((9 * x) / 2) - 3948480 * cos((9 * x) / 2) + 1062243 * exp((19 * x) / (24)) * sin((7 * x) / 2) + 202332 * exp((19 * x) / (24)) * cos((7 * x) / 2)) / (2963645 * exp(x / 8)) + (5 * x * x) / 2 + 3746148 / (2963645); },
-           0.7, 3.2,
-           24.1420'926'784'33,
+           7.0/10, 3.2,
+           24.142092678549481,
            1e-9,
            30,
            "variant_10_alpha_beta_0",
            0.0,1.0/4,
            1
     };
-    TestConfig<double, double> conf3{
-               [](double x) { return 1.5 * cos(3.7 * x) * exp(4 * x / 7) + 3 * sin(2.5 * x) * exp(3 * x / 4) + 3 * x;  },
-               [](double x) { return (27195 * exp((4 * x) / 7) * sin((3.7 * x))) / (68681) + (4200 * exp((4 * x) / 7) * cos(3.7 * x)) / (68681) + (36 * exp(0.75 * x) * sin(2.5 * x)) / (109) - (120 * exp(0.75 * x) * cos(2.5 * x)) / (109) + (3 * x * x) / 2 + 7783920 / (7486229); },
-               1.5, 3.0,
-               5.6085702,
-               1e-9,
-               30,
-               "variant_20_alpha_0_beta_5__6",
-               0,5.0 / 6,
-               3
-    };
+    
+
     void sem_5() {
-        counting_methods_3::PFeature p={ 0,0};
-        auto f = [](double x) {return 13*std::cos(3.5*x) *std::exp(2*x/ 3) + 6*std:: sin(4.5*x) *exp(x /8) + 5*x; };
-        
-        //((e ^ 2) ^ (1 / 5) * (103296 * sin(144) - 37186560 * cos(144)) + (e ^ 2) ^ (1 / 15) * (103554360 * e ^ 2 * sin(112) + 1972464 * e ^ 2 * cos(112)) + (e ^ 7) ^ (1 / 80) * (37186560 * cos(63 / 2) - 103296 * sin(63 / 2)) + (e ^ 7) ^ (1 / 15) * (-103554360 * sin(49 / 2) - 1972464 * cos(49 / 2)) + 6798220455) / (278901352) = 21.92472
 
-        auto configurate_alp_bet_eq0 = conf,configurate = conf2;
-
-
-
-        auto result = counting_methods_3::adaptive_integrate_richardson<double, double,
-            counting_methods_3::IntegrateMethod::NEWTON_COTES_3_POINT>(
-                configurate.function, configurate.a, configurate.b, 1e-9, 1, { 0, 5.0/6 });
-
-        std::cout << "RESULT STATISTIC:" << std::endl;
-        std::cout << "integral value : " << result.value << std::endl;
-        std::cout << "refined_value: " << result.refined_value << std::endl;
-        std::cout << "estimated_error: " << result.estimated_error << std::endl;
-        std::cout << "step_size: " << result.step_size << std::endl;
-        std::cout << "final_intervals number: " << result.final_intervals << std::endl;
-
-        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::GAUS_3_POINT>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
-        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::GAUS_4_POINT>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 20);
-
-
-        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(0)>(configurate_alp_bet_eq0.function, configurate_alp_bet_eq0.a, configurate_alp_bet_eq0.b, 20.235345, { configurate_alp_bet_eq0.alpha,configurate_alp_bet_eq0.beta }, 100);
-        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(1)>(configurate_alp_bet_eq0.function, configurate_alp_bet_eq0.a, configurate_alp_bet_eq0.b, 20.235345, { configurate_alp_bet_eq0.alpha,configurate_alp_bet_eq0.beta }, 100);
-        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(2)>(configurate_alp_bet_eq0.function, configurate_alp_bet_eq0.a, configurate_alp_bet_eq0.b, 20.235345, { configurate_alp_bet_eq0.alpha,configurate_alp_bet_eq0.beta }, 100);
-        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(3)>(configurate_alp_bet_eq0.function, configurate_alp_bet_eq0.a, configurate_alp_bet_eq0.b, 20.235345, { configurate_alp_bet_eq0.alpha,configurate_alp_bet_eq0.beta }, 100);
-        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(4)>(configurate_alp_bet_eq0.function, configurate_alp_bet_eq0.a, configurate_alp_bet_eq0.b, 20.235345, { configurate_alp_bet_eq0.alpha,configurate_alp_bet_eq0.beta }, 100);
-        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(5)>(configurate_alp_bet_eq0.function, configurate_alp_bet_eq0.a, configurate_alp_bet_eq0.b, 20.235345, { configurate_alp_bet_eq0.alpha,configurate_alp_bet_eq0.beta }, 100);
-        DispAbsBeatwen<double, double, static_cast<counting_methods_3::IntegrateMethod>(6)>(configurate_alp_bet_eq0.function, configurate_alp_bet_eq0.a, configurate_alp_bet_eq0.b, 20.235345, { configurate_alp_bet_eq0.alpha,configurate_alp_bet_eq0.beta }, 100);
-
-
-
-
-        //counting_methods_3::integrate<double,double,counting_methods_3::IntegrateMethod::LEFT_RECTANGLE>(f,p.a,p.b);
-
-
-        //const std::vector<float> execution_logic={1.1,1.2,1.3};
+        auto configurate = conf2;
+#define EXECUTION_PART all
 
         ////Part No. 1: Quadrature formulas of Newton-Kot(e)ca and Gauss
         //1.1 calculations of a certain integral using compound quadrature formulas 
-        // Beginning:
-
-        //ens;
+#if EXECUTION_PART == 21 || EXECUTION_PART == all
+        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::LEFT_RECTANGLE>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
+        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::MIDDLE_RECTANGLE>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
+        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::TRAPEZOID>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
+        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::SIMPSON>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
+#endif
 
         //Methods for calculating a definite integral using compound quadrature formulas
         //based on 3 - point Newton - Kot formulas(e)ca and Gauss.
-        // Beginning:
-
-        //ens;
-
+#if EXECUTION_PART == 22 || EXECUTION_PART == all
+        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::NEWTON_COTES_3_POINT> (configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
+        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::NEWTON_COTES_4_POINT>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
+        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::NEWTON_COTES_5_POINT>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
+#endif
         //1.3. Graph of the dependence of the absolute error on the number of splits 
         //of the integration interval of each quadrature formula from paragraphs 1.1 - 2.
-        // Beginning:
-
-        //ens;
-
-        ////
-
+#if EXECUTION_PART == 23 || EXECUTION_PART == all
+        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::GAUS_3_POINT>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
+        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::GAUS_4_POINT>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 20);
+#endif
         ////Part No. 2: Methods for estimating the error of composite quadrature formulas
         //A definite integral with a given accuracy 𝜀 using the composite 3 - point quadrature formula of Newton - Cot(e)ca.
         // 
@@ -584,21 +534,31 @@ namespace sem_5 {
         //The rate of convergence according to Aitken's rule.
         // 
         //The length of the step ℎ of the partition.
-        // Beginning:
-
-        //ens;
+        counting_methods_3::IntegrationResult<double> result;
+#if EXECUTION_PART == 31 || EXECUTION_PART == all
+        result = counting_methods_3::adaptive_integrate<double, double,
+            counting_methods_3::IntegrateMethod::NEWTON_COTES_3_POINT>(
+                configurate.function, configurate.a, configurate.b, configurate.tolerance, 1, { configurate.alpha, configurate.beta });
+        std::cout << result;
+#endif
 
         // N2.1 but using 3-point Gauss formulas:
-        // Beginning:
-
-        //ens;
+#if EXECUTION_PART == 32 || EXECUTION_PART == all
+        result = counting_methods_3::adaptive_integrate<double, double,
+            counting_methods_3::IntegrateMethod::GAUS_3_POINT>(
+                configurate.function, configurate.a, configurate.b, configurate.tolerance, 1, { configurate.alpha, configurate.beta });
+        std::cout << result;
+#endif
 
         //Using the Aitken convergence rate estimate, select the h_opt step for either formulas 2.1 or 2.2.
         // 
         //Сompare it with the step calculated in 2.1 or 2.2.
-        // Beginning:
-
-        //ens;
+#if EXECUTION_PART == 31 || EXECUTION_PART == all
+        auto simple_result = counting_methods_3::optimized_adaptive_integration<double, double,
+            counting_methods_3::IntegrateMethod::GAUS_3_POINT>(
+                configurate.function, configurate.a, configurate.b, configurate.tolerance, { configurate.alpha, configurate.beta });
+        std::cout << simple_result;
+#endif
         ////
     }
 }
@@ -773,43 +733,8 @@ void test_analytical_roots() {
 #endif
 
 int main() {
-#if 1
-   
+
     sem_5::sem_5();
-
-#else
-    using namespace counting_methods_3;
-    using namespace sem_5;  
-
-    //std::cout << special::ComputeBetaZeroIntegral<double>(1., 10., 1., 1., 2)<<"\n";
-    // 
-    //std::cout << "First"  << std::fixed << std::setprecision(12) << special::integrated_function<double>(1., 7., 0., 8., 0., 0.99, 2) << "\n";
-    //std::cout << "Second" << std::fixed << std::setprecision(12) << special::integrated_function<double>(1., 7., 1., 0., 0.7, 0., 2) << "\n";
-    //First52.888989776304
-    //Second48.299771618350
-
-    std::cout << "Second" /*<< std::fixed << std::setprecision(12)*/ <<special::incomplete_beta(0.3,2.,3.) << "\n";
-    auto configurate = conf2;
-    
-
-
-
-    std::cout << "Second" /*<< std::fixed << std::setprecision(30) */<< special::IntegralManager<double>(1., 7., 1., 8., 0.7, 0.99, 2)<<"\n";
-    
-    std::cout << "NEWTON_COTES_3_POINT, ANS:" << integrate<double, double, counting_methods_3::IntegrateMethod::NEWTON_COTES_3_POINT>(configurate.function, configurate.a, configurate.b, 10'000, { configurate.alpha,configurate.beta}) << "end\n";
-
-    std::cout << "GAUS_3_POINT, ANS:" << integrate<double, double, counting_methods_3::IntegrateMethod::GAUS_3_POINT>(configurate.function, configurate.a, configurate.b, 100, { configurate.alpha,configurate.beta }) << "end\n";
-
-    //sem_5::sem_5();
-    //GetNGausCoefficientWithP_x_FunctionConstants(3);
-    //GetNGausCoefficientWithP_x_FunctionConstants(3, 0.7, 3.2, 0, 0);
-    //auto Tay = conf2;
-    //std::cout << "ANS:" << integrate<double, double, counting_methods_3::IntegrateMethod::GAUS_3_POINT>(Tay.function, Tay.a, Tay.b, 30, { Tay.alpha,Tay.beta }) << "end\n";
-
-   // std::cout << "ANS:" << integrate<double, double, counting_methods_3::IntegrateMethod::NEWTON_COTES_5_POINT>(conf.function, conf.a, conf.b, conf.points, { conf.alpha,conf.beta })<<"end\n";
-    //std::cout << "ANS:" << integrate<double, double, counting_methods_3::IntegrateMethod::NEWTON_COTES_3_POINT>(conf2.function, conf2.a, conf2.b, 1'00'000'000, { conf2.alpha,conf2.beta }) << "end\n";
-
-#endif
 
 
 
