@@ -146,6 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cpp_rewriting_SPBGU.cpp" />
+    <ClCompile Include="integral.cpp" />
     <ClCompile Include="_cpp_realisation_file\complex.cpp" />
     <ClCompile Include="_cpp_realisation_file\complex_number.cpp" />
     <ClCompile Include="_cpp_realisation_file\fraction.cpp" />
