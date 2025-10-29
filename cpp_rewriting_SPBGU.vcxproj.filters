@@ -39,7 +39,7 @@
     <ClCompile Include="_cpp_realisation_file\polynomial.cpp">
       <Filter>Файлы ресурсов</Filter>
     </ClCompile>
-    <ClCompile Include="integral.cpp">
+    <ClCompile Include="_cpp_realisation_file\integral.cpp">
       <Filter>Файлы ресурсов</Filter>
     </ClCompile>
   </ItemGroup>

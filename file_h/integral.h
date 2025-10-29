@@ -1,6 +1,10 @@
 ﻿#pragma once
 #include "../file_h/matrix.h"
+#include "../file_h/polynomial.h"
 #include <vector>
+#include <unordered_map>
+#include <functional>
+
 namespace counting_methods_3 {
     enum class IntegrateMethod {
         LEFT_RECTANGLE = 0,
@@ -689,7 +693,8 @@ namespace counting_methods_3 {
 
 
 
-                polynomial<T> polyn(1);
+                polynomial<T> polyn; polyn=static_cast<T>(1);
+
                 for (uint64_t i = 0; i < n; i++)
                 {
                     //std::cout << "i=" << i << "  (coeff[i][0])" << (coeff[i][0]) << "\n";
@@ -892,8 +897,8 @@ TResult integrate(std::function<TResult(TArg)> f,
     bool sh_be_reversed = 0;
     if (a > b) {
         throw("a>b");
-        std::swap(a, b); 
-        sh_be_reversed = 1;
+        //std::swap(a, b); 
+        //sh_be_reversed = 1;
     }
     TArg h = (b - a) / static_cast<TArg>(interval_of_division);
     if constexpr (Method == IntegrateMethod::LEFT_RECTANGLE) {
@@ -1212,3 +1217,5 @@ IntegrationResult<TResult> optimized_adaptive_integration(
 }
 
 }
+
+#include "../_cpp_realisation_file/integral.cpp"
