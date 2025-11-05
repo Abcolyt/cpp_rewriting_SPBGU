@@ -1,4 +1,5 @@
-﻿#pragma once
+﻿#if 0
+#pragma once
 #include"../file_h/integral.h"
 #include"../file_h/polynomial.h"
 
@@ -885,7 +886,7 @@ namespace _counting_methods_320 {
     //p_feature={alpha,beta}
     //if (a > b)throw("a>b");
     template<typename TResult, typename TArg, IntegrateMethod Method>
-    TResult integrate(std::function<TResult(TArg)> f,
+    TResult unsafe_integrate(std::function<TResult(TArg)> f,
         TArg a, TArg b, uint64_t interval_of_division, PFeature p_feature = { 0,0 },
         std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function = euler_type::IntegralManager<TResult, TArg>) {
         TResult sum = 0;
@@ -1019,7 +1020,7 @@ namespace _counting_methods_320 {
         std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function) {
 
         try {
-            TResult result = integrate<TResult, TArg, Method>(f, a, b, intervals, p_feature, feature_function);
+            TResult result = unsafe_integrate<TResult, TArg, Method>(f, a, b, intervals, p_feature, feature_function);
             return std::make_pair(result, 1);
         }
         catch (const std::exception& e) {
@@ -1048,7 +1049,7 @@ namespace _counting_methods_320 {
         int max_iterations = 50;
 
         for (int iter = 1; iter < max_iterations; iter++) {
-            TResult current_approx = integrate<TResult, TArg, Method>(f, a, b, current_intervals, p_feature, feature_function);
+            TResult current_approx = unsafe_integrate<TResult, TArg, Method>(f, a, b, current_intervals, p_feature, feature_function);
 
             approximations.push_back(current_approx);
             int size = approximations.size();
@@ -1161,7 +1162,7 @@ namespace _counting_methods_320 {
         std::vector<TResult> step_sizes;
 
         for (uint64_t intervals : test_intervals) {
-            TResult approx = integrate<TResult, TArg, Method>(f, a, b, intervals, p_feature, feature_function);
+            TResult approx = unsafe_integrate<TResult, TArg, Method>(f, a, b, intervals, p_feature, feature_function);
             test_results.push_back(approx);
             step_sizes.push_back((b - a) / intervals);
 #if DEBUG_INPUT
@@ -1213,4 +1214,4 @@ namespace _counting_methods_320 {
 
 }
 
-
+#endif

@@ -6,11 +6,13 @@
 #include <functional>
 
 namespace counting_methods_3 {
+
     enum class IntegrateMethod {
         LEFT_RECTANGLE = 0,
         MIDDLE_RECTANGLE,
-        TRAPEZOID,
-        SIMPSON,
+        TRAPEZOID=3,
+        SIMPSON=4,
+        NEWTON_COTES_2_POINT = 3,
         NEWTON_COTES_3_POINT = 4,
         NEWTON_COTES_4_POINT = 5,
         NEWTON_COTES_5_POINT,
@@ -67,7 +69,6 @@ namespace counting_methods_3 {
         }
     };
 
-
     namespace special {
         //beta,logbeta,incompletebeta
         namespace betas {
@@ -122,14 +123,13 @@ namespace counting_methods_3 {
                 sum = current_term;
 
                 for (int n = 1; n < max_iterations; ++n) {
-                    // Calculate coefficient using recurrence relation
+                    // Calculate coefficient 
                     T coeff = (T(n) - b) / T(n) * (a + T(n) - T(1)) / (a + T(n));
                     current_term *= coeff * z;
 
                     T previous_sum = sum;
                     sum += current_term;
 
-                    // Check 
                     if (std::abs(current_term) < epsilon * std::abs(sum) ||
                         std::abs(sum - previous_sum) < epsilon * std::abs(sum)) {
                         //std::cout << "abs exit\n";
@@ -563,13 +563,13 @@ namespace counting_methods_3 {
                     integral_map[j] = 0.0L;
                 }
             }
-
             return integral_map;
         }
         namespace integration_coefficients {
             ////
-            matrix<double> getrange(int n) {
-                matrix<double> M;
+            template<typename T>
+            matrix<T> getrange(int n) {
+                matrix<T> M;
                 M.setcol(1);
                 M.setrow(n);
                 for (int i = 0; i < n; i++) {
@@ -582,9 +582,8 @@ namespace counting_methods_3 {
             //get n normalized newton cotes coefficients(i.e. for [a=0,b=1]
             //get c[j] : Integral[a=0,b=1]F(x)dx of function =~= Sum(j=1,n){c[j]*F(x_j)} 
             template<typename T>
-            matrix<T> GetNormalizedСoefficentsNewtonCotes(int n) {
-
-                matrix<T> nodes_in_the_integration_gap = getrange(n);
+            matrix<T> GetNormalizedСoefficentsNewtonCotes(int n, matrix<T>(*node_generator)(int) = getrange<T>) {
+                matrix<T> nodes_in_the_integration_gap = node_generator(n);
 
                 if (nodes_in_the_integration_gap.is_vector()) {
 
@@ -614,11 +613,13 @@ namespace counting_methods_3 {
                 }
             }
 
+            //main function
             template<typename TResult, typename TArg>
             matrix<TResult> GetSingularityNewtonKotesCoefficients(int n, TArg a, TArg b, PFeature p_feature = { 0,0 },
-                std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function = euler_type::IntegralManager<TResult, TArg>) {
+                std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function = euler_type::IntegralManager<TResult, TArg>,
+                matrix<TArg>(*node_generator)(int) = getrange<TArg>) {
                 using T = TResult;
-                matrix<T> nodes_in_the_integration_gap = getrange(n);
+                matrix<T> nodes_in_the_integration_gap = node_generator(n);
 
                 if (nodes_in_the_integration_gap.is_vector()) {
 
@@ -649,11 +650,11 @@ namespace counting_methods_3 {
             ////
 
 
-#define Debug 0
-    //main function
+            //main function
             template<typename T = double>
             std::pair<matrix<T>, matrix<T>> GetNGausCoefficientWithP_x_FunctionConstants(const std::unordered_map<int, T>& miu) {
 
+#define Debug 0
                 int n = miu.size() / 2;
                 matrix<T> A(n, n), B(n, 1);
                 //auto miu = counting_methods_3::fill_integral_map(a, b, alpha, beta, n);
@@ -763,12 +764,11 @@ namespace counting_methods_3 {
                 return { Coeff, coeff2 };
             }
 
-#define Debug 1
-
             //coeff - nodes, coeff2 - weights
             template<typename TResult, typename TArg, typename T_type = double>
             std::pair<matrix<T_type>, matrix<T_type>> GetNGausCoefficientWithP_x_FunctionConstants(uint64_t n, double t0, double T, double a, double b, double alpha, double beta, std::function<TResult(TArg, TArg, TArg, TArg, TArg, TArg, int)> feature_function = {}) {
                 //return GetNGausCoefficientWithP_x_FunctionConstants(counting_methods_3::fill_integral_map(a, b, alpha, beta, n));
+#define Debug 1
 
 #if 1
         //input
@@ -873,24 +873,26 @@ namespace counting_methods_3 {
 
         }
 
+        template<typename TResult>
+        TResult aitken_convergence_rate(TResult I_h, TResult I_h2, TResult I_h4) {
+            // m ≈ log2( (I_h2 - I_h) / (I_h4 - I_h2) )
+            if (std::abs(I_h4 - I_h2) < 1e-15) {
+                return 0;
+            }
+            return std::log2(std::abs((I_h2 - I_h) / (I_h4 - I_h2)));
         }
-        using namespace auxiliary;
+        }
     }
     using namespace special;
     using namespace auxiliary;
     using namespace integration_coefficients;
-
-
-
-    
-
 
 //feature_function need if p_feature != { 0,0 }
 //   *euler_type::IntegralManager<TResult, TArg>:  return Int[t0;T] x^j/((x-a)^alpha * (b-x)^beta) dx
 //p_feature={alpha,beta}
 //if (a > b)throw("a>b");
 template<typename TResult, typename TArg, IntegrateMethod Method>
-TResult integrate(std::function<TResult(TArg)> f,
+TResult unsafe_integrate(std::function<TResult(TArg)> f,
     TArg a, TArg b, uint64_t interval_of_division, PFeature p_feature = { 0,0 },
     std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function = euler_type::IntegralManager<TResult, TArg>) {
     TResult sum = 0;
@@ -914,37 +916,36 @@ TResult integrate(std::function<TResult(TArg)> f,
         }
         return sum * h;
     }
-    else if constexpr (Method == IntegrateMethod::TRAPEZOID) {
-        if (p_feature.alpha == 0) { sum += f(a) / 2; }
-        if (p_feature.beta == 0) { sum += f(b) / 2; }
-        for (int i = 1; i < interval_of_division; ++i) {
-            sum += f(a + i * h);
-        }
-        return sum * h;
-    }
-    else if constexpr (Method == IntegrateMethod::SIMPSON) {
-        if (p_feature.alpha == 0) { sum += f(a); }
-        if (p_feature.beta == 0) { sum += f(b); }
+    //else if constexpr (Method == IntegrateMethod::TRAPEZOID) {
+    //    if (p_feature.alpha == 0) { sum += f(a) / 2; }
+    //    if (p_feature.beta == 0) { sum += f(b) / 2; }
+    //    for (int i = 1; i < interval_of_division; ++i) {
+    //        sum += f(a + i * h);
+    //    }
+    //    return sum * h;
+    //}
+    /*else if constexpr (Method == IntegrateMethod::SIMPSON) {
         TResult sum_x4 = 0;
         TResult sum_x2 = 0;
         for (int i = 1; i < interval_of_division; i += 2) {
             sum_x4 += f(a + i * h);
         }
-        for (int i = 2; i < interval_of_division; i += 2) {
+        for (int i = 2; i < interval_of_division-1; i += 2) {
             sum_x2 += f(a + i * h);
         }
-        sum += 4 * sum_x4 + 2 * sum_x2;
+        sum += 2 * (2 * sum_x4 + sum_x2);
+        if (p_feature.alpha == 0) { sum += f(a); }
+        if (p_feature.beta == 0 ) { sum += f(b); }
         return sum * h / 3;
-    }
-    else if constexpr ((static_cast<int>(IntegrateMethod::NEWTON_COTES_3_POINT) <= static_cast<int>(Method)) && (static_cast<int>(Method) <= static_cast<int>(IntegrateMethod::NEWTON_COTES_9_POINT))) {
+    }*/
+    else if constexpr ((static_cast<int>(IntegrateMethod::NEWTON_COTES_2_POINT) <= static_cast<int>(Method)) && (static_cast<int>(Method) <= static_cast<int>(IntegrateMethod::NEWTON_COTES_9_POINT))) {
         int n = static_cast<int>(Method)-1;
         TResult micro_h = h / static_cast<TArg>(n - 1);
         matrix<TResult> M;
-        if (p_feature.alpha== 0 && p_feature.beta == 0) {
+        if (p_feature.alpha == 0 && p_feature.beta == 0) {
             M = GetNormalizedСoefficentsNewtonCotes<TResult>(n);
         }
         else {
-            
             M = GetSingularityNewtonKotesCoefficients<TResult,TArg>(n,a,b, p_feature, feature_function);
         }
 
@@ -960,7 +961,7 @@ TResult integrate(std::function<TResult(TArg)> f,
         {
             sum += 2 * M[0][0] * f(a + h * j);
         }
-       sum += M[0][0] * f(b);
+        sum += M[0][0] * f(b);
 
         return sum * h;
     }
@@ -993,25 +994,10 @@ TResult integrate(std::function<TResult(TArg)> f,
         }
         return sum;
     }
-
     else {
         static_assert(1 != 0, "Unknown integration method");
     }
     return 404;
-}
-
-
-
-
-
-
-template<typename TResult>
-TResult aitken_convergence_rate(TResult I_h, TResult I_h2, TResult I_h4) {
-    // m ≈ log2( (I_h2 - I_h) / (I_h4 - I_h2) )
-    if (std::abs(I_h4 - I_h2) < 1e-15) {
-        return 0;
-    }
-    return std::log2(std::abs((I_h2 - I_h) / (I_h4 - I_h2)));
 }
 
 //pair.second is error code. if (pair.second==1) => integral is correct(first value)
@@ -1024,7 +1010,7 @@ std::pair<TResult, int> safe_integrate(
     std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function) {
 
     try {
-        TResult result = integrate<TResult, TArg, Method>(f, a, b, intervals, p_feature, feature_function);
+        TResult result = unsafe_integrate<TResult, TArg, Method>(f, a, b, intervals, p_feature, feature_function);
         return std::make_pair(result, 1);
     }
     catch (const std::exception& e) {
@@ -1035,9 +1021,9 @@ std::pair<TResult, int> safe_integrate(
 //adaptive_integrate_richardson
 template<typename TResult, typename TArg, counting_methods_3::IntegrateMethod Method>
 IntegrationResult<TResult> adaptive_integrate(
-    std::function<TResult(TArg)> f,
-    TArg a, TArg b,
-    TResult epsilon = 1e-6, uint64_t initial_intervals = 1,
+    std::function<TResult(TArg)> f,TArg a, TArg b,
+    TResult epsilon = 1e-6,
+    uint64_t initial_intervals = 1,
     PFeature p_feature = { 0, 0 },
     std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function = euler_type::IntegralManager<TResult, TArg>) {
 #define DEBUG_INPUT _DEBUG
@@ -1053,7 +1039,7 @@ IntegrationResult<TResult> adaptive_integrate(
     int max_iterations = 50;
     
     for (int iter = 1; iter < max_iterations; iter++) {
-        TResult current_approx = integrate<TResult, TArg, Method>(f, a, b, current_intervals, p_feature, feature_function);
+        TResult current_approx = unsafe_integrate<TResult, TArg, Method>(f, a, b, current_intervals, p_feature, feature_function);
 
         approximations.push_back(current_approx);
         int size = approximations.size();
@@ -1065,9 +1051,6 @@ IntegrationResult<TResult> adaptive_integrate(
 
             for (int i = 0; i < size; i++) {
                 auto current_h = (b - a) / (initial_intervals * std::pow(2, i));
-
-                
-
                 //  C_m, C_{m+1}, ...
                 for (int j = 0; j < size - 1; j++) {
                     A[i][j] = std::pow(current_h, m + j - 1);
@@ -1077,10 +1060,6 @@ IntegrationResult<TResult> adaptive_integrate(
 
                 b_vec[i][0] = -approximations[i];
             }
-
-            //std::cout << "A_ " << iter << ":\n" << A << std::endl;
-            //std::cout << "b_:\n" << b_vec << std::endl;
-
             try {
                 matrix<TResult> coeff = matrixfunction::solve_system(A, b_vec);
 
@@ -1139,13 +1118,13 @@ IntegrationResult<TResult> adaptive_integrate(
     std::cout << "The maximum number of iterations has been reached" << std::endl;
 #endif
     return Ans;
+#undef DEBUG_INPUT
 }
-
-
 
 template<typename TResult, typename TArg, counting_methods_3::IntegrateMethod Method>
 IntegrationResult<TResult> optimized_adaptive_integration(
-    std::function<TResult(TArg)> f, TArg a, TArg b, TResult epsilon = 1e-6,
+    std::function<TResult(TArg)> f, TArg a, TArg b,
+    TResult epsilon = 1e-6,
     PFeature p_feature = { 0, 0 },
     std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function = euler_type::IntegralManager<TResult, TArg>) {
 #define DEBUG_INPUT _DEBUG
@@ -1166,7 +1145,7 @@ IntegrationResult<TResult> optimized_adaptive_integration(
     std::vector<TResult> step_sizes;
 
     for (uint64_t intervals : test_intervals) {
-        TResult approx = integrate<TResult, TArg, Method>(f, a, b, intervals, p_feature, feature_function);
+        TResult approx = unsafe_integrate<TResult, TArg, Method>(f, a, b, intervals, p_feature, feature_function);
         test_results.push_back(approx);
         step_sizes.push_back((b - a) / intervals);
 #if DEBUG_INPUT
@@ -1214,6 +1193,7 @@ IntegrationResult<TResult> optimized_adaptive_integration(
     result.convergence_rates.push_back(actual_order);
 
     return result;
+#undef DEBUG_INPUT
 }
 
 }
