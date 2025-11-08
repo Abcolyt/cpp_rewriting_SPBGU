@@ -19,14 +19,10 @@ namespace polynomialfunctions {
 	}
 	template<typename P>inline P f_polyn_x0_(const polynomial<P>& polynom, const P& x0) {
 		P ans(0);
-		/*for (uint64_t i = 0; i < polynom.get_deg(); i++) {
-			std::cout << '\n' << polynom[i]   << std::endl;
-		}*/
+
 		for (uint64_t i = polynom.get_deg(); i > 0; --i) {
-			//std::cout << "\n ans:" << ans<<"i=" << i - 1 << std::endl;
 			ans = polynom[i - 1] + (ans)*x0;
 		}
-		//std::cout << "\n ans:" << ans;
 		return ans;
 	}
 
@@ -511,14 +507,3 @@ template<typename P>P polynomial<P>::maximum_abs(P a, P b) const {
 	//std::cout <<"ans_max:" << ans_max << '\n';
 	return ans_max;
 }
-
-//template<typename P>P polynomial<P>::maximum_abs()const {
-//	P ans_max = 0;
-//	for (auto& i : polynomialfunctions::plnm_roots(this->get_first_derrivate()) )
-//	{
-//		ans_max = polynomialfunctions::max(ans_max, polynomialfunctions::abs((*this)(i.first)));
-//		std::cout << "\n" << i.first << " f(i.first) " << (*this)(i.first) << "\n";
-//	}
-//	
-//	return ans_max;
-//}

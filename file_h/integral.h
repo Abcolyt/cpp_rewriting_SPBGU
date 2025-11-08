@@ -698,7 +698,6 @@ namespace counting_methods_3 {
 
                 for (uint64_t i = 0; i < n; i++)
                 {
-                    //std::cout << "i=" << i << "  (coeff[i][0])" << (coeff[i][0]) << "\n";
                     polyn = (polyn >> 1);
                     polyn[0] = (coeff[n - 1 - i][0]);
 
@@ -736,9 +735,7 @@ namespace counting_methods_3 {
 
 
 
-                //
-                //matrix<T>A2(size), B2(size, 1);
-                //std::cout << "3:" << nodes_in_the_integration_gap << '\n';
+                
                 for (int i = 0; i < size; i++) {
                     A2[0][i] = 1;//nodes_in_the_integration_gap[i];
                     B2[i][0] = miu.at(i);
@@ -753,7 +750,6 @@ namespace counting_methods_3 {
                 std::cout << "B':" << B2 << "\n";
 #endif
                 matrix<T> coeff2 = matrixfunction::solve_system(A2, B2);
-                //std::cout << "с'_j:" << A.inverse_M()*b << "\n";
 #if Debug == 1
 
                 std::cout << "c'_j:" << coeff2 << '\n';
@@ -812,7 +808,6 @@ namespace counting_methods_3 {
                 polynomial<double> polyn(1);
                 for (uint64_t i = 0; i < n; i++)
                 {
-                    //std::cout << "i=" << i << "  (coeff[i][0])" << (coeff[i][0]) << "\n";
                     polyn = (polyn >> 1);
                     polyn[0] = (coeff[n - 1 - i][0]);
 
@@ -843,11 +838,9 @@ namespace counting_methods_3 {
 
 
 
-                //
-                //matrix<T>A2(size), B2(size, 1);
-                //std::cout << "3:" << nodes_in_the_integration_gap << '\n';
+                
                 for (int i = 0; i < size; i++) {
-                    A2[0][i] = 1;//nodes_in_the_integration_gap[i];
+                    A2[0][i] = 1;
                     B2[i][0] = miu[i];
                     for (int j = 1; j < size; j++) {
                         A2[j][i] = nodes_in_the_integration_gap[i] * A2[j - 1][i];
@@ -860,7 +853,6 @@ namespace counting_methods_3 {
                 std::cout << "B':" << B2 << "\n";
 #endif
                 matrix<T_type> coeff2 = matrixfunction::solve_system(A2, B2);
-                //std::cout << "с'_j:" << A.inverse_M()*b << "\n";
 #if Debug == 1
 
                 std::cout << "c'_j:" << coeff2 << '\n';
@@ -916,28 +908,6 @@ TResult unsafe_integrate(std::function<TResult(TArg)> f,
         }
         return sum * h;
     }
-    //else if constexpr (Method == IntegrateMethod::TRAPEZOID) {
-    //    if (p_feature.alpha == 0) { sum += f(a) / 2; }
-    //    if (p_feature.beta == 0) { sum += f(b) / 2; }
-    //    for (int i = 1; i < interval_of_division; ++i) {
-    //        sum += f(a + i * h);
-    //    }
-    //    return sum * h;
-    //}
-    /*else if constexpr (Method == IntegrateMethod::SIMPSON) {
-        TResult sum_x4 = 0;
-        TResult sum_x2 = 0;
-        for (int i = 1; i < interval_of_division; i += 2) {
-            sum_x4 += f(a + i * h);
-        }
-        for (int i = 2; i < interval_of_division-1; i += 2) {
-            sum_x2 += f(a + i * h);
-        }
-        sum += 2 * (2 * sum_x4 + sum_x2);
-        if (p_feature.alpha == 0) { sum += f(a); }
-        if (p_feature.beta == 0 ) { sum += f(b); }
-        return sum * h / 3;
-    }*/
     else if constexpr ((static_cast<int>(IntegrateMethod::NEWTON_COTES_2_POINT) <= static_cast<int>(Method)) && (static_cast<int>(Method) <= static_cast<int>(IntegrateMethod::NEWTON_COTES_9_POINT))) {
         int n = static_cast<int>(Method)-1;
         TResult micro_h = h / static_cast<TArg>(n - 1);
@@ -1136,10 +1106,10 @@ IntegrationResult<TResult> optimized_adaptive_integration(
 #if DEBUG_INPUT
     std::cout << "=== OPTIMIZED AITKEN INTEGRATION ===" << std::endl;
 #endif
-    // Теоретический порядок для 3-точечной формулы Ньютона-Котеса
+    // Theoretical order for the Newton-Cotes 3-point formula
     const int theoretical_m = 4;
 
-    // Шаг 1: Вычисление на трех сетках с малым числом шагов
+    // Step 1: Calculation on three grids with a small number of steps
     std::vector<uint64_t> test_intervals = { 1, 2, 4 };
     std::vector<TResult> test_results;
     std::vector<TResult> step_sizes;
@@ -1154,12 +1124,12 @@ IntegrationResult<TResult> optimized_adaptive_integration(
 #endif
     }
 
-    // Шаг 2: Оценка фактического порядка сходимости по правилу Эйткена
+    // Step 2: Estimating the actual order of convergence according to Aitken's rule
     TResult actual_order = aitken_convergence_rate(test_results[0], test_results[1], test_results[2]);
 
-    // Используем фактический порядок, если он разумен, иначе теоретический
+    // We use the actual order if it is reasonable, otherwise the theoretical one
     int m = theoretical_m;
-    if (actual_order > 1.0 && actual_order < 8.0) {
+    if (actual_order > 1.0 && actual_order < 10000.0) {
         m = static_cast<int>(std::round(actual_order));
 #if DEBUG_INPUT
         std::cout << "Using actual convergence order: " << m << std::endl;
@@ -1188,7 +1158,7 @@ IntegrationResult<TResult> optimized_adaptive_integration(
     result = adaptive_integrate<TResult, TArg, Method>(
         f, a, b, epsilon, optimal_intervals, p_feature, feature_function);
 
-    // Сохраняем тестовые приближения и порядки сходимости
+    // We keep the test approximations and convergence orders
     result.approximations.insert(result.approximations.begin(), test_results.begin(), test_results.end());
     result.convergence_rates.push_back(actual_order);
 

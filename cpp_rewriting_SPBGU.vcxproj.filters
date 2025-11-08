@@ -90,9 +90,6 @@
     <ClInclude Include="file_h\Array_xy_To_.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="calc_computing_f.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="file_h\counting_methods_1.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
@@ -109,6 +106,9 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="file_h\project_libraries.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="file_h\calc_computing_f.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
