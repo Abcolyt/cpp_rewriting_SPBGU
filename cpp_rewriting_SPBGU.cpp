@@ -613,7 +613,7 @@ namespace sem_5 {
                 };
             funcs.push_back(f_abs_n4);
 
-            sem_5::printTableHeader(headers, data);
+            sem_5::demonstration::printTableHeader(headers, data);
 
 #if __has_include(<SFML/Graphics.hpp>)
             draw_functions(funcs, 0.0, static_cast<double>(n + 1));
