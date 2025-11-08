@@ -18,3 +18,12 @@
  документация в
 
   documents
+
+## библиотеки
+- sfml
+- google tests
+
+скачивал через vcpkg
+## связанный проект
+[тесты новые ](https://github.com/Abcolyt/Google_Test_cpprewriting_1_16_0)
+[тесты старые](https://github.com/Abcolyt/googltests_to_rewriting_SPBGU_proj)
