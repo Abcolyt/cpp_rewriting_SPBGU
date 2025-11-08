@@ -12,8 +12,8 @@ namespace counting_methods {
         FILE* file;
 
         if (freopen_s(&file, filename, "r", stdin) != 0) {
-            std::cerr << "Ошибка при открытии файла: " << filename << std::endl;
-            return; // Завершение функции в случае ошибки
+            std::cerr << "error file open: " << filename << std::endl;
+            return; 
         }
 
         func();
@@ -37,7 +37,6 @@ namespace counting_methods {
             for (size_t i = 0; i < ans.size(); i++)
             {
                 std::cout << "root:(" << ans[i].first << ")\niteration for this root:" << ans[i].second << " \n";
-                //std::cout << "polynomialfunctions::f_polyn_x0_<Complex>(plnm, ans["<<i<<"].first):" << polynomialfunctions::f_polyn_x0_<Complex>(plnm, ans[i].first)<<'\n';
             }
 
 
@@ -49,7 +48,7 @@ namespace counting_methods {
     namespace nonlinear_system_with_simple_iterations {
         using Function = std::function<double(const std::vector<double>&)>;
 
-        // Функция для решения нелинейной системы уравнений методом простых итераций
+        // A function for solving a nonlinear system of equations using simple iterations
         std::vector<double> nonlinear_system_with_simple_iterations(
             const std::vector<Function>& functions,
             const std::vector<double>& initial_guess,
@@ -62,23 +61,23 @@ namespace counting_methods {
             for (int iteration = 0; iteration < max_iterations; ++iteration) {
                 std::vector<double> next_guess(num_functions);
 
-                // Вычисляем значения для следующей итерации
+                // Calculating the values for the next iteration
                 for (int i = 0; i < num_functions; ++i) {
                     next_guess[i] = functions[i](current_guess);
                     std::cout << next_guess[i] << "    ";
                 }
                 std::cout << "\n";
-                // Проверяем на сходимость
+                // Checking for convergence
                 double max_diff = 0.0;
                 for (int i = 0; i < num_functions; ++i) {
                     max_diff = std::max(max_diff, std::abs(next_guess[i] - current_guess[i]));
                 }
 
                 if (max_diff < tolerance) {
-                    return next_guess; // Возвращаем найденное решение
+                    return next_guess;// Returning the found solution
                 }
 
-                current_guess = next_guess; // Переходим к следующей итерации
+                current_guess = next_guess; // Moving on to the next iteration
             }
 
             throw std::runtime_error("Maximum iterations reached without convergence");
@@ -97,7 +96,6 @@ namespace counting_methods {
 
                 std::vector<double> solution = nonlinear_system_with_simple_iterations(functions1, initial_guess);
 
-                //  результат
                 std::cout << "Solution: ";
                 for (double value : solution) {
                     std::cout << value << " ";
@@ -126,7 +124,6 @@ namespace counting_methods {
 
                 std::vector<double> solution = nonlinear_system_with_simple_iterations(functions1, initial_guess);
 
-                //  результат
                 std::cout << "Solution: ";
                 for (double value : solution) {
                     std::cout << value << " ";
@@ -149,12 +146,10 @@ namespace counting_methods {
 
 
     namespace nonlinear_system_with_the_tangent_method {
-
-        // Определим типы для функций и якобиана
         using Function = std::function<double(const std::vector<double>&)>;
         using Jacobian = std::function<std::vector<std::vector<double>>(const std::vector<double>&)>;
 
-        // Функция для решения нелинейной системы уравнений методом Ньютона
+        // A function for solving a nonlinear system of equations by the Newton method
         std::vector<double> nonlinear_system_with_newton(
             const std::vector<Function>& functions,
             const Jacobian& jacobian,
@@ -166,21 +161,17 @@ namespace counting_methods {
             int num_functions = functions.size();
 
             for (int iteration = 0; iteration < max_iterations; ++iteration) {
-                // Вычисляем значения функций
                 std::vector<double> function_values(num_functions);
                 for (int i = 0; i < num_functions; ++i) {
                     function_values[i] = functions[i](current_guess);
                 }
 
-                // Вычисляем якобиан
+                //jacobian value
                 std::vector<std::vector<double>> J = jacobian(current_guess);
 
-                // Решаем систему J * delta = -F для delta
+                //Solve system J * delta = -F для delta
                 std::vector<double> delta(num_functions);
 
-                // Используем метод Гаусса или любой другой метод для решения системы
-                // Для простоты, будем использовать метод Гаусса с прямой подстановкой
-                // Здесь мы просто создаем матрицу и вектор для решения
                 std::vector<std::vector<double>> augmented_matrix(num_functions, std::vector<double>(num_functions + 1));
 
                 for (int i = 0; i < num_functions; ++i) {
@@ -190,15 +181,12 @@ namespace counting_methods {
                     augmented_matrix[i][num_functions] = -function_values[i];
                 }
 
-                // Прямой ход Гаусса
                 for (int i = 0; i < num_functions; ++i) {
-                    // Нормализация строки
                     double pivot = augmented_matrix[i][i];
                     for (int j = i; j <= num_functions; ++j) {
                         augmented_matrix[i][j] /= pivot;
                     }
 
-                    // Обнуление ниже
                     for (int k = i + 1; k < num_functions; ++k) {
                         double factor = augmented_matrix[k][i];
                         for (int j = i; j <= num_functions; ++j) {
@@ -207,7 +195,6 @@ namespace counting_methods {
                     }
                 }
 
-                // Обратный ход Гаусса
                 for (int i = num_functions - 1; i >= 0; --i) {
                     delta[i] = augmented_matrix[i][num_functions];
                     for (int j = i + 1; j < num_functions; ++j) {
@@ -215,34 +202,31 @@ namespace counting_methods {
                     }
                 }
 
-                // Обновляем текущее приближение
                 for (int i = 0; i < num_functions; ++i) {
                     current_guess[i] += delta[i];
                 }
 
-                // Проверяем на сходимость
                 double max_diff = 0.0;
                 for (const auto& d : delta) {
                     max_diff = std::max(max_diff, std::abs(d));
                 }
 
                 if (max_diff < tolerance) {
-                    return current_guess; // Возвращаем найденное решение
+                    return current_guess; // Returning the found solution
                 }
             }
 
             throw std::runtime_error("Maximum iterations reached without convergence");
         }
 
-        // Пример использования
+        // example
         int nonlinsystem_tangent_method() {
-            // Определяем функции системы уравнений
+            // We define the functions of the system of equations
             std::vector<Function> functions = {
                 [](const std::vector<double>& x) { return std::tan(x[0] * x[1] + 0.4) - x[0] * x[0]; }, // Пример: f1(x1, x2) = x1^2 + x2 - 2
                 [](const std::vector<double>& x) { return 0.8 * x[0] * x[0] + 2 * x[1] * x[1] - 1; } // Пример: f2(x1, x2) = x1 - x2^2
             };
 
-            // Определяем якобиан системы уравнений
             Jacobian jacobian = [](const std::vector<double>& x) {
                 return std::vector<std::vector<double>>{
                     { x[1] / (std::cos((5 * x[1] * x[0] + 2) / 5) * std::cos((5 * x[1] * x[0] + 2) / 5)) - 2 * x[0], x[0] / (std::cos((5 * x[1] * x[0] + 2) / 5) * std::cos((5 * x[1] * x[0] + 2) / 5)) },     // df1/dx1, df1/dx2
@@ -250,14 +234,13 @@ namespace counting_methods {
                 };
                 };
 
-            // Начальное приближение
+            
             std::vector<double> initial_guess = { 0.1, 0.1 };
 
             try {
-                // Решаем систему уравнений
+                
                 std::vector<double> solution = nonlinear_system_with_newton(functions, jacobian, initial_guess);
 
-                // Выводим результат
                 std::cout << "Solution: \n";
                 for (double value : solution) {
                     std::cout << value << " presizion:   " << std::sqrt(functions[0](solution) * functions[0](solution) + functions[1](solution) * functions[1](solution)) << "\n";
@@ -306,9 +289,7 @@ namespace counting_methods {
                 std::cout << "\na*b:\n" << mult((a.inverse_M()), b);
 
                 std::cout << "\ncheck:\n" << a * b;
-                //std::cout << "\n(a.inverse_M()):\n" << (a.inverse_M());
-
-                //std::cout << "\n a*(a.inverse_M()):\n" <<(a.inverse_M())* a;
+                
             }
 
 

@@ -73,12 +73,9 @@ namespace counting_methods_2 {
                     std::back_inserter(array_x),
                     [](const auto& pair) { return pair.first; });
                 pol.the_root_constructor(array_x);
-                /*for (auto& i : Array_xy){ array_x.push_back(i.first); }*/
                            
                 auto min = *std::min_element(array_x.begin(), array_x.end());
-                //std::cout << " " << (pol) <<"  "<< (min)<<"  (" << pol(min) << " )";
                 auto max = *std::max_element(array_x.begin(), array_x.end());
-                //std::cout << (int)type << "\n";
                 switch(type)
                 {
                 case Alternativ_Lagrang_interpolation_double_generatePoints_equally_sufficient_:
@@ -225,7 +222,6 @@ namespace counting_methods_2 {
                 std::vector<std::pair<T, T>> points;
                 for (int i = 0; i < n; ++i) {
                     T x = (0.5) * ((b - a) * std::cos(M_PI * ((2.0 * i + 1) / (2 * (n)+1))) + (b + a));
-                    //std::cout << "\n" << x<<" F(x):"<<F(x);
                     points.emplace_back(x, F(x));
                 }
                 return points;
@@ -408,7 +404,6 @@ namespace counting_methods_2 {
                     auto table = filter_by_unique_x(point_generation(n+m, a, b, F));
 
                     auto interpolinom = interpolation(
-                        //std::vector<std::pair<P, P>>(table.begin(), table.begin() + std::min(m, table.size()))
                         filter_by_unique_x(point_generation(n, a, b, F))
                     );
 
@@ -546,9 +541,6 @@ namespace counting_methods_2 {
                     //
                     auto interp_fn = rn.second;//func_interpolation(generatePoints_equally_sufficient_(i, a, b, F));
                     auto interp_fopt = rn_opt.second;//func_interpolation(generatePoints_optimal(i, a, b, F));
-
-                   /* std::cout << rn.second << "\n";
-                    std::cout << rn_opt.second << "\n";*/
 
 
                     addition_functions_n.push_back(rn.second);
