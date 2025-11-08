@@ -1,5 +1,6 @@
 ﻿#pragma once
-#include "../file_h/matrix.h"
+#include "linalg/matrix.h"
+
 template<typename T>matrix<T>::matrix(const matrix<T>& other)
     : ptr(nullptr), colsize(other.colsize), rowsize(other.rowsize), out_mode(other.out_mode) {
 

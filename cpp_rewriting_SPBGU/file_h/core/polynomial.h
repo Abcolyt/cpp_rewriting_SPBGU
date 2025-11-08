@@ -236,7 +236,7 @@ public:
 };
 template<typename P> output_mode polynomial<P>::default_output_mode = output_mode::SHORT;
 
-#include "../_cpp_realisation_file/polynomial.cpp"
+//#include "../_cpp_realisation_file/polynomial.cpp"
 
 
 
@@ -258,3 +258,4 @@ private:
 
 };
 
+#include "..\..\_cpp_realisation_file\core\polynomial.cpp"

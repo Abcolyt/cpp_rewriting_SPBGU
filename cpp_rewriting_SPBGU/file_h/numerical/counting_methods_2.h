@@ -12,9 +12,9 @@
 
 #include <numeric>
 
-#include "polynomial.h"
-#include "Array_xy_To_.h"
-#include "Spline.h"
+#include "core/polynomial.h"
+#include "core/Array_xy_To_.h"
+#include "interpolation/Spline.h"
 
 namespace counting_methods_2 {
 

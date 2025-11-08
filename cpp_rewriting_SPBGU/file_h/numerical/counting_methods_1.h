@@ -1,8 +1,9 @@
 #pragma once
-#include "file_h/complex.h"
-#include "file_h/fraction.h"
-#include "file_h/polynomial.h"
-#include "file_h/matrix.h"
+#include "core/complex.h"
+#include "core/fraction.h"
+#include "core/polynomial.h"
+#include "linalg/matrix.h"
+#include <functional>
 
 class Polynomial;
 

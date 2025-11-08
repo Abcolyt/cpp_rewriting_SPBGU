@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "../file_h/matrix.h"
-#include "../file_h/polynomial.h"
+#include "linalg/matrix.h"
+#include "core/polynomial.h"
 #include <vector>
 #include <unordered_map>
 #include <functional>
@@ -1136,10 +1136,10 @@ IntegrationResult<TResult> optimized_adaptive_integration(
 #if DEBUG_INPUT
     std::cout << "=== OPTIMIZED AITKEN INTEGRATION ===" << std::endl;
 #endif
-    // Теоретический порядок для 3-точечной формулы Ньютона-Котеса
+    // Theoretical order for the Newton-Cotes 3-point formula
     const int theoretical_m = 4;
 
-    // Шаг 1: Вычисление на трех сетках с малым числом шагов
+    // Step 1: Calculation on three grids
     std::vector<uint64_t> test_intervals = { 1, 2, 4 };
     std::vector<TResult> test_results;
     std::vector<TResult> step_sizes;
@@ -1154,7 +1154,7 @@ IntegrationResult<TResult> optimized_adaptive_integration(
 #endif
     }
 
-    // Шаг 2: Оценка фактического порядка сходимости по правилу Эйткена
+    // Step 2: Estimating the actual order of convergence according to Aitken's rule
     TResult actual_order = aitken_convergence_rate(test_results[0], test_results[1], test_results[2]);
 
     // Используем фактический порядок, если он разумен, иначе теоретический
@@ -1198,4 +1198,4 @@ IntegrationResult<TResult> optimized_adaptive_integration(
 
 }
 
-#include "../_cpp_realisation_file/integral.cpp"
+//#include "../_cpp_realisation_file/integral.cpp"

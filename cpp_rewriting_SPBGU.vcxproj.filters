@@ -19,28 +19,37 @@
     <Filter Include="Картинки">
       <UniqueIdentifier>{07c3de80-4011-4b91-81af-19b08b19de38}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Исходные файлы\Примеры">
+      <UniqueIdentifier>{89c194f8-9d39-412b-805a-d57d7c560eca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cpp_rewriting_SPBGU.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="_cpp_realisation_file\complex.cpp">
-      <Filter>Файлы ресурсов</Filter>
+    <ClCompile Include="cpp_rewriting_SPBGU\_cpp_realisation_file\core\complex.cpp">
+      <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="_cpp_realisation_file\complex_number.cpp">
-      <Filter>Файлы ресурсов</Filter>
+    <ClCompile Include="cpp_rewriting_SPBGU\_cpp_realisation_file\core\fraction.cpp">
+      <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="_cpp_realisation_file\fraction.cpp">
-      <Filter>Файлы ресурсов</Filter>
+    <ClCompile Include="cpp_rewriting_SPBGU\_cpp_realisation_file\core\polynomial.cpp">
+      <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="_cpp_realisation_file\Matrix.cpp">
-      <Filter>Файлы ресурсов</Filter>
+    <ClCompile Include="cpp_rewriting_SPBGU\_cpp_realisation_file\numerical\integration\integral.cpp">
+      <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="_cpp_realisation_file\polynomial.cpp">
-      <Filter>Файлы ресурсов</Filter>
+    <ClCompile Include="cpp_rewriting_SPBGU\_cpp_realisation_file\linalg\Matrix.cpp">
+      <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="_cpp_realisation_file\integral.cpp">
-      <Filter>Файлы ресурсов</Filter>
+    <ClCompile Include="cpp_rewriting_SPBGU\examples\sem_3.cpp">
+      <Filter>Исходные файлы\Примеры</Filter>
+    </ClCompile>
+    <ClCompile Include="cpp_rewriting_SPBGU\examples\sem_4.cpp">
+      <Filter>Исходные файлы\Примеры</Filter>
+    </ClCompile>
+    <ClCompile Include="cpp_rewriting_SPBGU\examples\sem_5.cpp">
+      <Filter>Исходные файлы\Примеры</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -72,44 +81,44 @@
     <None Include="cpp_rewriting_SPBGU.runsettings" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="file_h\polynomial.h">
+    <ClInclude Include="cpp_rewriting_SPBGU\file_h\project_libraries.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="file_h\complex.h">
+    <ClInclude Include="cpp_rewriting_SPBGU\file_h\numerical\counting_methods_1.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="file_h\fraction.h">
+    <ClInclude Include="cpp_rewriting_SPBGU\file_h\numerical\counting_methods_2.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="file_h\matrix.h">
+    <ClInclude Include="cpp_rewriting_SPBGU\file_h\numerical\interpolation\Spline.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="file_h\counting_methods_2.h">
+    <ClInclude Include="cpp_rewriting_SPBGU\file_h\numerical\integration\integral.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="file_h\Array_xy_To_.h">
+    <ClInclude Include="cpp_rewriting_SPBGU\file_h\core\Array_xy_To_.h">
       <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="cpp_rewriting_SPBGU\file_h\core\complex.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="cpp_rewriting_SPBGU\file_h\core\fraction.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="cpp_rewriting_SPBGU\file_h\core\polynomial.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="cpp_rewriting_SPBGU\file_h\linalg\eigenvalues.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="cpp_rewriting_SPBGU\file_h\linalg\matrix.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="cpp_rewriting_SPBGU\examples\calc_computing_f.h">
+      <Filter>Исходные файлы\Примеры</Filter>
     </ClInclude>
     <ClInclude Include="calc_computing_f.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="file_h\counting_methods_1.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="file_h\Spline.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="file_h\eigenvalues.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="file_h\integral.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="file_h\project_libraries.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="file_h\project_libraries.h">
-      <Filter>Файлы заголовков</Filter>
+      <Filter>Исходные файлы\Примеры</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

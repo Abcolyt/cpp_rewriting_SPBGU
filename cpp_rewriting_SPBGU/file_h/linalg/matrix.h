@@ -26,8 +26,15 @@ struct QRResult {
     matrix<T> R;
 };
 namespace matrixfunction {
+
+    //Simplification column vector or row vector
+    template <typename T>matrix<T> simplify_eigenvector(const matrix<T>& vec, T epsilon);
+
+
+
 //// POWER METHOD
     template<typename T>std::pair<T, matrix<T>> power_method_max(const matrix<T>& A, const matrix<T>& Vec0, double epsilon = 1e-6, int max_iter = 1000);
+    template<typename T>std::pair<T, matrix<T>> power_method_average(const matrix<T>& A, const matrix<T>& Vec0, double epsilon, int max_iter);
 
     template<typename T>std::pair<T, matrix<T>> power_method_max(const matrix<T>& A, double epsilon = 1e-6, int max_iter = 1000) {
         return matrixfunction::power_method_max(A, matrix<T>::ones(A.getcol(), 1), epsilon, max_iter);
@@ -706,4 +713,5 @@ template<typename T>
 matrix<T> operator*(const T& scalar, const matrix<T>& mat) {
     return mat * scalar; 
 }
-#include "../_cpp_realisation_file/matrix.cpp"
+//#include "../"
+#include "../../_cpp_realisation_file/linalg/Matrix.cpp"

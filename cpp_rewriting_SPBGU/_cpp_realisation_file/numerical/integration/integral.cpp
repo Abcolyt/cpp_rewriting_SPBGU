@@ -1,4 +1,5 @@
-﻿#if 0
+﻿//code is disabled
+#if 0
 #pragma once
 #include"../file_h/integral.h"
 #include"../file_h/polynomial.h"

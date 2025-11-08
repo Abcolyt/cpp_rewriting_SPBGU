@@ -1,27 +1,9 @@
-п»ї#include "file_h\project_libraries.h"
+#include <vector>
+#include <linalg/matrix.h>
+#include <core/polynomial.h>
+#include <numerical/counting_methods_2.h>
+#include "core/Array_xy_To_.h"
 
-//uncomment it and you can use it carefully. 
-//Performance is not guaranteed
-namespace sem_3 {
-    void sem_3() {
-
-#if 1
-        //calc_computing_f::matrix_calc<double>();
-    //C:\Users\User\source\repos\cpp_rewriting_SPBGU\input_matrix.txt
-        /*counting_methods::polinomial::polynomial_test();*/
-        //counting_methods::nonlinear_system_with_simple_iterations::run_nnssi_with_setted_nonlinear_function();
-
-        //counting_methods::nonlinear_system_with_the_tangent_method::nonlinsystem_tangent_method();
-        //counting_methods::executeWithFileInput((counting_methods::gaus_method::gaus_solver_linear_sistem), "input_matrix.txt");
-        //counting_methods::gaus_method::gaus_solver_linear_sistem();
-
-        //counting_methods::nonlinear_system_with_simple_iterations::run_nnssi_with_setted_linear_function();
-
-        counting_methods::holechi::example();
-#endif
-    }
-
-}
 //Assignments for 4 semesters were working at the time of completion. 
 //It should work in the vast majority of cases.
 //Topics: interpolation, eigenvalues
@@ -44,27 +26,26 @@ namespace sem_4 {
     //
 
     void test_solve_system() {
-        // РЎРѕР·РґР°РµРј РґРёР°РіРѕРЅР°Р»СЊРЅСѓСЋ РјР°С‚СЂРёС†Сѓ 3x3
+        // Создаем диагональную матрицу 3x3
         matrix<double> A = matrix<double>::zeros(3, 3);
         A[0][0] = 2.0;
         A[1][1] = 3.0;
         A[2][2] = 4.0;
 
-        // Р’РµРєС‚РѕСЂ РїСЂР°РІРѕР№ С‡Р°СЃС‚Рё
+        // Вектор правой части
         matrix<double> b = matrix<double>::ones(3, 1);
         b[0][0] = 4.0;
         b[1][0] = 6.0;
         b[2][0] = 8.0;
 
-        // Р РµС€Р°РµРј СЃРёСЃС‚РµРјСѓ: A * x = b
+        // Решаем систему: A * x = b
         matrix<double> x = matrixfunction::solve_system(A, b);
 
-        // РћР¶РёРґР°РµРјРѕРµ СЂРµС€РµРЅРёРµ: [2.0, 2.0, 2.0]
+        // Ожидаемое решение: [2.0, 2.0, 2.0]
         std::cout << "Solution:\n" << x << std::endl;
     }
 
     void test_solve_system_complex() {
-        // РњР°С‚СЂРёС†Р° A (РЅРµРґРёР°РіРѕРЅР°Р»СЊРЅР°СЏ, С‚СЂРµР±СѓРµС‚ РїРµСЂРµСЃС‚Р°РЅРѕРІРѕРє)
         matrix<double> A = matrix<double>::zeros(3, 3);
         A[0][0] = 0.0;  A[0][1] = 2.0;  A[0][2] = 1.0;
         A[1][0] = 1.0;  A[1][1] = 1.0;  A[1][2] = 1.0;
@@ -74,20 +55,20 @@ namespace sem_4 {
 
 
 
-        // Р’РµРєС‚РѕСЂ РїСЂР°РІРѕР№ С‡Р°СЃС‚Рё: b = [5, 6, 13]
+        // Вектор правой части: b = [5, 6, 13]
         matrix<double> b = matrix<double>::ones(3, 1);
         b[0][0] = 5.0;
         b[1][0] = 6.0;
         b[2][0] = 13.0;
 
-        // Р РµС€Р°РµРј СЃРёСЃС‚РµРјСѓ: A * x = b
+        // Решаем систему: A * x = b
         matrix<double> x = matrixfunction::solve_system(A, b);
 
 
-        // РћР¶РёРґР°РµРјРѕРµ СЂРµС€РµРЅРёРµ: x = [1, 2, 3]
+        // Ожидаемое решение: x = [1, 2, 3]
         std::cout << "Computed solution:\n" << x << std::endl;
 
-        // РџСЂРѕРІРµСЂРєР° LU-СЂР°Р·Р»РѕР¶РµРЅРёСЏ: L * U = P * A
+        // Проверка LU-разложения: L * U = P * A
         auto lup = A.LUP();
         b.set_output_mode(output_mode::ABBREVIATED);
         auto T = (lup.P * b); T.set_output_mode(output_mode::ABBREVIATED);
@@ -217,7 +198,6 @@ namespace sem_4 {
         T noise_level = T(0.1)
     ) {
 
-
         std::vector<std::pair<T, T>> noisy_points;
         noisy_points.reserve(points.size() * measurements_per_point);
 
@@ -240,6 +220,7 @@ namespace sem_4 {
 
         return noisy_points;
     }
+
     void Z6_1(int size, int degree_of_the_polynomial) {
 #define loc_identifier1 x*x + 20*x*x*x+ 444*x*x*x*x*x 
 #define loc_identifier2 (x-std::sin(x) - 0.25)
@@ -279,14 +260,14 @@ namespace sem_4 {
         Z6_1(20, 7);
 
 #define identifier (x-std::sin(x) - 0.25)
-#define the_left_border -M_PI / 4
-#define the_right_border M_PI / 4
+#define the_left_border  -M_PI / 4
+#define the_right_border  M_PI / 4
         using SplineInterpolatorFunc = Spline<double>(*)(std::vector<std::pair<double, double>>);
 
         //x-std::sin(x) - 0.25
         counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
-            Spline_interpolator<3, 2, double>, // interpolator
-            50, 50,                      // n, m_
+            Spline_interpolator<3, 2, double>,   // interpolator
+            50, 50,                              // n, m_
             "Spline_interpolator<3, 2, double>",
             [](double x) { return  identifier; },
             the_left_border, the_right_border,
@@ -417,132 +398,4 @@ namespace sem_4 {
 
 
     }
-}
-
-namespace sem_5 {
-    void sem_5() {
-        //const std::vector<float> execution_logic={1.1,1.2,1.3};
-
-        ////Part No. 1: Quadrature formulas of Newton-Kot(e)ca and Gauss
-        //1.1 calculations of a certain integral using compound quadrature formulas 
-        // Beginning:
-
-        //ens;
-
-        //Methods for calculating a definite integral using compound quadrature formulas
-        //based on 3 - point Newton - Kot formulas(e)ca and Gauss.
-        // Beginning:
-
-        //ens;
-
-        //1.3. Graph of the dependence of the absolute error on the number of splits 
-        //of the integration interval of each quadrature formula from paragraphs 1.1 - 2.
-        // Beginning:
-
-        //ens;
-
-        ////
-
-        ////Part No. 2: Methods for estimating the error of composite quadrature formulas
-        //A definite integral with a given accuracy рќњЂ using the composite 3 - point quadrature formula of Newton - Cot(e)ca.
-        // 
-        //Estimation of the error by the Richardson method.
-        //The rate of convergence according to Aitken's rule.
-        // 
-        //The length of the step в„Ћ of the partition.
-        // Beginning:
-
-        //ens;
-
-        // N2.1 but using 3-point Gauss formulas:
-        // Beginning:
-
-        //ens;
-
-        //Using the Aitken convergence rate estimate, select the h_opt step for either formulas 2.1 or 2.2.
-        // 
-        //РЎompare it with the step calculated in 2.1 or 2.2.
-        // Beginning:
-
-        //ens;
-        ////
-    }
-}
-#if 0
-template<typename IntegratedFunction>
-inline double ApproximateValueOfTheIntegral(matrix<double> nodes_in_the_integration_gap, IntegratedFunction F, double a, double b) {
-    if (interval_partitioning_scheme.is_vector() == false || (left_boundary_of_the_integration_gap > right_boundary_of_the_integration_gap) || )
-
-
-    {
-        throw std::exception("interval_partitioning_scheme is not a vector ");
-    }
-    if (interval_partitioning_scheme.is_vertical_vector()) {
-        interval_partitioning_scheme = interval_partitioning_scheme.transpose();
-    }
-    double ans = 0;
-    matrix<double> coeff = counting_methods_3::РЎoefficNewtonCotes(nodes_in_the_integration_gap, a, b);
-
-    for (int i = 0; i < 4; i++)
-    {
-        ans += F(nodes_in_the_integration_gap[i][]);
-    }
-
-    return ans * (b - a);
-}
-
-#endif
-//location_of_the_split_points in diapazon [0,1]
-template<typename IntegratedFunction>
-void GetaPartialIntegralSum_Singlethreaded(const IntegratedFunction integrated_function,
-    const double left_boundary_of_the_integration_gap,
-    const double right_boundary_of_the_integration_gap,
-    uint64_t number_of_partitioning_intervals,
-    matrix<double> location_of_the_split_points
-) {
-    if (location_of_the_split_points.is_vector() == false || (left_boundary_of_the_integration_gap > right_boundary_of_the_integration_gap)) { throw std::exception("interval_partitioning_scheme is not a vector "); }
-    if (location_of_the_split_points.is_vertical_vector()) {
-        location_of_the_split_points = location_of_the_split_points.transpose();
-    }
-    double ans_sum = 0;
-    const double interval_size = (right_boundary_of_the_integration_gap - left_boundary_of_the_integration_gap) / number_of_partitioning_intervals;
-    const double number_of_split_points = location_of_the_split_points.getrow();
-
-    matrix<double> interval_partitioning_scheme = counting_methods_3::РЎoefficNewtonCotes(location_of_the_split_points, static_cast<double>(0), static_cast<double>(1));
-    std::cout << "interval_partitioning_scheme" << interval_partitioning_scheme << '\n';
-
-
-
-    ////nodes constructor
-    std::vector<double> nodes_of_the_partition_on_the_interval(number_of_split_points, 0);
-    auto F = [left_boundary_of_the_integration_gap, interval_size, number_of_split_points](double s) {return left_boundary_of_the_integration_gap + (interval_size * s); };
-
-    /*nodes_of_the_partition_on_the_interval[0] = left_boundary_of_the_integration_gap;
-    std::cout << "nodes_of_the_partition_on_the_interval[0]=" << nodes_of_the_partition_on_the_interval[0] << '\n';*/
-    if (number_of_split_points > 1) {
-        for (unsigned int i = 0; i < number_of_split_points; i++)
-        {
-            nodes_of_the_partition_on_the_interval[i] = F(location_of_the_split_points[0][i]);
-            std::cout << "nodes_of_the_partition_on_the_interval[i]=" << nodes_of_the_partition_on_the_interval[i] << '\n';
-        }
-    }
-    ////
-
-    ////
-    for (uint64_t i = 0; i < number_of_partitioning_intervals; i++) {
-        double local_sum = 0;
-        for (uint64_t j = 0; j < number_of_split_points; j++) {
-            local_sum += integrated_function(nodes_of_the_partition_on_the_interval[j]) * interval_partitioning_scheme[0][j];
-
-        }
-        std::cout << "local_sum=" << local_sum << '\n';
-        ans_sum += local_sum;
-        for (auto i : nodes_of_the_partition_on_the_interval)
-        {
-            i += interval_size;
-            std::cout << "nodes_of_the_partition_on_the_interval[j]=" << i << '\n';
-        }
-    }
-    ////
-    std::cout << "ans_sum=" << ans_sum << '\n';
 }
