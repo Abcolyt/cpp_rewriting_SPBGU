@@ -6,7 +6,7 @@
  <fraction.h>
  <polynomial.h>
  <matrix.h>
-
+ <Spline.h>
  в
 
  file_h
