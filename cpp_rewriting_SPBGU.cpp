@@ -39,7 +39,7 @@ namespace sem_4 {
     }
 
 #define SHOW_INTERPOL_STAT(func,n,m, ...) \
-    counting_methods_2::Polynomial_interpolation::nuton2::ShowInterpolationStatistic(func,n,m+50, #func, __VA_ARGS__)
+    counting_methods_2::Polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic(func,n,m+50, #func, __VA_ARGS__)
 
 
     //
@@ -284,7 +284,7 @@ namespace sem_4 {
         using SplineInterpolatorFunc = Spline<double>(*)(std::vector<std::pair<double, double>>);
 
         //x-std::sin(x) - 0.25
-        counting_methods_2::Polynomial_interpolation::nuton2::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        counting_methods_2::Polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<3, 2, double>,   // interpolator
             50, 50,                              // n, m_
             "Spline_interpolator<3, 2, double>",
@@ -294,7 +294,7 @@ namespace sem_4 {
         );
 
 
-        counting_methods_2::aproximate::output_of_characteristics_for_different_parameters::ShowAproximateStatistic([](double x) { return (x - std::sin(x) - 0.25); });
+        counting_methods_2::aproximate::output_of_characteristics_for_different_data_size_parameters::ShowAproximateStatistic([](double x) { return (x - std::sin(x) - 0.25); });
 
         // // // // // // // // //
 
@@ -373,7 +373,7 @@ namespace sem_4 {
         std::cout << "spline: <3,2> <2,1> <1,0>\n";
 
         //x-std::sin(x) - 0.25
-        counting_methods_2::Polynomial_interpolation::nuton2::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        counting_methods_2::Polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<3, 2, double>, // interpolator
             50, 50,                      // n, m_
             "Spline_interpolator<3, 2, double>",
@@ -382,7 +382,7 @@ namespace sem_4 {
             5
         );
 
-        counting_methods_2::Polynomial_interpolation::nuton2::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        counting_methods_2::Polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<2, 1, double>, // interpolator
             50, 50,                      // n, m_
             "Spline_interpolator<2, 1, double>",
@@ -391,7 +391,7 @@ namespace sem_4 {
             20
         );
 
-        counting_methods_2::Polynomial_interpolation::nuton2::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        counting_methods_2::Polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<1, 0, double>, // interpolator
             10, 20,                      // n, m_
             "Spline_interpolator<1,0, double>",
@@ -410,7 +410,7 @@ namespace sem_4 {
 
 #elif PART_OF_TASK == 6
         Z6_1(20, 7);
-        counting_methods_2::aproximate::output_of_characteristics_for_different_parameters::ShowAproximateStatistic([](double x) { return (x - std::sin(x) - 0.25); });
+        counting_methods_2::aproximate::output_of_characteristics_for_different_data_size_parameters::ShowAproximateStatistic([](double x) { return (x - std::sin(x) - 0.25); });
 #endif
 
 
