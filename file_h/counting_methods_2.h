@@ -20,7 +20,6 @@ namespace counting_methods_2 {
 
     namespace Polynomial_interpolation {
       
-
         namespace nuton2 {
             namespace type_of_error_output {
             enum class MethodicalError
