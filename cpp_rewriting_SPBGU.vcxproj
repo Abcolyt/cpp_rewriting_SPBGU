@@ -160,10 +160,12 @@
     <None Include="documents\document_cpp\matrix_cpp.docx" />
     <None Include="documents\document_cpp\polynomial_cpp.docx" />
     <None Include="documents\document_cpp\tests_cpp.docx" />
+    <None Include="documents\naming.md" />
     <None Include="document_h\fraction_h.docx" />
     <None Include="document_h\matrix_h.docx" />
     <None Include="document_h\polynomial_h.docx" />
     <None Include="document_h\_main_func_file.docx" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="file_h\Array_xy_To_.h" />

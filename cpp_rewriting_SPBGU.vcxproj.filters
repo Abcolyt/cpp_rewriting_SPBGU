@@ -70,6 +70,12 @@
       <Filter>Исходные файлы\_docx_documents</Filter>
     </None>
     <None Include="cpp_rewriting_SPBGU.runsettings" />
+    <None Include="README.md">
+      <Filter>Исходные файлы</Filter>
+    </None>
+    <None Include="documents\naming.md">
+      <Filter>Исходные файлы</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="file_h\polynomial.h">

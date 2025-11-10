@@ -39,7 +39,7 @@ namespace sem_4 {
     }
 
 #define SHOW_INTERPOL_STAT(func,n,m, ...) \
-    counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic(func,n,m+50, #func, __VA_ARGS__)
+    counting_methods_2::Polynomial_interpolation::nuton2::ShowInterpolationStatistic(func,n,m+50, #func, __VA_ARGS__)
 
 
     //
@@ -211,7 +211,7 @@ namespace sem_4 {
     // 
     // 
     template<typename T>
-    std::vector<std::pair<T, T>> addNoiseToPoints(
+    std::vector<std::pair<T, T>> AddNoiseToPoints(
         const std::vector<std::pair<T, T>>& points,
         int measurements_per_point = 3,
         T noise_level = T(0.1)
@@ -251,7 +251,7 @@ namespace sem_4 {
 
 
         std::vector<std::pair<double, double>> clean_points = counting_methods_2::Polynomial_interpolation::nuton2::generatePoints_equally_sufficient_(size, the_left_border, the_right_border, [](double x) { return identifier; });
-        auto noisy_points = addNoiseToPoints(clean_points, 3, 0.2);
+        auto noisy_points = AddNoiseToPoints(clean_points, 3, 0.2);
         noisy_points.insert(noisy_points.end(), clean_points.begin(), clean_points.end());
         std::sort(noisy_points.begin(), noisy_points.end());
         for (auto& I : noisy_points) {
@@ -259,8 +259,8 @@ namespace sem_4 {
         }
         std::cout << "\npolynomial function :\n" << "x*x + 20*x*x*x+ 444*x*x*x*x*x\n";
 
-        std::cout << "\nNormal equations polynomial:\n" << counting_methods_2::aproximate::least_squares_normal(noisy_points, degree_of_the_polynomial);
-        std::cout << "\nOrthogonal polynomial:\n" << counting_methods_2::aproximate::least_squares_orthogonal(noisy_points, degree_of_the_polynomial);
+        std::cout << "\nNormal equations polynomial:\n" << counting_methods_2::aproximate::LeastSquaresNormal(noisy_points, degree_of_the_polynomial);
+        std::cout << "\nOrthogonal polynomial:\n" << counting_methods_2::aproximate::LeastSquaresOrthogonal(noisy_points, degree_of_the_polynomial);
     }
     //
 
@@ -269,7 +269,7 @@ namespace sem_4 {
         using namespace counting_methods_2::Polynomial_interpolation::nuton2;
 
 
-#define PART_OF_TASK 0
+#define PART_OF_TASK 4
 
 
 
@@ -284,7 +284,7 @@ namespace sem_4 {
         using SplineInterpolatorFunc = Spline<double>(*)(std::vector<std::pair<double, double>>);
 
         //x-std::sin(x) - 0.25
-        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
+        counting_methods_2::Polynomial_interpolation::nuton2::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<3, 2, double>,   // interpolator
             50, 50,                              // n, m_
             "Spline_interpolator<3, 2, double>",
@@ -294,7 +294,7 @@ namespace sem_4 {
         );
 
 
-        counting_methods_2::aproximate::show_aproximate_statistic([](double x) { return (x - std::sin(x) - 0.25); });
+        counting_methods_2::aproximate::output_of_characteristics_for_different_parameters::ShowAproximateStatistic([](double x) { return (x - std::sin(x) - 0.25); });
 
         // // // // // // // // //
 
@@ -308,16 +308,16 @@ namespace sem_4 {
         auto V = (polynomialfunctions::plnm_roots(a.get_first_derrivate(), DBL_EPSILON));
         std::cout << "polynomialfunctions:" << a << '\n';
 
-        b = nuton_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        b = NutonInterpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
         b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
-        std::cout << "\n:nuton_interpolation" << b;
-        b = Lagrang_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        std::cout << "\n:NutonInterpolation" << b;
+        b = LagrangInterpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
         b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
         std::cout << "\nLagrang_interpolation:" << b;
-        b = Alternativ_nuton_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        b = AlternativNutonInterpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
         b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
         std::cout << "\nAlternativ_nuton_interpolation:" << b;
-        b = Alternativ_Lagrang_interpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        b = AlternativLagrangInterpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
         b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
         std::cout << "\nAlternativ_Lagrang_interpolation:" << b;
 
@@ -338,32 +338,32 @@ namespace sem_4 {
 #define the_right_border M_PI / 4
         using SplineInterpolatorFunc = Spline<double>(*)(std::vector<std::pair<double, double>>);
 
-        std::cout << "interpolinoms:nuton_interpolation, Lagrang_interpolation, Alternativ_nuton_interpolation, Alternativ_Lagrang_interpolation\n\n";
+        std::cout << "interpolinoms:NutonInterpolation, LagrangInterpolation, AlternativNutonInterpolation, AlternativLagrangInterpolation\n\n";
 
 
         SHOW_INTERPOL_STAT(
-            nuton_interpolation<double>, // interpolator
+            NutonInterpolation<double>, // interpolator
             10, 20,                      // n, m_
             [](double x) { return identifier; },
             the_left_border, the_right_border,
             20
         );
         SHOW_INTERPOL_STAT(
-            Lagrang_interpolation<double>,
+            LagrangInterpolation<double>,
             10, 20,
             [](double x) { return identifier; },
             the_left_border, the_right_border,
             20
         );
         SHOW_INTERPOL_STAT(
-            Alternativ_nuton_interpolation<double>, // interpolator
+            AlternativNutonInterpolation<double>, // interpolator
             10, 20,                      // n, m_
             [](double x) { return identifier; },
             the_left_border, the_right_border,
             20
         );
         SHOW_INTERPOL_STAT(
-            Alternativ_Lagrang_interpolation<double>, // interpolator
+            AlternativLagrangInterpolation<double>, // interpolator
             10, 20,                      // n, m_
             [](double x) { return identifier; },
             the_left_border, the_right_border,
@@ -373,7 +373,7 @@ namespace sem_4 {
         std::cout << "spline: <3,2> <2,1> <1,0>\n";
 
         //x-std::sin(x) - 0.25
-        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
+        counting_methods_2::Polynomial_interpolation::nuton2::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<3, 2, double>, // interpolator
             50, 50,                      // n, m_
             "Spline_interpolator<3, 2, double>",
@@ -382,7 +382,7 @@ namespace sem_4 {
             5
         );
 
-        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
+        counting_methods_2::Polynomial_interpolation::nuton2::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<2, 1, double>, // interpolator
             50, 50,                      // n, m_
             "Spline_interpolator<2, 1, double>",
@@ -391,7 +391,7 @@ namespace sem_4 {
             20
         );
 
-        counting_methods_2::Polynomial_interpolation::nuton2::show_interpolation_statistic<double, SplineInterpolatorFunc>(
+        counting_methods_2::Polynomial_interpolation::nuton2::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<1, 0, double>, // interpolator
             10, 20,                      // n, m_
             "Spline_interpolator<1,0, double>",
@@ -410,7 +410,7 @@ namespace sem_4 {
 
 #elif PART_OF_TASK == 6
         Z6_1(20, 7);
-        counting_methods_2::aproximate::show_aproximate_statistic([](double x) { return (x - std::sin(x) - 0.25); });
+        counting_methods_2::aproximate::output_of_characteristics_for_different_parameters::ShowAproximateStatistic([](double x) { return (x - std::sin(x) - 0.25); });
 #endif
 
 
@@ -901,7 +901,7 @@ int main() {
 
     
 
-    //sem_4::sem_4();
+    sem_4::sem_4();
     sem_5::sem_5_part1();
     //sem_5::sem_5_part2();
 
