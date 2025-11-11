@@ -28,3 +28,10 @@
 #include "../file_h/eigenvalues.h"//empty file
 
 #include "../file_h/integral.h"
+#include "../file_h/defferencial_equation.h"
+
+//code example 
+#include "example/sem_3.cpp"
+#include "example/sem_4.cpp"
+//#include "example/sem_5.cpp"
+

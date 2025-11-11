@@ -602,7 +602,7 @@ namespace counting_methods_2 {
     }
 };
 
-namespace aproximate {
+    namespace aproximate {
     namespace auxiliary_functions {
         // dot of ortagoality
         //degree of polinom
@@ -748,7 +748,7 @@ namespace aproximate {
     }
 
     // // // ///
-    namespace output_of_characteristics_for_different_data_size_parameters{
+    namespace output_of_characteristics_for_different_data_size_parameters {
         template<typename P>
         P SumSquaredErrors(const polynomial<P>& poly, const std::vector<std::pair<P, P>>& points) {
             P total_error = 0;

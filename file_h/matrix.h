@@ -15,6 +15,11 @@
 
 extern enum class output_mode;
 template<typename T> class matrix;
+template<typename T>
+struct is_matrix : std::false_type {};
+template<typename T>
+struct is_matrix<matrix<T>> : std::true_type {};
+
 template<typename T>struct LUResult {
     matrix<T> L;
     matrix<T> U;

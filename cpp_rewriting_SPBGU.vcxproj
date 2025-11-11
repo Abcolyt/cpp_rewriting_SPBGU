@@ -146,6 +146,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cpp_rewriting_SPBGU.cpp" />
+    <ClCompile Include="example\sem_3.cpp" />
+    <ClCompile Include="example\sem_4.cpp" />
     <ClCompile Include="_cpp_realisation_file\complex.cpp" />
     <ClCompile Include="_cpp_realisation_file\complex_number.cpp" />
     <ClCompile Include="_cpp_realisation_file\fraction.cpp" />
@@ -173,6 +175,7 @@
     <ClInclude Include="file_h\complex.h" />
     <ClInclude Include="file_h\counting_methods_1.h" />
     <ClInclude Include="file_h\counting_methods_2.h" />
+    <ClInclude Include="file_h\defferencial_equation.h" />
     <ClInclude Include="file_h\integral.h" />
     <ClInclude Include="file_h\eigenvalues.h" />
     <ClInclude Include="file_h\fraction.h" />

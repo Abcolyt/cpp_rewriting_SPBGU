@@ -23,6 +23,7 @@ namespace sem_3 {
     }
 
 }
+
 //Assignments for 4 semesters were working at the time of completion. 
 //It should work in the vast majority of cases.
 //Topics: interpolation, eigenvalues
@@ -570,7 +571,7 @@ namespace sem_5 {
                     abs_external_vector2.push_back(var2);
                     abs_external_vector3.push_back(var3);
                     abs_external_vector4.push_back(var4);
-                    std::cout << "continued i:" << i << "\n";
+                    //std::cout << "continued i:" << i << "\n";
                 }
                 catch (const std::exception&)
                 {
@@ -736,81 +737,10 @@ namespace sem_5 {
         ////
 #undef EXECUTION_PART
     }
-    namespace differential_equation {
 
 
 
-    template<typename Targ, typename Tresult>
-    struct TestConfig {
-        Targ c2;
-        Targ x0;
-        Tresult y0;
-        Targ x_max;
-        const Targ h;
 
-        std::function<Tresult(Targ, Tresult)> f;
-        std::function<Tresult(Targ)> exact_y;
-
-        double global_accuracy;
-        double local_accuracy;
-    };
-
-    TestConfig<double, double> basic{
-        0.5,
-        0.0,
-        1.0,
-        1.0,
-        0.1,
-        [](double x, double y) {return x * y; },
-        [](double x) {return std::exp(x * x / 2); },
-        1e-6,
-        1e-6
-    };
-    
-    }
-
-
-    template<typename Targ, typename Tresult>
-    std::vector<std::pair<Targ, Tresult>> runge_kutta_2nd_order(
-        std::function<Tresult(Targ, Tresult)> f,  // Right-hand side function f(x, y)
-        /*Tresult(*exact_y)(Targ x),*/   // Exact solution y(x) for error analysis
-        const Targ x0,                 // Initial x
-        const Tresult y0,                // Initial y
-        Targ h,                  // Step size
-        Targ x_max,              // Maximum x value
-        Targ c2                  // Parameter ξ for RK2 scheme
-    ) {
-        // coefficients
-        Targ a21 = c2;
-        Targ b2 = static_cast<Targ>(1) / (2 * c2);
-        Targ b1 = 1 - static_cast<Targ>(1) / (2 * c2);
-
-        //Ans
-        std::vector<std::pair<Targ, Tresult>> solution;
-        solution.push_back({ x0, y0 });
-
-
-        Targ x_current = x0;
-        Tresult y_current = y0;
-
-        while (x_current < x_max) {
-            // RK2 stages
-            Tresult k1 = h * f(x_current, y_current);
-            Tresult k2 = h * f(x_current + c2 * h, y_current + a21 * k1);
-
-            // Update solution
-            y_current = y_current + b1 * k1 + b2 * k2;
-            x_current += h;
-
-            solution.push_back({ x_current, y_current });
-        }
-
-        return solution;
-    }
-    template<typename Targ, typename Tresult>
-    std::vector<std::pair<Targ, Tresult>> runge_kutta_2nd_order_wrapper(differential_equation::TestConfig<Targ,Tresult> conf) {
-        return runge_kutta_2nd_order<Targ, Tresult>(conf.f, conf.x0, conf.y0, conf.h, conf.x_max, conf.c2);
-    }
     void sem_5_part2(){
 #define EXECUTION_PART 11
         /*
@@ -825,6 +755,7 @@ namespace sem_5 {
         ////Part No. 1: Calculation schemes of the Runge-Kutta method with a constant step
         //A second-order calculation scheme based on second-order conditions for the 2-stage explicit Rungi-Kutta method for the c2 parameter
 #if EXECUTION_PART == 11 || EXECUTION_PART == all
+        using namespace sem_5::differential_equation;
          
 
         // Function definitions (replace with your actual functions)
@@ -832,18 +763,35 @@ namespace sem_5 {
         //auto exact_y = [](T x){ return exp(x * x / 2); }; // Exact solution for error analysis
 
 
-
-#if 0
-        auto runge_abs_error = [&y1,&y2](s) {return (y1-y2)/(std::pow(2,s) -1); };
-#endif
         // Implementation of RK scheme construction with parameter c2 = ξ
-        auto solution = runge_kutta_2nd_order_wrapper<double, double>(differential_equation::basic);
-
-        for(auto& var :solution)
+        
+        auto solution3 = SolveASystemOfOrdinaryDifferentialEquations<DifferencialMethod::RungeKutta3ndOrder1>(basic.f, basic.x0, basic.y0,basic.number_of_steps, basic.x_target, basic.c2);
+        std::cout << "sol3 \n";
+        for (auto& var : solution3)
         {
-            std::cout << "{" << var.first << ";" << var.second << "} exact sol:{"<< var.first<<";"<< differential_equation::basic.exact_y(var.first) << "}"
-                <<"difference:"<< var.second - differential_equation::basic.exact_y(var.first)<<"\n";
+            std::cout << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << differential_equation::basic.exact_y(var.first) << "}"
+                << "difference:" << var.second - differential_equation::basic.exact_y(var.first) << "\n";
         }
+
+        auto solution4 = RungeEquation<DifferencialMethod::RungeKutta3ndOrder1>(basic.f, basic.x0, basic.y0, basic.c2, basic.x_target,basic.global_accuracy);
+
+        std::cout << "sol4 \n";
+        for (auto& var : solution4)
+        {
+            std::cout << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << differential_equation::basic.exact_y(var.first) << "}"
+                << "difference:" << var.second - differential_equation::basic.exact_y(var.first) << "\n";
+        }
+
+        auto solution5 = SolveWithAdaptiveStep< DifferencialMethod::RungeKutta2ndOrder>(basic.f, basic.x0, basic.y0, basic.x_target,basic.local_accuracy, basic.c2);
+
+        std::cout << "sol5 \n";
+        for (auto& var : solution5)
+        {
+            std::cout << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << differential_equation::basic.exact_y(var.first) << "}"
+                << "difference:" << var.second - differential_equation::basic.exact_y(var.first) << "\n";
+        }
+
+        //std::cout << RungeError(solution.back().second, solution2.back().second,2);
 
 #endif  
 
@@ -901,9 +849,9 @@ int main() {
 
     
 
-    sem_4::sem_4();
-    sem_5::sem_5_part1();
-    //sem_5::sem_5_part2();
+    //sem_4::sem_4();
+    //sem_5::sem_5_part1();
+    sem_5::sem_5_part2();
 
 
 

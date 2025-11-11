@@ -19,6 +19,9 @@
     <Filter Include="Картинки">
       <UniqueIdentifier>{07c3de80-4011-4b91-81af-19b08b19de38}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Примеры">
+      <UniqueIdentifier>{efd9cc6b-30f0-4c0e-b73a-ecdfc5587eab}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cpp_rewriting_SPBGU.cpp">
@@ -41,6 +44,12 @@
     </ClCompile>
     <ClCompile Include="_cpp_realisation_file\integral.cpp">
       <Filter>Файлы ресурсов</Filter>
+    </ClCompile>
+    <ClCompile Include="example\sem_3.cpp">
+      <Filter>Примеры</Filter>
+    </ClCompile>
+    <ClCompile Include="example\sem_4.cpp">
+      <Filter>Примеры</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -115,6 +124,9 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="file_h\calc_computing_f.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="file_h\defferencial_equation.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
