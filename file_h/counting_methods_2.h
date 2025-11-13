@@ -580,17 +580,17 @@ namespace counting_methods_2 {
                     // // // //
 #if __has_include(<SFML/Graphics.hpp>)
 
-                    draw_functions(functions_n, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_n"), addition_functions_n);
-                    draw_functions(functions_opt, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_opt__n"), addition_functions_opt);
+                    DrawFunctions(functions_n, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_n"), addition_functions_n);
+                    DrawFunctions(functions_opt, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_opt__n"), addition_functions_opt);
 
-                    draw_functions(functions_n_abs_diff, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_n_abs_diff"), addition_functions_n_abs_diff);
-                    draw_functions(functions_opt_abs_diff, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "opt_n_abs_diff"), addition_functions_opt_abs_diff);
+                    DrawFunctions(functions_n_abs_diff, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_n_abs_diff"), addition_functions_n_abs_diff);
+                    DrawFunctions(functions_opt_abs_diff, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "opt_n_abs_diff"), addition_functions_opt_abs_diff);
 
 
 #else
                     std::cout << "\n__has_include(<SFML/Graphics.hpp>)==0\n"
-                        << "not working draw_functions(functions_n)" << "\n"
-                        << "not working draw_functions(functions_opt)" << "\n";
+                        << "not working DrawFunctions(functions_n)" << "\n"
+                        << "not working DrawFunctions(functions_opt)" << "\n";
 #endif
                     return Ans;
                 }
@@ -833,12 +833,12 @@ namespace counting_methods_2 {
             std::cout << Ans.str();
 
 #if __has_include(<SFML/Graphics.hpp>)
-            draw_functions(functions_normal, a, b, noisy_points, aproximate_name + "_normal");
-            draw_functions(functions_ortog, a, b, noisy_points, aproximate_name + "_orthogonal");
+            DrawFunctions(functions_normal, a, b, noisy_points, aproximate_name + "_normal");
+            DrawFunctions(functions_ortog, a, b, noisy_points, aproximate_name + "_orthogonal");
 #else
             std::cout << "\n__has_include(<SFML/Graphics.hpp>)==0\n"
-                << "not working draw_functions(functions_normal)\n"
-                << "not working draw_functions(functions_ortog)\n";
+                << "not working DrawFunctions(functions_normal)\n"
+                << "not working DrawFunctions(functions_ortog)\n";
 #endif
             return Ans;
         }

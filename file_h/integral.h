@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <functional>
 
-namespace counting_methods_3 {
+
 
     enum class IntegrateMethod {
         LEFT_RECTANGLE = 0,
@@ -143,6 +143,7 @@ namespace counting_methods_3 {
         using namespace betas;
 
         //IntegralManager() - main function
+        ////Int[t0;T] x^j/((x-a)^alpha * (b-x^beta))dx
         namespace euler_type{
             //Calculation of the integral I = ∫[a, b] x ^ j / ((x - a) ^ α * (b - x) ^ β) dx
             long double compute_integral_optimized(long double a, long double b,
@@ -537,10 +538,13 @@ namespace counting_methods_3 {
             ////
         }
         using namespace euler_type;
-        namespace auxiliary {
-        
+       
+    }
+    using namespace special;
+    namespace details {
+
         template<typename TResult, typename TArg>
-        std::unordered_map<int, TResult> fill_integral_map(TArg t0, TArg T,
+        std::unordered_map<int, TResult> FillIntegralMap(TArg t0, TArg T,
             TArg a, TArg b,
             TArg alpha, TArg beta,
             int n,
@@ -551,7 +555,7 @@ namespace counting_methods_3 {
             // for j = 0,..., 2*n-1
             for (int j = 0; j < 2 * n; ++j) {
                 try {
-                    TResult value = feature_function(t0,T,a, b, alpha, beta, j);
+                    TResult value = feature_function(t0, T, a, b, alpha, beta, j);
                     integral_map[j] = value;
 
                     //std::cout << "j = " << j << ", I = " << value << std::endl;
@@ -565,6 +569,7 @@ namespace counting_methods_3 {
             }
             return integral_map;
         }
+
         namespace integration_coefficients {
             ////
             template<typename T>
@@ -657,7 +662,7 @@ namespace counting_methods_3 {
 #define Debug 0
                 int n = miu.size() / 2;
                 matrix<T> A(n, n), B(n, 1);
-                //auto miu = counting_methods_3::fill_integral_map(a, b, alpha, beta, n);
+                //auto miu = counting_methods_3::FillIntegralMap(a, b, alpha, beta, n);
                 //input
             //n - число узлов;
 #if Debug == 1
@@ -694,7 +699,7 @@ namespace counting_methods_3 {
 
 
 
-                polynomial<T> polyn; polyn=static_cast<T>(1);
+                polynomial<T> polyn; polyn = static_cast<T>(1);
 
                 for (uint64_t i = 0; i < n; i++)
                 {
@@ -735,7 +740,7 @@ namespace counting_methods_3 {
 
 
 
-                
+
                 for (int i = 0; i < size; i++) {
                     A2[0][i] = 1;//nodes_in_the_integration_gap[i];
                     B2[i][0] = miu.at(i);
@@ -763,7 +768,7 @@ namespace counting_methods_3 {
             //coeff - nodes, coeff2 - weights
             template<typename TResult, typename TArg, typename T_type = double>
             std::pair<matrix<T_type>, matrix<T_type>> GetNGausCoefficientWithP_x_FunctionConstants(uint64_t n, double t0, double T, double a, double b, double alpha, double beta, std::function<TResult(TArg, TArg, TArg, TArg, TArg, TArg, int)> feature_function = {}) {
-                //return GetNGausCoefficientWithP_x_FunctionConstants(counting_methods_3::fill_integral_map(a, b, alpha, beta, n));
+                //return GetNGausCoefficientWithP_x_FunctionConstants(counting_methods_3::FillIntegralMap(a, b, alpha, beta, n));
 #define Debug 1
 
 #if 1
@@ -779,7 +784,7 @@ namespace counting_methods_3 {
 #endif
 
                 matrix<double> A(n, n), B(n, 1);
-                auto miu = fill_integral_map(t0, T, a, b, alpha, beta, n, feature_function);
+                auto miu = FillIntegralMap(t0, T, a, b, alpha, beta, n, feature_function);
 
 
                 for (uint64_t i = 0; i < n; i++)
@@ -838,7 +843,7 @@ namespace counting_methods_3 {
 
 
 
-                
+
                 for (int i = 0; i < size; i++) {
                     A2[0][i] = 1;
                     B2[i][0] = miu[i];
@@ -866,17 +871,15 @@ namespace counting_methods_3 {
         }
 
         template<typename TResult>
-        TResult aitken_convergence_rate(TResult I_h, TResult I_h2, TResult I_h4) {
+        TResult AitkenConvergenceRate(TResult I_h, TResult I_h2, TResult I_h4) {
             // m ≈ log2( (I_h2 - I_h) / (I_h4 - I_h2) )
             if (std::abs(I_h4 - I_h2) < 1e-15) {
                 return 0;
             }
             return std::log2(std::abs((I_h2 - I_h) / (I_h4 - I_h2)));
         }
-        }
     }
-    using namespace special;
-    using namespace auxiliary;
+    using namespace details;
     using namespace integration_coefficients;
 
 //feature_function need if p_feature != { 0,0 }
@@ -944,7 +947,7 @@ TResult unsafe_integrate(std::function<TResult(TArg)> f,
                 }*/
                     b_ = b;
             }
-            auto miu_coeff = counting_methods_3::fill_integral_map(a_,b_,a,b, p_feature.alpha, p_feature.beta, static_cast<int>(Method) - 8, feature_function);
+            auto miu_coeff = FillIntegralMap(a_,b_,a,b, p_feature.alpha, p_feature.beta, static_cast<int>(Method) - 8, feature_function);
             std::pair<matrix<TArg>, matrix<TResult>> M = GetNGausCoefficientWithP_x_FunctionConstants(miu_coeff);
             auto dots = M.first, weight = M.second;
             for (int j = 0; j < dots.getcol(); j++) {
@@ -971,7 +974,7 @@ TResult unsafe_integrate(std::function<TResult(TArg)> f,
 }
 
 //pair.second is error code. if (pair.second==1) => integral is correct(first value)
-template<typename TResult, typename TArg, counting_methods_3::IntegrateMethod Method>
+template<typename TResult, typename TArg, IntegrateMethod Method>
 std::pair<TResult, int> safe_integrate(
     std::function<TResult(TArg)> f,
     TArg a, TArg b,
@@ -989,7 +992,7 @@ std::pair<TResult, int> safe_integrate(
 }
 
 //adaptive_integrate_richardson
-template<typename TResult, typename TArg, counting_methods_3::IntegrateMethod Method>
+template<typename TResult, typename TArg, IntegrateMethod Method>
 IntegrationResult<TResult> adaptive_integrate(
     std::function<TResult(TArg)> f,TArg a, TArg b,
     TResult epsilon = 1e-6,
@@ -1038,7 +1041,7 @@ IntegrationResult<TResult> adaptive_integrate(
                 TResult error_estimate = std::abs(J_estimate - current_approx);
 
                 if (size >= 3) {
-                    TResult conv_rate = aitken_convergence_rate(approximations[size - 3], approximations[size - 2], approximations[size - 1]);
+                    TResult conv_rate = AitkenConvergenceRate(approximations[size - 3], approximations[size - 2], approximations[size - 1]);
 
                     m = static_cast<int>(conv_rate);
                     convergence_rates.push_back(conv_rate);
@@ -1091,7 +1094,7 @@ IntegrationResult<TResult> adaptive_integrate(
 #undef DEBUG_INPUT
 }
 
-template<typename TResult, typename TArg, counting_methods_3::IntegrateMethod Method>
+template<typename TResult, typename TArg, IntegrateMethod Method>
 IntegrationResult<TResult> optimized_adaptive_integration(
     std::function<TResult(TArg)> f, TArg a, TArg b,
     TResult epsilon = 1e-6,
@@ -1125,7 +1128,7 @@ IntegrationResult<TResult> optimized_adaptive_integration(
     }
 
     // Step 2: Estimating the actual order of convergence according to Aitken's rule
-    TResult actual_order = aitken_convergence_rate(test_results[0], test_results[1], test_results[2]);
+    TResult actual_order = AitkenConvergenceRate(test_results[0], test_results[1], test_results[2]);
 
     // We use the actual order if it is reasonable, otherwise the theoretical one
     int m = theoretical_m;
@@ -1166,6 +1169,6 @@ IntegrationResult<TResult> optimized_adaptive_integration(
 #undef DEBUG_INPUT
 }
 
-}
+
 
 #include "../_cpp_realisation_file/integral.cpp"

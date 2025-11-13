@@ -210,40 +210,19 @@ template<typename T>matrix<T> matrix<T>::to_uptrng()const
 }
 
 
-//template <typename T>T matrix<T>::determinant() const {
-//    if (rowsize != colsize) {
-//        
-//        throw std::invalid_argument("rowsize != colsize");
-//    }
-//
-//    matrix<T> temp((*this).to_uptrng());
-//
-//    T det;
-//    det = (T)(1);
-//    //std::cout <<"temp:\n" << temp << "\n";
-//    for (uint64_t i = 0; i < rowsize; i++) {
-//        
-//        det = (det *temp[i][i]);
-//        //std::cout << (temp[i][i]) << '\n';
-//    }
-//    //std::cout << det <<'\n';
-//    return det;
-//}
-
 template <typename T>
 T matrix<T>::determinant() const {
     if (rowsize != colsize) {
         throw std::invalid_argument("Matrix must be square");
     }
 
-    matrix<T> M = *this; // Работаем с копией матрицы
+    matrix<T> M = *this;
     T det = static_cast<T>(1);
     const size_t n = rowsize;
 
-    // Инициализация первого минора
     if (n == 0) return static_cast<T>(1);
     if (M[0][0] == static_cast<T>(0)) {
-        // Поиск ненулевой строки для перестановки
+        // Searching for a non-zero string to permute
         bool found = false;
         for (size_t i = 1; i < n; ++i) {
             if (M[i][0] != static_cast<T>(0)) {
@@ -252,7 +231,7 @@ T matrix<T>::determinant() const {
                     M[0][j] = M[i][j];
                     M[i][j] = tmp;
                 }
-                det = det * static_cast<T>(-1); // Смена знака
+                det = det * static_cast<T>(-1); 
                 found = true;
                 break;
             }
@@ -260,28 +239,28 @@ T matrix<T>::determinant() const {
         if (!found) return static_cast<T>(0);
     }
 
-    // Главный цикл алгоритма Барейса
+    // The main loop of Bareis' algorithm
     for (size_t k = 0; k < n - 1; ++k) {
         for (size_t i = k + 1; i < n; ++i) {
             for (size_t j = k + 1; j < n; ++j) {
-                // Обновление элементов по формуле
+                // Updating elements using the formula
                 M[i][j] = (M[i][j] * M[k][k] - M[i][k] * M[k][j]);
 
-                // Деление на предыдущий минор (k > 0)
+                // Division by the previous minor (k > 0)
                 if (k > 0) {
                     M[i][j] = M[i][j] / M[k - 1][k - 1];
                 }
             }
         }
 
-        // Проверка следующего минора на ноль
+        // Checking the next minor for zero
         if (M[k + 1][k + 1] == static_cast<T>(0)) {
-            // Поиск строки для перестановки
+            // Searching for a row to rearrange
             bool found = false;
             for (size_t i = k + 2; i < n; ++i) {
                 if (M[i][k + 1] != static_cast<T>(0)) {
-                    // Перестановка строк
-                    for (size_t j = 0; j < n; ++j) {
+                    // Rearranging rows
+                   for (size_t j = 0; j < n; ++j) {
                         T tmp = M[k + 1][j];
                         M[k + 1][j] = M[i][j];
                         M[i][j] = tmp;
@@ -295,7 +274,7 @@ T matrix<T>::determinant() const {
         }
     }
 
-    // Определитель в последнем миноре
+    // Determinant in the last minor
     return M[n - 1][n - 1] * det;
 }
 //template <typename T>
@@ -348,26 +327,25 @@ template<typename T>std::ostream& operator<<(std::ostream& out, const matrix<T>&
     const uint64_t cols = mtrx.getcol();
     const uint64_t rows = mtrx.getrow();
 
-    // Определяем максимальную ширину для каждого столбца
+    // Defining the maximum width for each column
     std::vector<size_t> col_widths(rows, 1);
     if (mode != output_mode::SHORT) {
-        for (uint64_t j = 0; j < rows; ++j) { // Идем по столбцам матрицы
+        for (uint64_t j = 0; j < rows; ++j) {// We go through the columns of the matrix
             size_t max_width = 0;
-            for (uint64_t i = 0; i < cols; ++i) { // Идем по строкам матрицы
+            for (uint64_t i = 0; i < cols; ++i) { // We go through the rows of the matrix
                 std::ostringstream oss;
                 oss << mtrx[i][j]; 
                 max_width = std::max(max_width, oss.str().size());
             }
-            col_widths[j] = max_width + 1; //  пробел для разделения
+            col_widths[j] = max_width + 1; // space to separate
         }
     }
 
-    // Вывод размеров матрицы
     if (mode != output_mode::SHORT) {
         out << "cols: " << cols << ", rows: " << rows << "\n";
     }
-
-    // Вывод содержимого
+    
+    // Content output
     switch (mode) {
     case output_mode::FULL: {
         for (uint64_t i = 0; i < cols; ++i) {
@@ -617,11 +595,11 @@ template<typename T>LUResult<T> matrix<T>::LUP() const {
     const size_t n = colsize;
     LUResult<T> result;
     result.L = matrix<T>::zeros(n, n);
-    result.U = *this; // Копируем исходную матрицу
-    result.P = matrix<T>::eye(n); // Единичная матрица
+    result.U = *this; 
+    result.P = matrix<T>::eye(n); 
 
     for (size_t k = 0; k < n; ++k) {
-        // Частичный выбор ведущего элемента
+        // Partial selection of the leading element
         size_t max_row = k;
         T max_val = std::abs(result.U[k][k]);
         for (size_t i = k + 1; i < n; ++i) {
@@ -631,12 +609,12 @@ template<typename T>LUResult<T> matrix<T>::LUP() const {
             }
         }
 
-        // Перестановка строк в U и P
+        // Rearranging strings in U and P
         if (max_row != k) {
             result.U.swap_rows(k, max_row);
             result.P.swap_rows(k, max_row);
 
-            // Перестановка строк в L (только уже вычисленные элементы)
+            // Rearranging rows in L (only already calculated elements)
             if (k > 0) {
                 for (size_t j = 0; j < k; ++j) {
                     std::swap(result.L[k][j], result.L[max_row][j]);
@@ -644,7 +622,7 @@ template<typename T>LUResult<T> matrix<T>::LUP() const {
             }
         }
 
-        // Заполнение L и U
+        // Filling in L and U
         result.L[k][k] = 1;
         for (size_t i = k + 1; i < n; ++i) {
             result.L[i][k] = result.U[i][k] / result.U[k][k];

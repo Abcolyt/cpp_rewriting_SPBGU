@@ -535,10 +535,10 @@ namespace _counting_methods_320 {
             ////
         }
         using namespace euler_type;
-        namespace auxiliary {
+        namespace details {
 
             template<typename TResult, typename TArg>
-            std::unordered_map<int, TResult> fill_integral_map(TArg t0, TArg T,
+            std::unordered_map<int, TResult> FillIntegralMap(TArg t0, TArg T,
                 TArg a, TArg b,
                 TArg alpha, TArg beta,
                 int n,
@@ -654,7 +654,7 @@ namespace _counting_methods_320 {
 
                     int n = miu.size() / 2;
                     matrix<T> A(n, n), B(n, 1);
-                    //auto miu = counting_methods_3::fill_integral_map(a, b, alpha, beta, n);
+                    //auto miu = counting_methods_3::FillIntegralMap(a, b, alpha, beta, n);
                     //input
                 //n - число узлов;
 #if Debug == 1
@@ -765,7 +765,7 @@ namespace _counting_methods_320 {
                 //coeff - nodes, coeff2 - weights
                 template<typename TResult, typename TArg, typename T_type = double>
                 std::pair<matrix<T_type>, matrix<T_type>> GetNGausCoefficientWithP_x_FunctionConstants(uint64_t n, double t0, double T, double a, double b, double alpha, double beta, std::function<TResult(TArg, TArg, TArg, TArg, TArg, TArg, int)> feature_function = {}) {
-                    //return GetNGausCoefficientWithP_x_FunctionConstants(counting_methods_3::fill_integral_map(a, b, alpha, beta, n));
+                    //return GetNGausCoefficientWithP_x_FunctionConstants(counting_methods_3::FillIntegralMap(a, b, alpha, beta, n));
 
 #if 1
         //input
@@ -780,7 +780,7 @@ namespace _counting_methods_320 {
 #endif
 
                     matrix<double> A(n, n), B(n, 1);
-                    auto miu = fill_integral_map(t0, T, a, b, alpha, beta, n, feature_function);
+                    auto miu = FillIntegralMap(t0, T, a, b, alpha, beta, n, feature_function);
 
 
                     for (uint64_t i = 0; i < n; i++)
@@ -873,7 +873,7 @@ namespace _counting_methods_320 {
         }
     }
     using namespace special;
-    using namespace special::auxiliary;
+    using namespace special::details;
     using namespace integration_coefficients;
 
 
@@ -969,7 +969,7 @@ namespace _counting_methods_320 {
                     }*/
                     b_ = b;
                 }
-                auto miu_coeff = counting_methods_3::fill_integral_map(a_, b_, a, b, p_feature.alpha, p_feature.beta, static_cast<int>(Method) - 8, feature_function);
+                auto miu_coeff = counting_methods_3::FillIntegralMap(a_, b_, a, b, p_feature.alpha, p_feature.beta, static_cast<int>(Method) - 8, feature_function);
                 std::pair<matrix<TArg>, matrix<TResult>> M = GetNGausCoefficientWithP_x_FunctionConstants(miu_coeff);
                 auto dots = M.first, weight = M.second;
                 for (int j = 0; j < dots.getcol(); j++) {
@@ -1002,7 +1002,7 @@ namespace _counting_methods_320 {
 
 
     template<typename TResult>
-    TResult aitken_convergence_rate(TResult I_h, TResult I_h2, TResult I_h4) {
+    TResult AitkenConvergenceRate(TResult I_h, TResult I_h2, TResult I_h4) {
         // m ≈ log2( (I_h2 - I_h) / (I_h4 - I_h2) )
         if (std::abs(I_h4 - I_h2) < 1e-15) {
             return 0;
@@ -1085,7 +1085,7 @@ namespace _counting_methods_320 {
                     TResult error_estimate = std::abs(J_estimate - current_approx);
 
                     if (size >= 3) {
-                        TResult conv_rate = aitken_convergence_rate(approximations[size - 3], approximations[size - 2], approximations[size - 1]);
+                        TResult conv_rate = AitkenConvergenceRate(approximations[size - 3], approximations[size - 2], approximations[size - 1]);
 
                         m = static_cast<int>(conv_rate);
                         convergence_rates.push_back(conv_rate);
@@ -1172,7 +1172,7 @@ namespace _counting_methods_320 {
         }
 
         // Шаг 2: Оценка фактического порядка сходимости по правилу Эйткена
-        TResult actual_order = aitken_convergence_rate(test_results[0], test_results[1], test_results[2]);
+        TResult actual_order = AitkenConvergenceRate(test_results[0], test_results[1], test_results[2]);
 
         // Используем фактический порядок, если он разумен, иначе теоретический
         int m = theoretical_m;

@@ -1,13 +1,11 @@
+#include <vector>
+#include <functional>
+#include <cmath>
+#include <string>
 #pragma once
 #if __has_include(<SFML/Graphics.hpp>)
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Graphics.hpp>
-#include <vector>
-#include <functional>
-#include <cmath>
-
- 
-#include <string>
 
 namespace Drawing_const {};
 using namespace Drawing_const;
@@ -51,14 +49,14 @@ template<typename F>sf::VertexArray funct(F&& f,double a= left_border, double b=
 /*,const sf::Vector2u Drawing_Window_Size = { 800,600 },
 const sf::Vector2u center_Window = { Drawing_Window_Size.x / 2  ,Drawing_Window_Size.y / 2 },
 const sf::Vector2f ratioX_to_Y = { 16.0f,9f },
-const double modifire = 1*/) {
+const double modifire = 1*/
+) {
     //std::cout << "b="<<b;
     sf::VertexArray graph(sf::PrimitiveType::LineStrip, 0);
 
     const float xScale = ratio_of_modifiers_by_xy.x * modifire;
     const float yScale = ratio_of_modifiers_by_xy.y * modifire;
 
-    
     for (float x = a; x <= b; x += step_by_x) {
         auto y = f(static_cast<double>(x- offset_from_Zero_vector.x))- offset_from_Zero_vector.y;
         const float screenX = x * xScale + center_Window.x;
@@ -68,9 +66,18 @@ const double modifire = 1*/) {
     return graph;
 }
 
+template<typename T>
+auto createLambda(const std::vector<T>& vec) {
+    return [&vec](T x) -> T {
+        int index = static_cast<int>(std::floor(x));
+        if (index >= 0 && index < vec.size()) {
+            return vec[index];
+        }
+        return {0};
+        };
+}
 
-
-template<class T>void draw_functions(const std::vector<std::function<T(T)>>& functions, T a = (T)0, T b = (T)0, const std::vector<std::pair<T, T>>& points = std::vector<std::pair<T, T>>{}, const std::string& window_name = "y(x)=", const std::vector<std::function<T(T)>>& cyan_functions = std::vector<std::function<T(T)>>{}) {
+template<class T>void DrawFunctions(const std::vector<std::function<T(T)>>& functions, T a = (T)0, T b = (T)0, const std::vector<std::pair<T, T>>& points = std::vector<std::pair<T, T>>{}, const std::string& window_name = "y(x)=", const std::vector<std::function<T(T)>>& cyan_functions = std::vector<std::function<T(T)>>{}) {
     sf::RenderWindow window(sf::VideoMode(Drawing_Window_Size), window_name);
 
     window.setVerticalSyncEnabled(true);
@@ -248,52 +255,9 @@ template<class T>void draw_functions(const std::vector<std::function<T(T)>>& fun
     }
 }
 
-
-////vector fun object
-//template<class T>void draw_functions(const std::vector<std::function<T(T)>>& functions, const std::string& window_name = "y(x)=") {
-//    draw_functions(functions,  std::vector<std::pair<T, T>>{}, (T)0, (T)0, window_name);
-//}
-#if 0
-//ones fun object
-template<class T>void draw_function(T& f) {
-    sf::RenderWindow window(sf::VideoMode(Drawing_Window_Size), "y(x)=");
-
-    // Создаём оси координат один раз перед циклом
-    sf::VertexArray axes(sf::PrimitiveType::Lines, 4);
-
-    // Ось X (горизонтальная линия)
-    axes.append({ sf::Vertex{ sf::Vector2f(0         , center_Window.y), sf::Color::Black } });
-    axes.append({ sf::Vertex{ sf::Vector2f(Drawing_Window_Size.x, center_Window.y), sf::Color::Black } });
-
-    // Ось Y (вертикальная линия)
-    axes.append({ sf::Vertex{ sf::Vector2f(center_Window.x ,          0), sf::Color::Black } });
-    axes.append({ sf::Vertex{ sf::Vector2f(center_Window.x , Drawing_Window_Size.y), sf::Color::Black } });
-
-    auto drawning_function = funct(f);
-    while (window.isOpen()) {
-
-        while (const std::optional event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>() ||
-                (event->is<sf::Event::KeyPressed>() &&
-                    event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape))
-            {
-                window.close();
-            }
-        }
-
-        window.clear(sf::Color::White);
-
-        window.draw(axes);
-        window.draw(drawning_function);
-        window.display();
-    }
-
-}
-#endif
-
 template<class T, typename F>
-void draw_function(F&& func) {
-    draw_functions<T>({ std::function<T(T)>(std::forward<F>(func)) });
+void DrawFunction(F&& func) {
+    DrawFunctions<T>({ std::function<T(T)>(std::forward<F>(func)) });
 }
 
 #else

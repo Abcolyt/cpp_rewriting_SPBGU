@@ -707,8 +707,11 @@ public:
         }
     }
 };
-template<typename T>
-matrix<T> operator*(const T& scalar, const matrix<T>& mat) {
-    return mat * scalar; 
+
+template<typename T, typename Scalar>
+auto operator*(const Scalar& scalar, const matrix<T>& mat)
+-> std::enable_if_t<std::is_arithmetic_v<Scalar>, matrix<T>>
+{
+    return mat * static_cast<T>(scalar);
 }
 #include "../_cpp_realisation_file/matrix.cpp"

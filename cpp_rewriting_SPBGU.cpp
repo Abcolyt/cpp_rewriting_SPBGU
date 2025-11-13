@@ -421,16 +421,16 @@ namespace sem_4 {
 }
 
 namespace sem_5 {
-    template<typename TResult, typename TArg, counting_methods_3::IntegrateMethod integrate_method>
+    template<typename TResult, typename TArg, IntegrateMethod integrate_method>
     void DispAbsBeatwen(std::function<TResult(TArg)> experimental_function,
         TArg a, TArg b, TResult integral_of_the_function,
-        counting_methods_3::PFeature p_feature={0,0},int n=1) {
+        PFeature p_feature={0,0},int n=1) {
         std::vector<TResult> abs_external_vector;
         for (int i = 0; i < n; i++)
         {
             try
             {
-            abs_external_vector.push_back(std::abs(counting_methods_3::unsafe_integrate<TResult, TArg, integrate_method>(experimental_function, a, b, i, p_feature) - integral_of_the_function));
+            abs_external_vector.push_back(std::abs(unsafe_integrate<TResult, TArg, integrate_method>(experimental_function, a, b, i, p_feature) - integral_of_the_function));
             std::cout << "continued i:" << i<<"\n";
             }
             catch (const std::exception&)
@@ -450,16 +450,17 @@ namespace sem_5 {
         std::vector<std::function<double(double)>> funcs;
         funcs.push_back(f_abs_n);
 #if __has_include(<SFML/Graphics.hpp>)
-        draw_functions(funcs, 0.0, static_cast<double>(n + 1));
+        DrawFunctions(funcs, 0.0, static_cast<double>(n + 1));
 
 #else
         std::cout << "\n__has_include(<SFML/Graphics.hpp>)==0\n"
-            << "not working draw_functions(functions_normal)\n"
-            << "not working draw_functions(functions_ortog)\n";
+            << "not working DrawFunctions(functions_normal)\n"
+            << "not working DrawFunctions(functions_ortog)\n";
 #endif
         //std::cout << "end ALL\n";
-        //draw_functions(std::vector{ f_abs_n }, 0,0, static_cast<double>(n + 1));
+        //DrawFunctions(std::vector{ f_abs_n }, 0,0, static_cast<double>(n + 1));
     }
+
     namespace demonstration {
         namespace table {
             template<typename T>
@@ -551,7 +552,7 @@ namespace sem_5 {
         template<typename TResult, typename TArg>
         void DispAbsBeatwen__4X(std::function<TResult(TArg)> experimental_function,
             TArg a, TArg b, TResult integral_of_the_function,
-            counting_methods_3::PFeature p_feature = { 0,0 }, int n = 1) {
+            PFeature p_feature = { 0,0 }, int n = 1) {
             std::vector<TResult> abs_external_vector1, abs_external_vector2, abs_external_vector3, abs_external_vector4;
 
             std::vector<std::vector<std::string>> headers = { {"(n)", "Error_LEFT_RECTANGLE","Error_MIDDLE_RECTANGLE","Error_TRAPEZOID", "Error_SIMPSON"} };
@@ -560,10 +561,10 @@ namespace sem_5 {
             {
                 try
                 {
-                    auto var1 = std::abs(counting_methods_3::unsafe_integrate<TResult, TArg, counting_methods_3::IntegrateMethod::LEFT_RECTANGLE>(experimental_function, a, b, i, p_feature) - integral_of_the_function),
-                        var2 = std::abs(counting_methods_3::unsafe_integrate<TResult, TArg, counting_methods_3::IntegrateMethod::MIDDLE_RECTANGLE>(experimental_function, a, b, i, p_feature) - integral_of_the_function),
-                        var3 = std::abs(counting_methods_3::unsafe_integrate<TResult, TArg, counting_methods_3::IntegrateMethod::NEWTON_COTES_2_POINT>(experimental_function, a, b, i, p_feature) - integral_of_the_function),
-                        var4 = std::abs(counting_methods_3::unsafe_integrate<TResult, TArg, counting_methods_3::IntegrateMethod::SIMPSON>(experimental_function, a, b, i, p_feature) - integral_of_the_function);
+                    auto var1 =std::abs(unsafe_integrate<TResult, TArg, IntegrateMethod::LEFT_RECTANGLE>(experimental_function, a, b, i, p_feature) - integral_of_the_function),
+                        var2 = std::abs(unsafe_integrate<TResult, TArg, IntegrateMethod::MIDDLE_RECTANGLE>(experimental_function, a, b, i, p_feature) - integral_of_the_function),
+                        var3 = std::abs(unsafe_integrate<TResult, TArg, IntegrateMethod::NEWTON_COTES_2_POINT>(experimental_function, a, b, i, p_feature) - integral_of_the_function),
+                        var4 = std::abs(unsafe_integrate<TResult, TArg, IntegrateMethod::SIMPSON>(experimental_function, a, b, i, p_feature) - integral_of_the_function);
 
                     data.push_back(std::tuple{ i, var1,var2,var3,var4 });
 
@@ -580,52 +581,61 @@ namespace sem_5 {
 
             }
             std::vector<std::function<double(double)>> funcs;
-
+#if 1
+            auto f_abs_n1 = createLambda(abs_external_vector1);
+#else
             auto f_abs_n1 = [&abs_external_vector1](double x) -> double {
-                int index = static_cast<int>(std::floor(x));
-                if (index >= 0 && index < abs_external_vector1.size()) {
-                    return abs_external_vector1[index];
-                }
-                return 0.0;
-                };
+                            int index = static_cast<int>(std::floor(x));
+                            if (index >= 0 && index < abs_external_vector1.size()) {
+                                return abs_external_vector1[index];
+                            }
+                            return 0.0;
+                            };
+#endif    
             funcs.push_back(f_abs_n1);
-            auto f_abs_n2 = [&abs_external_vector2](double x) -> double {
+
+            auto f_abs_n2 = createLambda(abs_external_vector2);
+            
+            /*[&abs_external_vector2](double x) -> double {
                 int index = static_cast<int>(std::floor(x));
                 if (index >= 0 && index < abs_external_vector2.size()) {
                     return abs_external_vector2[index];
                 }
                 return 0.0;
-                };
+                };*/
             funcs.push_back(f_abs_n2);
-            auto f_abs_n3 = [&abs_external_vector3](double x) -> double {
+
+            auto f_abs_n3 = createLambda(abs_external_vector3);
+            /*[&abs_external_vector3](double x) -> double {
                 int index = static_cast<int>(std::floor(x));
                 if (index >= 0 && index < abs_external_vector3.size()) {
                     return abs_external_vector3[index];
                 }
                 return 0.0;
-                };
+                };*/
             funcs.push_back(f_abs_n3);
-            auto f_abs_n4 = [&abs_external_vector4](double x) -> double {
+            auto f_abs_n4 = createLambda(abs_external_vector4);
+            
+            /*[&abs_external_vector4](double x) -> double {
                 int index = static_cast<int>(std::floor(x));
                 if (index >= 0 && index < abs_external_vector4.size()) {
                     return abs_external_vector4[index];
                 }
                 return 0.0;
-                };
+                };*/
             funcs.push_back(f_abs_n4);
 
             sem_5::demonstration::printTableHeader(headers, data);
 
 #if __has_include(<SFML/Graphics.hpp>)
-            draw_functions(funcs, 0.0, static_cast<double>(n + 1));
+            DrawFunctions(funcs, 0.0, static_cast<double>(n + 1));
 
 #else
             std::cout << "\n__has_include(<SFML/Graphics.hpp>)==0\n"
-                << "not working draw_functions(functions_normal)\n"
-                << "not working draw_functions(functions_ortog)\n";
+                << "not working DrawFunctions(functions_normal)\n"
+                << "not working DrawFunctions(functions_ortog)\n";
 #endif
         }
-
     }
     using namespace demonstration;
     
@@ -674,7 +684,7 @@ namespace sem_5 {
     void sem_5_part1() {
         using namespace integral;
         auto configurate = exemple_1;
-#define EXECUTION_PART 10
+#define EXECUTION_PART all
 
 #if EXECUTION_PART == 10 || EXECUTION_PART == all
         DispAbsBeatwen__4X<double, double>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 800);
@@ -683,24 +693,24 @@ namespace sem_5 {
         //1.1 calculations of a certain integral using compound quadrature formulas 
         configurate = example_2;
 #if EXECUTION_PART == 11 || EXECUTION_PART == all
-        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::LEFT_RECTANGLE>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
-        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::MIDDLE_RECTANGLE>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
-        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::TRAPEZOID>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
-        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::SIMPSON>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
+        DispAbsBeatwen<double, double, IntegrateMethod::LEFT_RECTANGLE>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
+        DispAbsBeatwen<double, double, IntegrateMethod::MIDDLE_RECTANGLE>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
+        DispAbsBeatwen<double, double, IntegrateMethod::TRAPEZOID>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
+        DispAbsBeatwen<double, double, IntegrateMethod::SIMPSON>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
 #endif
 
         //Methods for calculating a definite integral using compound quadrature formulas
         //based on 3 - point Newton - Kot formulas(e)ca and Gauss.
 #if EXECUTION_PART == 12 || EXECUTION_PART == all
-        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::NEWTON_COTES_3_POINT> (configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
-        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::NEWTON_COTES_4_POINT>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
-        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::NEWTON_COTES_5_POINT>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
+        DispAbsBeatwen<double, double, IntegrateMethod::NEWTON_COTES_3_POINT> (configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
+        DispAbsBeatwen<double, double, IntegrateMethod::NEWTON_COTES_4_POINT>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
+        DispAbsBeatwen<double, double, IntegrateMethod::NEWTON_COTES_5_POINT>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
 #endif
         //1.3. Graph of the dependence of the absolute error on the number of splits 
         //of the integration interval of each quadrature formula from paragraphs 1.1 - 2.
 #if EXECUTION_PART == 13 || EXECUTION_PART == all
-        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::GAUS_3_POINT>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
-        DispAbsBeatwen<double, double, counting_methods_3::IntegrateMethod::GAUS_4_POINT>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 20);
+        DispAbsBeatwen<double, double, IntegrateMethod::GAUS_3_POINT>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 100);
+        DispAbsBeatwen<double, double, IntegrateMethod::GAUS_4_POINT>(configurate.function, configurate.a, configurate.b, configurate.expected, { configurate.alpha,configurate.beta }, 20);
 #endif
         ////Part No. 2: Methods for estimating the error of composite quadrature formulas
         //A definite integral with a given accuracy 𝜀 using the composite 3 - point quadrature formula of Newton - Cot(e)ca.
@@ -709,18 +719,20 @@ namespace sem_5 {
         //The rate of convergence according to Aitken's rule.
         // 
         //The length of the step ℎ of the partition.
-        counting_methods_3::IntegrationResult<double> result;
+        IntegrationResult<double> result;
+
+        
 #if EXECUTION_PART == 21 || EXECUTION_PART == all
-        result = counting_methods_3::adaptive_integrate<double, double,
-            counting_methods_3::IntegrateMethod::NEWTON_COTES_3_POINT>(
+        result = adaptive_integrate<double, double,
+            IntegrateMethod::NEWTON_COTES_3_POINT>(
                 configurate.function, configurate.a, configurate.b, configurate.tolerance, 1, { configurate.alpha, configurate.beta });
         std::cout <<"IntegrateMethod::NEWTON_COTES_3_POINT\n" << result;
 #endif
 
         // N2.1 but using 3-point Gauss formulas:
 #if EXECUTION_PART == 22 || EXECUTION_PART == all
-        result = counting_methods_3::adaptive_integrate<double, double,
-            counting_methods_3::IntegrateMethod::GAUS_3_POINT>(
+        result = adaptive_integrate<double, double,
+            IntegrateMethod::GAUS_3_POINT>(
                 configurate.function, configurate.a, configurate.b, configurate.tolerance, 1, { configurate.alpha, configurate.beta });
         std::cout <<"IntegrateMethod::GAUS_3_POINT\n" << result;
 #endif
@@ -729,8 +741,8 @@ namespace sem_5 {
         // 
         //Сompare it with the step calculated in 2.1 or 2.2.
 #if EXECUTION_PART == 23 || EXECUTION_PART == all
-        auto simple_result = counting_methods_3::optimized_adaptive_integration<double, double,
-            counting_methods_3::IntegrateMethod::GAUS_3_POINT>(
+        auto simple_result = optimized_adaptive_integration<double, double,
+            IntegrateMethod::GAUS_3_POINT>(
                 configurate.function, configurate.a, configurate.b, configurate.tolerance, { configurate.alpha, configurate.beta });
         std::cout << "IntegrateMethod::GAUS_3_POINT\n" << simple_result;
 #endif
@@ -740,9 +752,290 @@ namespace sem_5 {
 
 
 
+    namespace differential_equation_conf {
+
+        template<typename Targ, typename Tresult>
+        struct TestConfig {
+            Targ c2;
+            Targ x0;
+            Tresult y0;
+            Targ x_target;
+            const uint64_t number_of_steps;
+
+            std::function<Tresult(Targ, Tresult)> f;
+            std::function<Tresult(Targ)> exact_y;
+
+            double global_accuracy;
+            double local_accuracy;
+        };
+
+        TestConfig<double, double> basic_scalar{
+            0.5,
+
+            0.0,
+            1.0,
+
+            M_PI,
+            10,
+
+            [](double x, double y) {return x * y; },
+            [](double x) {return std::exp(x * x / 2); },
+            1e-6,
+            1e-6
+        };
+        
+        TestConfig<double, matrix<double>> basic_vector{
+    0.5,                    // c2
+    0.0,                    // x0
+    matrix<double>({{1.0}, {0.0}}),  // y0 - вектор-столбец 2x1 [y1, y2]^T
+    M_PI,                   // x_target
+    100,                    // number_of_steps
+
+    // Функция f(x, y) возвращает вектор-столбец производных
+    // Система: y1' = y2, y2' = -y1 (гармонический осциллятор)
+    [](double x, matrix<double> y) -> matrix<double> {
+                // y - вектор-столбец размером 2x1
+                matrix<double> result(2, 1); // результат тоже вектор-столбец 2x1
+
+                // y1' = y2
+                result[0][0] = y[1][0];
+                // y2' = -y1
+                result[1][0] = -y[0][0];
+
+                return result;
+            },
+
+            // Точное решение для системы y1' = y2, y2' = -y1
+            // с начальными условиями y1(0)=1, y2(0)=0
+            [](double x) -> matrix<double> {
+                matrix<double> result(2, 1);
+                result[0][0] = std::cos(x);  // y1(x) = cos(x)
+                result[1][0] = -std::sin(x); // y2(x) = -sin(x)
+                return result;
+            },
+
+            1e-6,   // global_accuracy
+            1e-6    // local_accuracy
+        };
+
+        TestConfig<double, matrix<double>> training_example{
+            0.1,                    // c2 = 1/10
+            0.0,                    // x0
+            matrix<double>({{M_PI * 0.05}, {M_PI * 0.1}}),  // y0 = [B*π; A*π] = [π/20; π/10]
+            M_PI,                   // x_target = π
+            100,                    // number_of_steps
+
+            // System: y1' = A*y2, y2' = -B*y1
+            //  A = 1/10 = 0.1, B = 1/20 = 0.05
+            [](double x, matrix<double> y) -> matrix<double> {
+                matrix<double> result(2, 1); 
+
+                double A = 0.1;
+                double B = 0.05;
+
+                // dy1/dx = A * y2
+                result[0][0] = A * y[1][0];
+                // dy2/dx = -B * y1
+                result[1][0] = -B * y[0][0];
+
+                return result;
+            },
+
+            [](double x) -> matrix<double> {
+                double A = 0.1;
+                double B = 0.05;
+                double omega = std::sqrt(A * B); // ω = √(A*B)
+
+                matrix<double> result(2, 1);
+
+                // Точное решение системы y1' = A*y2, y2' = -B*y1
+                // с начальными условиями y1(0)=B*π, y2(0)=A*π
+                result[0][0] = M_PI * B * std::cos(omega * x) +
+                              M_PI * (A * A / omega) * std::sin(omega * x);
+
+                result[1][0] = M_PI * A * std::cos(omega * x) -
+                              M_PI * (B * omega / A) * std::sin(omega * x);
+
+                return result;
+            },
+
+            1e-6,   // global_accuracy
+            1e-6    // local_accuracy
+        };
+    }
+    using namespace differential_equation_conf;
+
+    template<typename DifferencialMethod method1, typename DifferencialMethod method2, typename Targ, typename Tresult>
+    void CauchyStepSizeComparasion(TestConfig<Targ, Tresult> conf) {
+        auto compute_error = [](const auto& var, const auto& working_example) {
+            using ValueType = std::decay_t<decltype(var.second)>;
+
+            if constexpr (std::is_arithmetic_v<ValueType>) {
+                return var.second - working_example.exact_y(var.first);
+            }
+            else if constexpr (is_matrix<ValueType>::value) {
+                return (var.second - working_example.exact_y(var.first)).norm();
+            }
+            };
+
+        auto &working_example = conf;
+
+        std::stringstream buffer;
+
+        auto solution4 = SolveODE<method1, ErrorMethod::RungeGlobal>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, working_example.global_accuracy, working_example.c2);
+
+        buffer << "sol4_RK2 \n";
+
+        for (auto& var : solution4)
+        {
+            //buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}" << "difference:" << compute_error(var, working_example) << "\n";
+        }
+        auto var = solution4.back();
+
+        buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}"
+            << "difference:" << compute_error(var, working_example) << "\n";
+
+        std::cout << buffer.str();
+        buffer.str("");
+        buffer.clear();
+
+        auto h_eps = GetEpsStepSize(
+            (solution4[2].first - solution4[1].first),
+            1e-4,
+            RungeError(solution4.back().second, (
+                details::SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method1>(
+                    working_example.f,
+                    working_example.x0,
+                    working_example.y0,
+                    working_example.x_target,
+                    solution4.size() * 2,
+                    working_example.c2)
+                ).back().second,
+                order_of_accuracy_of_the_method.at(method1)),
+
+            order_of_accuracy_of_the_method.at(method1));
+
+        std::cout << "GetEpsStepSize " << h_eps << "\n";
+
+        solution4 = SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method1>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, std::ceil((working_example.x_target - working_example.x0) / h_eps), working_example.c2);
+
+        std::vector<std::pair<double, double>> display_vec_1;
+        buffer << "sol4_RK2 h_opt \n";
+        for (auto& var : solution4)
+        {
+            //buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}" << "difference:" << compute_error(var, working_example) << "\n";
+
+            display_vec_1.push_back({ var.first , compute_error(var, working_example) });
+        }
+        var = solution4.back();
+
+        buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}"
+            << "difference:" << compute_error(var, working_example) << "\n";
+
+        std::cout << buffer.str();
+        buffer.str("");
+        buffer.clear();
+
+        auto getErrorIfLessOrEqual1 = [display_vec_1](double input_value) ->double {
+            for (const auto& pair : display_vec_1) {
+                if (input_value <= pair.first) {
+                    return pair.second;
+                }
+            }
+            return 0.0;
+            };
+        ////////////////
+        solution4 = SolveODE<method2, ErrorMethod::RungeGlobal>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, working_example.global_accuracy, working_example.c2);
+
+        buffer << "\n\nsol4_RK3 :\n";
+        for (auto& var : solution4)
+        {
+            //buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}" << "difference:" << compute_error(var, working_example) << "\n";
+        }
+        var = solution4.back();
+
+        buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}"
+            << "difference:" << compute_error(var, working_example) << "\n";
+
+
+        std::cout << buffer.str();
+        buffer.str("");
+        buffer.clear();
+
+        auto h_eps_2 = GetEpsStepSize(
+            (solution4[2].first - solution4[1].first),
+            1e-5,
+            RungeError(solution4.back().second, (
+                details::SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method2>(
+                    working_example.f,
+                    working_example.x0,
+                    working_example.y0,
+                    working_example.x_target,
+                    solution4.size() * 2,
+                    working_example.c2)
+                ).back().second,
+                order_of_accuracy_of_the_method.at(method2)),
+
+            order_of_accuracy_of_the_method.at(method2));
+
+        std::cout << "GetEpsStepSize " << h_eps_2 << "\n";
+        std::cout << "(working_example.x_target - working_example.x0)" << (working_example.x_target - working_example.x0) << "\n";
+        std::cout << " std::ceil((working_example.x_target - working_example.x0) / h_eps_2)" <</* std::ceil*/((working_example.x_target - working_example.x0) / h_eps_2) << "\n";
+
+        solution4 = SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method2>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, std::ceil((working_example.x_target - working_example.x0) / h_eps_2), working_example.c2);
+
+        std::vector<std::pair<double, double>> display_vec_2;
+
+        buffer << "sol4_RK3 h_opt :\n";
+
+        std::cout << "\n\n\n\n\n\n\n\n mY solution4 size!!!!!!!!!!!!!!! " << solution4.size() << "\n";
+        for (auto& var : solution4)
+        {
+            //buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}" << "difference:" << compute_error(var, working_example) << "\n";
+            display_vec_2.push_back({ var.first ,compute_error(var, working_example) });
+        }
+        var = solution4.back();
+
+        buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}"
+            << "difference:" << compute_error(var, working_example) << "\n";
+
+        std::cout << buffer.str();
+        buffer.str("");
+        buffer.clear();
+
+
+        auto getErrorIfLessOrEqual2 = [display_vec_2](double input_value) -> double {
+            for (const auto& pair : display_vec_2) {
+                if (0 <= input_value && input_value <= pair.first) {
+                    return pair.second;
+                }
+            }
+            return 0.0;
+            };
+        std::vector <std::function<double(double) >> functions;
+        functions.push_back(getErrorIfLessOrEqual1);
+        functions.push_back(getErrorIfLessOrEqual2);
+
+        DrawFunctions(functions, 0.0, M_PI);
+    }
+
+    template<typename DifferencialMethod method1, typename DifferencialMethod method2, typename Targ, typename Tresult>
+    void CauchyRatioTrueLocalAndEstimatedErrorsComparasion(TestConfig<Targ, Tresult> conf) {
+        auto compute_error = [](const auto& var, const auto& working_example) {
+            using ValueType = std::decay_t<decltype(var.second)>;
+
+            if constexpr (std::is_arithmetic_v<ValueType>) {
+                return var.second - working_example.exact_y(var.first);
+            }
+            else if constexpr (is_matrix<ValueType>::value) {
+                return (var.second - working_example.exact_y(var.first)).norm();
+            }
+            };
+    }
+
 
     void sem_5_part2(){
-#define EXECUTION_PART 11
+#define EXECUTION_PART 331
         /*
         The Cauchy problem :
             dy1(𝑥) / dx = 𝐴_𝑦2(𝑥),
@@ -751,62 +1044,67 @@ namespace sem_5 {
             y2(0) = Aπ,
         */
 
-        
+        auto working_example = training_example;
+        std::stringstream buffer;
+
+
+        auto compute_error = [](const auto& var, const auto& working_example) {
+            using ValueType = std::decay_t<decltype(var.second)>;
+
+            if constexpr (std::is_arithmetic_v<ValueType>) {
+                return var.second - working_example.exact_y(var.first);
+            }
+            else if constexpr (is_matrix<ValueType>::value) {
+                return (var.second - working_example.exact_y(var.first)).norm();
+            }
+            };
+
         ////Part No. 1: Calculation schemes of the Runge-Kutta method with a constant step
         //A second-order calculation scheme based on second-order conditions for the 2-stage explicit Rungi-Kutta method for the c2 parameter
 #if EXECUTION_PART == 11 || EXECUTION_PART == all
-        using namespace sem_5::differential_equation;
+       
          
 
-        // Function definitions (replace with your actual functions)
-        //auto f = [](T x,T2 y){ return x * y; }; // Right-hand side: dy/dx = f(x, y)
-        //auto exact_y = [](T x){ return exp(x * x / 2); }; // Exact solution for error analysis
+       
 
-
-        // Implementation of RK scheme construction with parameter c2 = ξ
-        
-        auto solution3 = SolveASystemOfOrdinaryDifferentialEquations<DifferencialMethod::RungeKutta3ndOrder1>(basic.f, basic.x0, basic.y0,basic.number_of_steps, basic.x_target, basic.c2);
-        std::cout << "sol3 \n";
-        for (auto& var : solution3)
-        {
-            std::cout << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << differential_equation::basic.exact_y(var.first) << "}"
-                << "difference:" << var.second - differential_equation::basic.exact_y(var.first) << "\n";
-        }
-
-        auto solution4 = RungeEquation<DifferencialMethod::RungeKutta3ndOrder1>(basic.f, basic.x0, basic.y0, basic.c2, basic.x_target,basic.global_accuracy);
-
-        std::cout << "sol4 \n";
-        for (auto& var : solution4)
-        {
-            std::cout << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << differential_equation::basic.exact_y(var.first) << "}"
-                << "difference:" << var.second - differential_equation::basic.exact_y(var.first) << "\n";
-        }
-
-        auto solution5 = SolveWithAdaptiveStep< DifferencialMethod::RungeKutta2ndOrder>(basic.f, basic.x0, basic.y0, basic.x_target,basic.local_accuracy, basic.c2);
-
-        std::cout << "sol5 \n";
-        for (auto& var : solution5)
-        {
-            std::cout << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << differential_equation::basic.exact_y(var.first) << "}"
-                << "difference:" << var.second - differential_equation::basic.exact_y(var.first) << "\n";
-        }
-
-        //std::cout << RungeError(solution.back().second, solution2.back().second,2);
 
 #endif  
 
+        // Implementation of RK scheme construction with parameter c2 = ξ
         // 1.2 Implement constant-step RK method with total error estimation using Runge method
         //     (ε = 1e-4), initial step selection according to algorithm
 #if EXECUTION_PART == 12 || EXECUTION_PART == all
+        
+        auto solution1 = SolveASystemOfOrdinaryDifferentialEquationsEqualStepsWithATotalError<DifferencialMethod::RungeKutta3ndOrder1,double,matrix<double>>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, working_example.global_accuracy, working_example.c2);
+        std::cout << "sol1 \n";
+        
+        for (auto& var : solution1)
+        {
+            buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}"
+                << "difference:" << compute_error(var, working_example) << "\n";
+        }
+        std::cout << buffer.str();
+        buffer.str("");
+        buffer.clear();
+        //std::cout << RungeError(solution.back().second, solution2.back().second,2);
 #endif
-
         ////
 
         ////Part No. 2: Calculation schemes of the Runge-Kutta method with a constant step
         // 2.1 Implement automatic step-size control using 2-stage RK 2nd order method
         //     with local error estimation (ρ = 1e-5) and Runge method
 #if EXECUTION_PART == 21 || EXECUTION_PART == all
-
+        auto solution2 = SolveASystemOfOrdinaryDifferentialEquationsDifferentStepsWithALocalError< DifferencialMethod::RungeKutta2ndOrder>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, working_example.local_accuracy, working_example.c2);
+        
+        std::cout << "sol2 \n";
+        for (auto& var : solution2)
+        {
+            buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}"
+                << "difference:" << compute_error(var,working_example) << "\n";
+        }
+        std::cout << buffer.str();
+        buffer.str("");
+        buffer.clear();
 #endif
         ////
 
@@ -814,18 +1112,60 @@ namespace sem_5 {
         // 3.1 Implement constant-step and automatic-step methods using classical RK schemes
         //     of 3rd or 4th order (opponent scheme)
 #if EXECUTION_PART == 31 || EXECUTION_PART == all
+        
+        auto solution3 = SolveODE<DifferencialMethod::RK3, ErrorMethod::RungeGlobal>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, working_example.local_accuracy, working_example.c2);
+
+        std::cout << "sol3 \n";
+        for (auto& var : solution3)
+        {
+            buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}"
+                << "difference:" << compute_error(var, working_example) << "\n";
+        }
+        std::cout << buffer.str();
+        buffer.str("");
+        buffer.clear();
+
 #endif
 
         // 3.2 Determine integration step h for constant-step methods (2-stage RK 2nd order
         //     and opponent scheme) that provides solution with accuracy ε = 1e-4
         //     Plot true total error vs x
-#if EXECUTION_PART == 32 || EXECUTION_PART == all
+#if EXECUTION_PART == 32 || EXECUTION_PART == all 
+        CauchyStepSizeComparasion<DifferencialMethod::RK2, DifferencialMethod::RK3>(working_example);
 #endif
 
         // 3.3 For automatic step-size control methods (2-stage RK 2nd order and opponent):
         // Analyze reliability and efficiency of implemented algorithms
         // 3.3.1 Plot step size vs x
 #if EXECUTION_PART == 331 || EXECUTION_PART == all
+        auto solution5 = SolveODE<DifferencialMethod::RK3, ErrorMethod::RungeLocal>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, 1e-9, working_example.c2);
+        
+        std::cout << "sol331 \n" << solution5.size() << "\n";
+        std::vector<std::pair<double, double>> oxh_display;
+        for (int i = 0; i < solution5.size()-1;i++)
+        {
+            auto var = solution5[i];
+            buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}"
+                << "difference:" << solution5[i + 1].first - solution5[i].first << "\n";
+            oxh_display.push_back({ var.first+0.5,solution5[i + 1].first - solution5[i].first });
+        }
+        std::cout << buffer.str();
+        buffer.str("");
+        buffer.clear();
+
+        auto getOXhFunction= [oxh_display](double input_value) -> double {
+            for (const auto& pair : oxh_display) {
+                if (0 <= input_value && input_value <= pair.first) {
+                    return pair.second;
+                }
+            }
+            return 0.0;
+            };
+
+        std::vector<std::function<double(double)>> getOXhFunctionsVector;
+        getOXhFunctionsVector.push_back({getOXhFunction});
+        DrawFunctions( getOXhFunctionsVector,0.0,M_PI );
+
 #endif
 
         // 3.3.2 Plot ratio of true local error to estimated local error vs x
