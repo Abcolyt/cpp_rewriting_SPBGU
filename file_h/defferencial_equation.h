@@ -27,7 +27,7 @@ enum class ErrorMethod {
 };
 namespace details {
     //the values of the degrees of accuracy of the corresponding method
-    const std::unordered_map<DifferencialMethod, uint16_t> order_of_accuracy_of_the_method{
+    const std::unordered_map<DifferencialMethod, uint16_t> order_of_accuracy_differencial_method{
     {DifferencialMethod::RungeKutta2ndOrder,2},
     {DifferencialMethod::RungeKutta3ndOrder1,3},
     {DifferencialMethod::RungeKutta3ndOrder2,3},
@@ -250,7 +250,7 @@ std::vector<std::pair<Targ, Tresult>> SolveASystemOfOrdinaryDifferentialEquation
     const Targ epsilon,                 //Accuracy
     Targ c2 = 1.0 / 10                  /*Parameter ξ for RK2 scheme*/) {
     using namespace details;
-    uint64_t number_of_steps = std::ceil(1.0 / GetInitialStepSize(f, x0, y0, epsilon, x_target, order_of_accuracy_of_the_method.at(method)));
+    uint64_t number_of_steps = std::ceil(1.0 / GetInitialStepSize(f, x0, y0, epsilon, x_target, order_of_accuracy_differencial_method.at(method)));
 
     std::vector<std::pair<Targ, Tresult>> solve1, solve2;
     do
@@ -258,9 +258,9 @@ std::vector<std::pair<Targ, Tresult>> SolveASystemOfOrdinaryDifferentialEquation
         solve1 = SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method>(f, x0, y0, x_target, number_of_steps, c2);
         solve2 = SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method>(f, x0, y0, x_target, number_of_steps * 2, c2);
         number_of_steps *= 2;
-    } while (RungeError(solve1.back().second, solve2.back().second, order_of_accuracy_of_the_method.at(method)) > epsilon);
+    } while (RungeError(solve1.back().second, solve2.back().second, order_of_accuracy_differencial_method.at(method)) > epsilon);
 
-    if (RungeError(solve1.back().second, solve2.back().second, order_of_accuracy_of_the_method.at(method)) < epsilon) {
+    if (RungeError(solve1.back().second, solve2.back().second, order_of_accuracy_differencial_method.at(method)) < epsilon) {
         return solve2;
     }
     else {
@@ -280,7 +280,7 @@ std::vector<std::pair<Targ, Tresult>> SolveASystemOfOrdinaryDifferentialEquation
     Targ c2 = 1.0 / 10)
 {
     using namespace details;
-    const uint64_t s = order_of_accuracy_of_the_method.at(method);
+    const uint64_t s = order_of_accuracy_differencial_method.at(method);
 
     const uint64_t initial_steps = std::ceil(1.0 / GetInitialStepSize(f, x0, y0, rho, x_target, s));
     const Targ h_min = (x_target - x0) * 1e-13;

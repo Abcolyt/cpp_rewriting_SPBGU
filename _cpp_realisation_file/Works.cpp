@@ -38,7 +38,7 @@ namespace sem_4 {
     }
 
 #define SHOW_INTERPOL_STAT(func,n,m, ...) \
-    counting_methods_2::Polynomial_interpolation::nuton2::ShowInterpolationStatistic(func,n,m+50, #func, __VA_ARGS__)
+    counting_methods_2::polynomial_interpolation::nuton2::ShowInterpolationStatistic(func,n,m+50, #func, __VA_ARGS__)
 
 
     //
@@ -250,7 +250,7 @@ namespace sem_4 {
         //#define degree_of_the_polynomial 7
 
 
-        std::vector<std::pair<double, double>> clean_points = counting_methods_2::Polynomial_interpolation::nuton2::generatePoints_equally_sufficient_(size, the_left_border, the_right_border, [](double x) { return identifier; });
+        std::vector<std::pair<double, double>> clean_points = counting_methods_2::polynomial_interpolation::nuton2::generatePoints_equally_sufficient_(size, the_left_border, the_right_border, [](double x) { return identifier; });
         auto noisy_points = AddNoiseToPoints(clean_points, 3, 0.2);
         noisy_points.insert(noisy_points.end(), clean_points.begin(), clean_points.end());
         std::sort(noisy_points.begin(), noisy_points.end());
@@ -266,7 +266,7 @@ namespace sem_4 {
 
     void sem_4() {
 
-        using namespace counting_methods_2::Polynomial_interpolation::nuton2;
+        using namespace counting_methods_2::polynomial_interpolation::nuton2;
 
 
 #define PART_OF_TASK 0
@@ -284,7 +284,7 @@ namespace sem_4 {
         using SplineInterpolatorFunc = Spline<double>(*)(std::vector<std::pair<double, double>>);
 
         //x-std::sin(x) - 0.25
-        counting_methods_2::Polynomial_interpolation::nuton2::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        counting_methods_2::polynomial_interpolation::nuton2::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<3, 2, double>, // interpolator
             50, 50,                      // n, m_
             "Spline_interpolator<3, 2, double>",
@@ -373,7 +373,7 @@ namespace sem_4 {
         std::cout << "spline: <3,2> <2,1> <1,0>\n";
 
         //x-std::sin(x) - 0.25
-        counting_methods_2::Polynomial_interpolation::nuton2::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        counting_methods_2::polynomial_interpolation::nuton2::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<3, 2, double>, // interpolator
             50, 50,                      // n, m_
             "Spline_interpolator<3, 2, double>",
@@ -382,7 +382,7 @@ namespace sem_4 {
             5
         );
 
-        counting_methods_2::Polynomial_interpolation::nuton2::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        counting_methods_2::polynomial_interpolation::nuton2::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<2, 1, double>, // interpolator
             50, 50,                      // n, m_
             "Spline_interpolator<2, 1, double>",
@@ -391,7 +391,7 @@ namespace sem_4 {
             20
         );
 
-        counting_methods_2::Polynomial_interpolation::nuton2::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        counting_methods_2::polynomial_interpolation::nuton2::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<1, 0, double>, // interpolator
             10, 20,                      // n, m_
             "Spline_interpolator<1,0, double>",

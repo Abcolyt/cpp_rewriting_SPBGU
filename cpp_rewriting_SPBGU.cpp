@@ -40,7 +40,7 @@ namespace sem_4 {
     }
 
 #define SHOW_INTERPOL_STAT(func,n,m, ...) \
-    counting_methods_2::Polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic(func,n,m+50, #func, __VA_ARGS__)
+    counting_methods_2::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic(func,n,m+50, #func, __VA_ARGS__)
 
 
     //
@@ -251,7 +251,7 @@ namespace sem_4 {
         //#define degree_of_the_polynomial 7
 
 
-        std::vector<std::pair<double, double>> clean_points = counting_methods_2::Polynomial_interpolation::nuton2::generatePoints_equally_sufficient_(size, the_left_border, the_right_border, [](double x) { return identifier; });
+        std::vector<std::pair<double, double>> clean_points = counting_methods_2::polynomial_interpolation::nuton2::generatePoints_equally_sufficient_(size, the_left_border, the_right_border, [](double x) { return identifier; });
         auto noisy_points = AddNoiseToPoints(clean_points, 3, 0.2);
         noisy_points.insert(noisy_points.end(), clean_points.begin(), clean_points.end());
         std::sort(noisy_points.begin(), noisy_points.end());
@@ -267,7 +267,7 @@ namespace sem_4 {
 
     void sem_4() {
 
-        using namespace counting_methods_2::Polynomial_interpolation::nuton2;
+        using namespace counting_methods_2::polynomial_interpolation::nuton2;
 
 
 #define PART_OF_TASK 4
@@ -285,7 +285,7 @@ namespace sem_4 {
         using SplineInterpolatorFunc = Spline<double>(*)(std::vector<std::pair<double, double>>);
 
         //x-std::sin(x) - 0.25
-        counting_methods_2::Polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        counting_methods_2::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<3, 2, double>,   // interpolator
             50, 50,                              // n, m_
             "Spline_interpolator<3, 2, double>",
@@ -374,7 +374,7 @@ namespace sem_4 {
         std::cout << "spline: <3,2> <2,1> <1,0>\n";
 
         //x-std::sin(x) - 0.25
-        counting_methods_2::Polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        counting_methods_2::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<3, 2, double>, // interpolator
             50, 50,                      // n, m_
             "Spline_interpolator<3, 2, double>",
@@ -383,7 +383,7 @@ namespace sem_4 {
             5
         );
 
-        counting_methods_2::Polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        counting_methods_2::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<2, 1, double>, // interpolator
             50, 50,                      // n, m_
             "Spline_interpolator<2, 1, double>",
@@ -392,7 +392,7 @@ namespace sem_4 {
             20
         );
 
-        counting_methods_2::Polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        counting_methods_2::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<1, 0, double>, // interpolator
             10, 20,                      // n, m_
             "Spline_interpolator<1,0, double>",
@@ -818,18 +818,15 @@ namespace sem_5 {
             1e-6    // local_accuracy
         };
 
-        TestConfig<double, matrix<double>> training_example{
-            0.1,                    // c2 = 1/10
-            0.0,                    // x0
-            matrix<double>({{M_PI * 0.05}, {M_PI * 0.1}}),  // y0 = [B*π; A*π] = [π/20; π/10]
-            M_PI,                   // x_target = π
-            100,                    // number_of_steps
+        struct RightHandSideCounter {
+            std::shared_ptr<size_t> call_count;
 
-            // System: y1' = A*y2, y2' = -B*y1
-            //  A = 1/10 = 0.1, B = 1/20 = 0.05
-            [](double x, matrix<double> y) -> matrix<double> {
-                matrix<double> result(2, 1); 
+            RightHandSideCounter() : call_count(std::make_shared<size_t>(0)) {}
 
+            matrix<double> operator()(double x, matrix<double> y) const {
+                (*call_count)++;  
+
+                matrix<double> result(2, 1);
                 double A = 0.1;
                 double B = 0.05;
 
@@ -839,7 +836,28 @@ namespace sem_5 {
                 result[1][0] = -B * y[0][0];
 
                 return result;
-            },
+            }
+
+            void reset() {
+                *call_count = 0;
+            }
+
+            size_t count() const {
+                return *call_count;
+            }
+        };
+
+        RightHandSideCounter rhs_counter;
+        TestConfig<double, matrix<double>> training_example{
+            0.1,                    // c2 = 1/10
+            0.0,                    // x0
+            matrix<double>({{M_PI * 0.05}, {M_PI * 0.1}}),  // y0 = [B*π; A*π] = [π/20; π/10]
+            M_PI,                   // x_target = π
+            100,                    // number_of_steps
+
+            // System: y1' = A*y2, y2' = -B*y1
+            //  A = 1/10 = 0.1, B = 1/20 = 0.05
+             std::ref(rhs_counter),
 
             [](double x) -> matrix<double> {
                 double A = 0.1;
@@ -848,8 +866,8 @@ namespace sem_5 {
 
                 matrix<double> result(2, 1);
 
-                // Точное решение системы y1' = A*y2, y2' = -B*y1
-                // с начальными условиями y1(0)=B*π, y2(0)=A*π
+                // The exact solution of the systemy1' = A*y2, y2' = -B*y1
+                // with initial conditions y1(0)=B*π, y2(0)=A*π
                 result[0][0] = M_PI * B * std::cos(omega * x) +
                               M_PI * (A * A / omega) * std::sin(omega * x);
 
@@ -911,9 +929,9 @@ namespace sem_5 {
                     solution4.size() * 2,
                     working_example.c2)
                 ).back().second,
-                order_of_accuracy_of_the_method.at(method1)),
+                order_of_accuracy_differencial_method.at(method1)),
 
-            order_of_accuracy_of_the_method.at(method1));
+            order_of_accuracy_differencial_method.at(method1));
 
         std::cout << "GetEpsStepSize " << h_eps << "\n";
 
@@ -974,9 +992,9 @@ namespace sem_5 {
                     solution4.size() * 2,
                     working_example.c2)
                 ).back().second,
-                order_of_accuracy_of_the_method.at(method2)),
+                order_of_accuracy_differencial_method.at(method2)),
 
-            order_of_accuracy_of_the_method.at(method2));
+            order_of_accuracy_differencial_method.at(method2));
 
         std::cout << "GetEpsStepSize " << h_eps_2 << "\n";
         std::cout << "(working_example.x_target - working_example.x0)" << (working_example.x_target - working_example.x0) << "\n";
@@ -1020,6 +1038,89 @@ namespace sem_5 {
     }
 
     template<typename DifferencialMethod method1, typename DifferencialMethod method2, typename Targ, typename Tresult>
+    void CauchyComparasionRatioTrueLocalErrorToEstimatedLocalError_vs_X(TestConfig<Targ, Tresult> conf)
+    {
+        std::stringstream buffer;
+        auto& working_example = conf;
+        auto compute_error = [](const auto& var, const auto& working_example) {
+            using ValueType = std::decay_t<decltype(var.second)>;
+
+            if constexpr (std::is_arithmetic_v<ValueType>) {
+                return var.second - working_example.exact_y(var.first);
+            }
+            else if constexpr (is_matrix<ValueType>::value) {
+                return (var.second - working_example.exact_y(var.first)).norm();
+            }
+            };
+
+
+        auto solution6 = SolveODE<method1, ErrorMethod::RungeLocal>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, 1e-9, working_example.c2);
+
+        std::vector<std::pair<double, double>> vector_x_ratior_true_err_and_estimated_err_method1;
+        for (int i = 1; i < solution6.size(); i++)
+        {
+            auto var = solution6[i];
+            buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}"
+                << "difference:" << solution6[i].first - solution6[i - 1].first << "\n";
+
+            vector_x_ratior_true_err_and_estimated_err_method1.push_back({ solution6[i].first,compute_error(var, working_example) / (
+                RungeError(details::SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method1>(working_example.f, solution6[i - 1].first,solution6[i - 1].second,solution6[i].first,2,working_example.c2).back().second,
+                    details::SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method1>(working_example.f, solution6[i - 1].first,solution6[i - 1].second,solution6[i].first,4,working_example.c2).back().second,
+                    order_of_accuracy_differencial_method.at(method1)
+                    )) });
+        }
+        std::cout << buffer.str();
+        buffer.str("");
+        buffer.clear();
+
+        auto getOXhFunction1 = [vector_x_ratior_true_err_and_estimated_err_method1](double input_value) -> double {
+            for (const auto& pair : vector_x_ratior_true_err_and_estimated_err_method1) {
+                if (0 <= input_value && input_value <= pair.first) {
+                    return pair.second;
+                }
+            }
+            return 0.0;
+            };
+        ////
+        solution6 = SolveODE<method2, ErrorMethod::RungeLocal>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, 1e-9, working_example.c2);
+
+        std::vector<std::pair<double, double>> vector_x_ratior_true_err_and_estimated_err_method2;
+        for (int i = 1; i < solution6.size(); i++)
+        {
+            auto var = solution6[i];
+            buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}"
+                << "difference:" << solution6[i].first - solution6[i - 1].first << "\n";
+
+            vector_x_ratior_true_err_and_estimated_err_method2.push_back({ solution6[i].first,compute_error(var, working_example) / (
+                RungeError(details::SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method2>(working_example.f, solution6[i - 1].first,solution6[i - 1].second,solution6[i].first,2,working_example.c2).back().second,
+                    details::SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method2>(working_example.f, solution6[i - 1].first,solution6[i - 1].second,solution6[i].first,4,working_example.c2).back().second,
+                    order_of_accuracy_differencial_method.at(method2)
+                    )) });
+        }
+        std::cout << buffer.str();
+        buffer.str("");
+        buffer.clear();
+
+        auto getOXhFunction2 = [vector_x_ratior_true_err_and_estimated_err_method2](double input_value) -> double {
+            for (const auto& pair : vector_x_ratior_true_err_and_estimated_err_method2) {
+                if (0 <= input_value && input_value <= pair.first) {
+                    return pair.second;
+                }
+            }
+            return 0.0;
+            };
+
+
+        ///
+        std::vector<std::function<double(double)>> getOXhFunctionsVector;
+        getOXhFunctionsVector.push_back({ getOXhFunction1 });
+        getOXhFunctionsVector.push_back({ getOXhFunction2});
+        DrawFunctions(getOXhFunctionsVector, 0.0, M_PI);
+
+
+    }
+
+    template<typename DifferencialMethod method1, typename DifferencialMethod method2, typename Targ, typename Tresult>
     void CauchyRatioTrueLocalAndEstimatedErrorsComparasion(TestConfig<Targ, Tresult> conf) {
         auto compute_error = [](const auto& var, const auto& working_example) {
             using ValueType = std::decay_t<decltype(var.second)>;
@@ -1035,7 +1136,7 @@ namespace sem_5 {
 
 
     void sem_5_part2(){
-#define EXECUTION_PART 331
+#define EXECUTION_PART 333
         /*
         The Cauchy problem :
             dy1(𝑥) / dx = 𝐴_𝑦2(𝑥),
@@ -1170,10 +1271,27 @@ namespace sem_5 {
 
         // 3.3.2 Plot ratio of true local error to estimated local error vs x
 #if EXECUTION_PART == 332 || EXECUTION_PART == all
+
+        CauchyComparasionRatioTrueLocalErrorToEstimatedLocalError_vs_X<DifferencialMethod::RK2, DifferencialMethod::RK3>(working_example);
+        
 #endif
 
         // 3.3.3 Plot number of right-hand side evaluations vs accuracy ε
 #if EXECUTION_PART == 333 || EXECUTION_PART == all
+        std::vector<double> display_call_count_number;
+        for (int i=0; i < 15; i++) {
+
+            auto solution = SolveODE<DifferencialMethod::RK3, ErrorMethod::RungeLocal>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, 1.0/std::pow(2,3*i), working_example.c2);
+            std::cout << "i:" << i << "\tcount:" << rhs_counter.count() << "\n";
+            display_call_count_number.push_back(rhs_counter.count());
+            rhs_counter.reset();
+
+        }
+        
+        std::vector<std::function<double(double)>> getOXhFunctionsVector;
+        getOXhFunctionsVector.push_back({ createLambda(display_call_count_number) });
+        DrawFunctions(getOXhFunctionsVector);
+
 #endif
         ////
 

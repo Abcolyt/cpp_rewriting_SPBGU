@@ -18,7 +18,7 @@
 
 namespace counting_methods_2 {
 
-    namespace Polynomial_interpolation {
+    namespace polynomial_interpolation {
       
         namespace nuton2 {
             namespace type_of_error_output {
@@ -310,47 +310,6 @@ namespace counting_methods_2 {
                 return ans;
                 
             }
-
-#if 0
-            
-
-            
-
-            //max n 
-            void show_nuton(int n = 10, int m_ = 10) {
-                double a = -2 * M_PI, b = 2 * M_PI;
-
-                std::cout << std::left
-                    << std::setw(20) << "(n)"
-                    << std::setw(30) << "(m)"
-                    << std::setw(25) << "RN_n"
-                    << std::setw(25) << "RNopt_n"
-                    << "\n------------------------------------------------------------\n";
-
-                for (size_t i = 1; i < n + m_; i++)
-                {
-
-                    auto F = [](double x) { return std::cos(x) / std::sin(x) + x * x; };
-                    auto poly = N_optn(i, a, b, F);
-
-                    // std::cout << "\nPOLINOM N_optn:" << poly;
-
-                    double rn = RN_n(i, a, b, F);
-                    double rn_opt = RN_optn(i, a, b, F);
-
-                    std::cout << std::left
-                        << std::setw(20) << i
-                        << std::setw(30) << i + m_
-                        << std::setw(25) << std::setprecision(6) << rn
-                        << std::setw(25) << std::setprecision(6) << rn_opt
-                        << "\n";
-                }
-
-
-
-
-            }
-#endif
 
             namespace transformation_of_a_function_into_a_polynomial {
                 //gives an nuton interpolation of the n degree of the passed function to obtain points at an equal distance from each other
@@ -805,7 +764,7 @@ namespace counting_methods_2 {
             functions_ortog.push_back(F);
 
             // // // //data
-            std::vector<std::pair<double, double>> clean_points = counting_methods_2::Polynomial_interpolation::nuton2::generatePoints_equally_sufficient_(size, a, b, F);
+            std::vector<std::pair<double, double>> clean_points = counting_methods_2::polynomial_interpolation::nuton2::generatePoints_equally_sufficient_(size, a, b, F);
             auto noisy_points = AddNoiseToPoints(clean_points, 3, 0.2);
             noisy_points.insert(noisy_points.end(), clean_points.begin(), clean_points.end());
             // // // //
