@@ -882,34 +882,45 @@
     using namespace details;
     using namespace integration_coefficients;
 
-//feature_function need if p_feature != { 0,0 }
+// feature_function need if p_feature != { 0,0 }
 //   *euler_type::IntegralManager<TResult, TArg>:  return Int[t0;T] x^j/((x-a)^alpha * (b-x)^beta) dx
-//p_feature={alpha,beta}
-//if (a > b)throw("a>b");
-template<typename TResult, typename TArg, IntegrateMethod Method>
+// p_feature={alpha,beta}
+// if (a > b)throw("a>b");
+template<IntegrateMethod Method, typename TResult, typename TArg>
 TResult unsafe_integrate(std::function<TResult(TArg)> f,
     TArg a, TArg b, uint64_t interval_of_division, PFeature p_feature = { 0,0 },
     std::function<TResult(TArg t0, TArg T, TArg a, TArg b, TArg alpha, TArg beta, int)> feature_function = euler_type::IntegralManager<TResult, TArg>) {
     TResult sum = 0;
-    bool sh_be_reversed = 0;
-    if (a > b) {
-        throw("a>b");
-        //std::swap(a, b); 
-        //sh_be_reversed = 1;
+    bool sh_be_reversed = false;
+    
+    ////debug part
+    if (!f) {
+        throw std::invalid_argument("The function f cannot be empty ");
     }
+    if (interval_of_division == 0) {
+        throw std::invalid_argument("The number of intervals must be greater than 0");
+    }
+
+    if (a > b) {
+        sh_be_reversed = true;
+        std::swap(a,b);
+    }
+    
+    ////
+     
     TArg h = (b - a) / static_cast<TArg>(interval_of_division);
     if constexpr (Method == IntegrateMethod::LEFT_RECTANGLE) {
         if (p_feature.alpha == 0)sum += f(a);
         for (int i = 1; i < interval_of_division; ++i) {
             sum += f(a + i * h);
         }
-        return sum * h;
+        sum *= h;
     }
     else if constexpr (Method == IntegrateMethod::MIDDLE_RECTANGLE) {
         for (int i = 1; i < interval_of_division; ++i) {
             sum += f(a + i * h - h / 2);
         }
-        return sum * h;
+        sum *= h;
     }
     else if constexpr ((static_cast<int>(IntegrateMethod::NEWTON_COTES_2_POINT) <= static_cast<int>(Method)) && (static_cast<int>(Method) <= static_cast<int>(IntegrateMethod::NEWTON_COTES_9_POINT))) {
         int n = static_cast<int>(Method)-1;
@@ -936,7 +947,7 @@ TResult unsafe_integrate(std::function<TResult(TArg)> f,
         }
         sum += M[0][0] * f(b);
 
-        return sum * h;
+        sum *= h;
     }
     else if constexpr ((static_cast<int>(IntegrateMethod::GAUS_3_POINT) <= static_cast<int>(Method)) && (static_cast<int>(Method) <= static_cast<int>(IntegrateMethod::GAUS_6_POINT))) {
         auto a_ = a, b_ = a_ + h;
@@ -965,16 +976,15 @@ TResult unsafe_integrate(std::function<TResult(TArg)> f,
             }
             a_ += h, b_ += h;
         }
-        return sum;
     }
     else {
         static_assert(1 != 0, "Unknown integration method");
     }
-    return 404;
+    return sum;
 }
 
 //pair.second is error code. if (pair.second==1) => integral is correct(first value)
-template<typename TResult, typename TArg, IntegrateMethod Method>
+template<IntegrateMethod Method, typename TResult, typename TArg>
 std::pair<TResult, int> safe_integrate(
     std::function<TResult(TArg)> f,
     TArg a, TArg b,
@@ -992,7 +1002,7 @@ std::pair<TResult, int> safe_integrate(
 }
 
 //adaptive_integrate_richardson
-template<typename TResult, typename TArg, IntegrateMethod Method>
+template<IntegrateMethod Method, typename TResult, typename TArg>
 IntegrationResult<TResult> adaptive_integrate(
     std::function<TResult(TArg)> f,TArg a, TArg b,
     TResult epsilon = 1e-6,
@@ -1012,7 +1022,7 @@ IntegrationResult<TResult> adaptive_integrate(
     int max_iterations = 50;
     
     for (int iter = 1; iter < max_iterations; iter++) {
-        TResult current_approx = unsafe_integrate<TResult, TArg, Method>(f, a, b, current_intervals, p_feature, feature_function);
+        TResult current_approx = unsafe_integrate<Method, TResult, TArg>(f, a, b, current_intervals, p_feature, feature_function);
 
         approximations.push_back(current_approx);
         int size = approximations.size();
@@ -1094,7 +1104,7 @@ IntegrationResult<TResult> adaptive_integrate(
 #undef DEBUG_INPUT
 }
 
-template<typename TResult, typename TArg, IntegrateMethod Method>
+template<IntegrateMethod Method, typename TResult, typename TArg>
 IntegrationResult<TResult> optimized_adaptive_integration(
     std::function<TResult(TArg)> f, TArg a, TArg b,
     TResult epsilon = 1e-6,
@@ -1118,7 +1128,7 @@ IntegrationResult<TResult> optimized_adaptive_integration(
     std::vector<TResult> step_sizes;
 
     for (uint64_t intervals : test_intervals) {
-        TResult approx = unsafe_integrate<TResult, TArg, Method>(f, a, b, intervals, p_feature, feature_function);
+        TResult approx = unsafe_integrate<Method, TResult, TArg>(f, a, b, intervals, p_feature, feature_function);
         test_results.push_back(approx);
         step_sizes.push_back((b - a) / intervals);
 #if DEBUG_INPUT
@@ -1158,7 +1168,7 @@ IntegrationResult<TResult> optimized_adaptive_integration(
 
     std::cout << "Starting adaptive integration with optimal step..." << std::endl;
 #endif
-    result = adaptive_integrate<TResult, TArg, Method>(
+    result = adaptive_integrate<Method,TResult, TArg>(
         f, a, b, epsilon, optimal_intervals, p_feature, feature_function);
 
     // We keep the test approximations and convergence orders

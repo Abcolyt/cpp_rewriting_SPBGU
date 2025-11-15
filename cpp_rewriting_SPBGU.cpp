@@ -430,7 +430,7 @@ namespace sem_5 {
         {
             try
             {
-            abs_external_vector.push_back(std::abs(unsafe_integrate<TResult, TArg, integrate_method>(experimental_function, a, b, i, p_feature) - integral_of_the_function));
+            abs_external_vector.push_back(std::abs(unsafe_integrate<integrate_method, TResult, TArg>(experimental_function, a, b, i, p_feature) - integral_of_the_function));
             std::cout << "continued i:" << i<<"\n";
             }
             catch (const std::exception&)
@@ -561,10 +561,10 @@ namespace sem_5 {
             {
                 try
                 {
-                    auto var1 =std::abs(unsafe_integrate<TResult, TArg, IntegrateMethod::LEFT_RECTANGLE>(experimental_function, a, b, i, p_feature) - integral_of_the_function),
-                        var2 = std::abs(unsafe_integrate<TResult, TArg, IntegrateMethod::MIDDLE_RECTANGLE>(experimental_function, a, b, i, p_feature) - integral_of_the_function),
-                        var3 = std::abs(unsafe_integrate<TResult, TArg, IntegrateMethod::NEWTON_COTES_2_POINT>(experimental_function, a, b, i, p_feature) - integral_of_the_function),
-                        var4 = std::abs(unsafe_integrate<TResult, TArg, IntegrateMethod::SIMPSON>(experimental_function, a, b, i, p_feature) - integral_of_the_function);
+                    auto var1 =std::abs(unsafe_integrate<IntegrateMethod::LEFT_RECTANGLE, TResult, TArg>(experimental_function, a, b, i, p_feature) - integral_of_the_function),
+                        var2 = std::abs(unsafe_integrate<IntegrateMethod::MIDDLE_RECTANGLE, TResult, TArg>(experimental_function, a, b, i, p_feature) - integral_of_the_function),
+                        var3 = std::abs(unsafe_integrate<IntegrateMethod::NEWTON_COTES_2_POINT, TResult, TArg>(experimental_function, a, b, i, p_feature) - integral_of_the_function),
+                        var4 = std::abs(unsafe_integrate<IntegrateMethod::SIMPSON, TResult, TArg>(experimental_function, a, b, i, p_feature) - integral_of_the_function);
 
                     data.push_back(std::tuple{ i, var1,var2,var3,var4 });
 
@@ -723,16 +723,14 @@ namespace sem_5 {
 
         
 #if EXECUTION_PART == 21 || EXECUTION_PART == all
-        result = adaptive_integrate<double, double,
-            IntegrateMethod::NEWTON_COTES_3_POINT>(
+        result = adaptive_integrate<IntegrateMethod::NEWTON_COTES_3_POINT>(
                 configurate.function, configurate.a, configurate.b, configurate.tolerance, 1, { configurate.alpha, configurate.beta });
         std::cout <<"IntegrateMethod::NEWTON_COTES_3_POINT\n" << result;
 #endif
 
         // N2.1 but using 3-point Gauss formulas:
 #if EXECUTION_PART == 22 || EXECUTION_PART == all
-        result = adaptive_integrate<double, double,
-            IntegrateMethod::GAUS_3_POINT>(
+        result = adaptive_integrate<IntegrateMethod::GAUS_3_POINT>(
                 configurate.function, configurate.a, configurate.b, configurate.tolerance, 1, { configurate.alpha, configurate.beta });
         std::cout <<"IntegrateMethod::GAUS_3_POINT\n" << result;
 #endif
@@ -741,8 +739,7 @@ namespace sem_5 {
         // 
         //Сompare it with the step calculated in 2.1 or 2.2.
 #if EXECUTION_PART == 23 || EXECUTION_PART == all
-        auto simple_result = optimized_adaptive_integration<double, double,
-            IntegrateMethod::GAUS_3_POINT>(
+        auto simple_result = optimized_adaptive_integration<IntegrateMethod::GAUS_3_POINT>(
                 configurate.function, configurate.a, configurate.b, configurate.tolerance, { configurate.alpha, configurate.beta });
         std::cout << "IntegrateMethod::GAUS_3_POINT\n" << simple_result;
 #endif
