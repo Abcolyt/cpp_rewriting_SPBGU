@@ -40,7 +40,7 @@ namespace sem_4 {
     }
 
 #define SHOW_INTERPOL_STAT(func,n,m, ...) \
-    counting_methods_2::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic(func,n,m+50, #func, __VA_ARGS__)
+    ::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic(func,n,m+50, #func, __VA_ARGS__)
 
 
     //
@@ -251,7 +251,7 @@ namespace sem_4 {
         //#define degree_of_the_polynomial 7
 
 
-        std::vector<std::pair<double, double>> clean_points = counting_methods_2::polynomial_interpolation::nuton2::generatePoints_equally_sufficient_(size, the_left_border, the_right_border, [](double x) { return identifier; });
+        std::vector<std::pair<double, double>> clean_points = ::polynomial_interpolation::nuton2::GeneratePointsEquallySufficient(size, the_left_border, the_right_border, [](double x) { return identifier; });
         auto noisy_points = AddNoiseToPoints(clean_points, 3, 0.2);
         noisy_points.insert(noisy_points.end(), clean_points.begin(), clean_points.end());
         std::sort(noisy_points.begin(), noisy_points.end());
@@ -260,14 +260,14 @@ namespace sem_4 {
         }
         std::cout << "\npolynomial function :\n" << "x*x + 20*x*x*x+ 444*x*x*x*x*x\n";
 
-        std::cout << "\nNormal equations polynomial:\n" << counting_methods_2::aproximate::LeastSquaresNormal(noisy_points, degree_of_the_polynomial);
-        std::cout << "\nOrthogonal polynomial:\n" << counting_methods_2::aproximate::LeastSquaresOrthogonal(noisy_points, degree_of_the_polynomial);
+        std::cout << "\nNormal equations polynomial:\n" << ::aproximate::LeastSquaresNormal(noisy_points, degree_of_the_polynomial);
+        std::cout << "\nOrthogonal polynomial:\n" << ::aproximate::LeastSquaresOrthogonal(noisy_points, degree_of_the_polynomial);
     }
     //
 
     void sem_4() {
 
-        using namespace counting_methods_2::polynomial_interpolation::nuton2;
+        using namespace ::polynomial_interpolation::nuton2;
 
 
 #define PART_OF_TASK 4
@@ -285,7 +285,7 @@ namespace sem_4 {
         using SplineInterpolatorFunc = Spline<double>(*)(std::vector<std::pair<double, double>>);
 
         //x-std::sin(x) - 0.25
-        counting_methods_2::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        ::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<3, 2, double>,   // interpolator
             50, 50,                              // n, m_
             "Spline_interpolator<3, 2, double>",
@@ -295,7 +295,7 @@ namespace sem_4 {
         );
 
 
-        counting_methods_2::aproximate::output_of_characteristics_for_different_data_size_parameters::ShowAproximateStatistic([](double x) { return (x - std::sin(x) - 0.25); });
+        ::aproximate::output_of_characteristics_for_different_data_size_parameters::ShowAproximateStatistic([](double x) { return (x - std::sin(x) - 0.25); });
 
         // // // // // // // // //
 
@@ -309,30 +309,30 @@ namespace sem_4 {
         auto V = (polynomialfunctions::plnm_roots(a.get_first_derrivate(), DBL_EPSILON));
         std::cout << "polynomialfunctions:" << a << '\n';
 
-        b = NutonInterpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        b = NutonInterpolation(GeneratePointsEquallySufficient(13, -12.0, 12.0, a));
         b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
         std::cout << "\n:NutonInterpolation" << b;
-        b = LagrangInterpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        b = LagrangInterpolation(GeneratePointsEquallySufficient(13, -12.0, 12.0, a));
         b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
         std::cout << "\nLagrang_interpolation:" << b;
-        b = AlternativNutonInterpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        b = AlternativNutonInterpolation(GeneratePointsEquallySufficient(13, -12.0, 12.0, a));
         b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
         std::cout << "\nAlternativ_nuton_interpolation:" << b;
-        b = AlternativLagrangInterpolation(generatePoints_equally_sufficient_(13, -12.0, 12.0, a));
+        b = AlternativLagrangInterpolation(GeneratePointsEquallySufficient(13, -12.0, 12.0, a));
         b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
         std::cout << "\nAlternativ_Lagrang_interpolation:" << b;
 
-        auto spl4 = Spline_interpolator<4, 3, double>(generatePoints_equally_sufficient_(5, -12.0, 12.0, a));
+        auto spl4 = Spline_interpolator<4, 3, double>(GeneratePointsEquallySufficient(5, -12.0, 12.0, a));
         std::cout << "\nSpline_interpolator<4,3, double>:" << spl4 << "\n";
 
-        auto spl3 = Spline_interpolator<3, 2, double>(generatePoints_equally_sufficient_(5, -12.0, 12.0, a));
+        auto spl3 = Spline_interpolator<3, 2, double>(GeneratePointsEquallySufficient(5, -12.0, 12.0, a));
         std::cout << "\nSpline_interpolator<3,2, double>:" << spl3 << "\n";
 
-        auto spl2 = Spline_interpolator<2, 1, double>(generatePoints_equally_sufficient_(5, -12.0, 12.0, a));
+        auto spl2 = Spline_interpolator<2, 1, double>(GeneratePointsEquallySufficient(5, -12.0, 12.0, a));
         std::cout << "\nSpline_interpolator<2, 1, double>:" << spl2 << "\n";
 
 
-        auto spl1 = Spline_interpolator<1, 0, double>(generatePoints_equally_sufficient_(5, -12.0, 12.0, a));
+        auto spl1 = Spline_interpolator<1, 0, double>(GeneratePointsEquallySufficient(5, -12.0, 12.0, a));
         std::cout << "\nSpline_interpolator<1, 0, double>:" << spl1 << "\n";
 #define identifier (x-std::sin(x) - 0.25)
 #define the_left_border -M_PI / 4
@@ -374,7 +374,7 @@ namespace sem_4 {
         std::cout << "spline: <3,2> <2,1> <1,0>\n";
 
         //x-std::sin(x) - 0.25
-        counting_methods_2::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        ::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<3, 2, double>, // interpolator
             50, 50,                      // n, m_
             "Spline_interpolator<3, 2, double>",
@@ -383,7 +383,7 @@ namespace sem_4 {
             5
         );
 
-        counting_methods_2::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        ::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<2, 1, double>, // interpolator
             50, 50,                      // n, m_
             "Spline_interpolator<2, 1, double>",
@@ -392,7 +392,7 @@ namespace sem_4 {
             20
         );
 
-        counting_methods_2::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        ::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<1, 0, double>, // interpolator
             10, 20,                      // n, m_
             "Spline_interpolator<1,0, double>",
@@ -411,7 +411,7 @@ namespace sem_4 {
 
 #elif PART_OF_TASK == 6
         Z6_1(20, 7);
-        counting_methods_2::aproximate::output_of_characteristics_for_different_data_size_parameters::ShowAproximateStatistic([](double x) { return (x - std::sin(x) - 0.25); });
+        ::aproximate::output_of_characteristics_for_different_data_size_parameters::ShowAproximateStatistic([](double x) { return (x - std::sin(x) - 0.25); });
 #endif
 
 

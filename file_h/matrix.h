@@ -172,7 +172,7 @@ namespace matrixfunction {
     template <typename T>matrix<T> simplify_eigenvector(const matrix<T>& vec, T epsilon = 1e-6);
     
     //
-    template<typename T>std::vector<T> generatePoints_equally_sufficient_(int k, T a, T b) {
+    template<typename T>std::vector<T> GeneratePointsEquallySufficient(int k, T a, T b) {
         T step = (b - a) / k;
         std::vector<T> points;
         for (int i = 0; i < k; ++i) {

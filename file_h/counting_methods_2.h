@@ -1,5 +1,4 @@
-﻿#pragma once
-#include <vector>
+﻿#include <vector>
 #include <algorithm>
 #include <random>
 #include <functional>
@@ -9,559 +8,554 @@
 #include <map>
 #include <cmath>
 #include <corecrt_math_defines.h>
-
 #include <numeric>
-
 #include "polynomial.h"
 #include "Array_xy_To_.h"
+
 #include "Spline.h"
 
-namespace counting_methods_2 {
+#pragma once
 
-    namespace polynomial_interpolation {
-      
-        namespace nuton2 {
-            namespace type_of_error_output {
+namespace polynomial_interpolation {
+
+    namespace nuton2 {
+        namespace type_of_error_output {
             enum class MethodicalError
             {
                 nuton_interpolation_double_generatePoints_equally_sufficient_ = 0,
                 nuton_interpolation_double_generatePoints_optimal = 1,
                 Lagrang_interpolation_double_generatePoints_equally_sufficient_ = 2,
                 Lagrang_interpolation_double_generatePoints_optimal = 3,
-                Alternativ_Lagrang_interpolation_double_generatePoints_equally_sufficient_=4,
-                Alternativ_Lagrang_interpolation_double_generatePoints_optimal=5,
+                Alternativ_Lagrang_interpolation_double_generatePoints_equally_sufficient_ = 4,
+                Alternativ_Lagrang_interpolation_double_generatePoints_optimal = 5,
                 Alternativ_nuton_interpolation_double_generatePoints_equally_sufficient_ = 6,
                 Alternativ_nuton_interpolation_double_generatePoints_optimal = 7,
-                
-
-
             };
             using enum MethodicalError;
             const std::map<std::string, enum class MethodicalError> teoretical_max_error{
-                {"NutonInterpolation<double>generatePoints_equally_sufficient_", nuton_interpolation_double_generatePoints_equally_sufficient_},
-                {"NutonInterpolation<double>generatePoints_optimal", nuton_interpolation_double_generatePoints_optimal},
+                {"NutonInterpolation<double>GeneratePointsEquallySufficient", nuton_interpolation_double_generatePoints_equally_sufficient_},
+                {"NutonInterpolation<double>GeneratePointsOptimal", nuton_interpolation_double_generatePoints_optimal},
 
-                {"LagrangInterpolation<double>generatePoints_equally_sufficient_",Lagrang_interpolation_double_generatePoints_equally_sufficient_},
-                {"LagrangInterpolation<double>generatePoints_optimal",Lagrang_interpolation_double_generatePoints_optimal},
+                {"LagrangInterpolation<double>GeneratePointsEquallySufficient",Lagrang_interpolation_double_generatePoints_equally_sufficient_},
+                {"LagrangInterpolation<double>GeneratePointsOptimal",Lagrang_interpolation_double_generatePoints_optimal},
 
-                {"AlternativLagrangInterpolation<double>generatePoints_equally_sufficient_",Alternativ_Lagrang_interpolation_double_generatePoints_equally_sufficient_},
-                { "AlternativLagrangInterpolation<double>generatePoints_optimal",Alternativ_Lagrang_interpolation_double_generatePoints_optimal },
+                {"AlternativLagrangInterpolation<double>GeneratePointsEquallySufficient",Alternativ_Lagrang_interpolation_double_generatePoints_equally_sufficient_},
+                { "AlternativLagrangInterpolation<double>GeneratePointsOptimal",Alternativ_Lagrang_interpolation_double_generatePoints_optimal },
 
-                {"AlternativNutonInterpolation<double>generatePoints_equally_sufficient_",Alternativ_nuton_interpolation_double_generatePoints_equally_sufficient_},
-                { "AlternativNutonInterpolation<double>generatePoints_optimal",Alternativ_nuton_interpolation_double_generatePoints_equally_sufficient_ }
+                {"AlternativNutonInterpolation<double>GeneratePointsEquallySufficient",Alternativ_nuton_interpolation_double_generatePoints_equally_sufficient_},
+                { "AlternativNutonInterpolation<double>GeneratePointsOptimal",Alternativ_nuton_interpolation_double_generatePoints_equally_sufficient_ }
             };
+        }
+        using namespace type_of_error_output;
+
+        namespace technical_functions {
+
+            uint64_t factorial(uint64_t n) {
+                return n >= 1 ? factorial(n - 1) * n : 1;
             }
-            using namespace type_of_error_output;
 
-            namespace technical_functions{
-
-                uint64_t factorial(uint64_t n) {
-                    return n >= 1 ? factorial(n - 1) * n : 1;
-                }
-
-                template<class T>
-                inline constexpr T pow(const T base, unsigned const exponent)
-                {
-                    return (exponent == 0) ? 1 : (base * pow(base, exponent - 1));
-                }
-
-                template<typename P>std::vector<std::pair<P, P>> filter_by_unique_x(std::vector<std::pair<P, P>> Array_xy) {
-
-                    std::sort(
-                        Array_xy.begin(),
-                        Array_xy.end(),
-                        [](const auto& a, const auto& b) {return a.first < b.first; }
-                    );
-
-                    std::vector<std::pair<P, P>> result;
-                    result.push_back(Array_xy[0]);
-                    for (size_t i = 1; i < Array_xy.size(); ++i) {
-
-                        if (Array_xy[i].first == Array_xy[i - 1].first) {
-
-                            continue;
-                        }
-                        result.push_back(Array_xy[i]);
-                    }
-                    return result;
-                }
-
-                polynomial<int> generateRandomIntCoefficients(int min_degree = 3, int max_degree = 10, double min_c = -10, double max_c = 10)
-                {
-                    std::random_device rd;
-                    std::mt19937 gen(rd());
-                    std::uniform_int_distribution<> dist_deg(min_degree, max_degree);
-                    polynomial<int> Ans;
-                    Ans.newsize(dist_deg(gen));
-
-                    std::uniform_int_distribution<> dist_c(min_c, max_c);
-                    for (int i = 0; i < Ans.get_deg(); ++i) {
-                        Ans[i] = (dist_c(gen));
-                    }
-
-                    Ans.cutbag();
-
-                    return Ans;
-                }
-
-                template<typename P, typename FuncInterpolation>P methodic_error(enum MethodicalError type, const std::vector<std::pair<P, P>>& Array_xy, FuncInterpolation func_interpolation) {
-                    using enum MethodicalError;
-
-                    polynomial<P> pol = func_interpolation(Array_xy);
-                    std::vector <P> array_x;
-
-                    std::transform(Array_xy.begin(), Array_xy.end(),
-                        std::back_inserter(array_x),
-                        [](const auto& pair) { return pair.first; });
-                    pol.the_root_constructor(array_x);
-
-                    auto min = *std::min_element(array_x.begin(), array_x.end());
-                    auto max = *std::max_element(array_x.begin(), array_x.end());
-                    switch (type)
-                    {
-                    case Alternativ_Lagrang_interpolation_double_generatePoints_equally_sufficient_:
-                        return (pol.maximum_abs(min, max) / factorial(Array_xy.size() + 1));
-                        break;
-                    case Alternativ_Lagrang_interpolation_double_generatePoints_optimal:
-                        return 2 * (std::pow((max - min) / 4, Array_xy.size() + 1)) / factorial(Array_xy.size() + 1);
-                        break;
-
-                    case Lagrang_interpolation_double_generatePoints_equally_sufficient_:
-                        return (pol.maximum_abs(min, max) / factorial(Array_xy.size() + 1));
-                        break;
-                    case Lagrang_interpolation_double_generatePoints_optimal:
-                        return 2 * (std::pow((max - min) / 4, Array_xy.size() + 1)) / factorial(Array_xy.size() + 1);
-                        break;
-
-                    case nuton_interpolation_double_generatePoints_equally_sufficient_:        break;
-                    case nuton_interpolation_double_generatePoints_optimal:                    break;
-                    default:return P(1);
-                    }
-                    return P(1);
-                }
+            template<class T>
+            inline constexpr T pow(const T base, unsigned const exponent)
+            {
+                return (exponent == 0) ? 1 : (base * pow(base, exponent - 1));
             }
-            using namespace technical_functions;
 
-            //generate with points for interpolinomial function
-            namespace point_generators{
-                template<typename T>std::vector<std::pair<T, T>> generatePointsFuncPtr(int k, T x0, T step, polynomial<T>& polynom, const std::function<T(polynomial<T>, T)>& F) {
-                    std::vector<std::pair<T, T>> points;
-                    for (int i = 0; i < k; ++i) {
-                        T x = x0 + i * step;
-                        points.emplace_back(x, F(polynom, x));
-                    }
-                    return points;
-                }
+            template<typename P>std::vector<std::pair<P, P>> FilterByUniqueX(std::vector<std::pair<P, P>> Array_xy) {
 
-                template<typename T, typename Func>std::vector<std::pair<T, T>> generatePoints_equally_sufficient_with_step_size(int k, T x0, T step, Func F) {
-                    std::vector<std::pair<T, T>> points;
-                    for (int i = 0; i < k; ++i) {
-                        T x = x0 + i * step;
-                        points.emplace_back(x, F(x));
-                    }
-                    return points;
-                }
+                std::sort(
+                    Array_xy.begin(),
+                    Array_xy.end(),
+                    [](const auto& a, const auto& b) {return a.first < b.first; }
+                );
 
-                template<typename T, typename Func>std::vector<std::pair<T, T>> generatePoints_equally_sufficient_(int k, T a, T b, Func F) {
-                    T step = (b - a) / k;
-                    std::vector<std::pair<T, T>> points;
-                    for (int i = 0; i < k; ++i) {
-                        T x = a + i * step;
-                        points.emplace_back(x, F(x));
-                    }
-                    return points;
-                }
+                std::vector<std::pair<P, P>> result;
+                result.push_back(Array_xy[0]);
+                for (size_t i = 1; i < Array_xy.size(); ++i) {
 
-                template<typename T, typename Func>std::vector<std::pair<T, T>> generatePoints_optimal(int n, T a, T b, Func F) {
-                    std::vector<std::pair<T, T>> points;
-                    for (int i = 0; i < n; ++i) {
-                        T x = (0.5) * ((b - a) * std::cos(M_PI * ((2.0 * i + 1) / (2 * (n)+1))) + (b + a));
-                        points.emplace_back(x, F(x));
+                    if (Array_xy[i].first == Array_xy[i - 1].first) {
+
+                        continue;
                     }
-                    return points;
+                    result.push_back(Array_xy[i]);
                 }
+                return result;
             }
-            using namespace point_generators;
 
-            template<typename P>polynomial<P> NutonInterpolation(std::vector<std::pair<P, P>> Array_xy) {
+            polynomial<int> GenerateRandomIntCoefficients(int min_degree = 3, int max_degree = 10, double min_c = -10, double max_c = 10)
+            {
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::uniform_int_distribution<> dist_deg(min_degree, max_degree);
+                polynomial<int> Ans;
+                Ans.newsize(dist_deg(gen));
 
-                Array_xy = filter_by_unique_x(Array_xy);
-                polynomial<P> Ans = 0, w_k = 1;
-
-                for (size_t i = 1; i < Array_xy.size(); i++)
-                {
-
-                    Ans = Ans + w_k * (Array_xy[0].second);
-                    for (size_t j = 0; j < Array_xy.size() - i; j++)
-                    {
-                        Array_xy[j].second = (Array_xy[j + 1].second - Array_xy[j].second) / (Array_xy[j + i].first - Array_xy[j].first);
-                    }
-
-                    w_k = w_k * ((static_cast<polynomial<P>>(1) >> 1) - Array_xy[i - 1].first);
+                std::uniform_int_distribution<> dist_c(min_c, max_c);
+                for (int i = 0; i < Ans.get_deg(); ++i) {
+                    Ans[i] = (dist_c(gen));
                 }
-                Ans = Ans.cutbag();
+
+                Ans.cutbag();
+
                 return Ans;
             }
 
-            template<typename P>polynomial<P> AlternativNutonInterpolation(std::vector<std::pair<P, P>> Array_xy) {
-                Array_xy = filter_by_unique_x(Array_xy);
-                polynomial<P> Ans = 0, w_k = 1;
-                size_t n = Array_xy.size();
+            template<typename P, typename FuncInterpolation>P MethodicError(enum MethodicalError type, const std::vector<std::pair<P, P>>& Array_xy, FuncInterpolation func_interpolation) {
+                using enum MethodicalError;
 
-                for (size_t i = 0; i < n; ++i) {
-                    
-                    P diff = 0;
-                    for (size_t j = 0; j <= i; ++j) {
-                        
-                        P denominator = 1;
-                        for (size_t k = 0; k <= i; ++k) {
-                            if (k != j) {
-                                denominator *= (Array_xy[j].first - Array_xy[k].first);
-                            }
+                polynomial<P> pol = func_interpolation(Array_xy);
+                std::vector <P> array_x;
+
+                std::transform(Array_xy.begin(), Array_xy.end(),
+                    std::back_inserter(array_x),
+                    [](const auto& pair) { return pair.first; });
+                pol.the_root_constructor(array_x);
+
+                auto min = *std::min_element(array_x.begin(), array_x.end());
+                auto max = *std::max_element(array_x.begin(), array_x.end());
+                switch (type)
+                {
+                case Alternativ_Lagrang_interpolation_double_generatePoints_equally_sufficient_:
+                    return (pol.maximum_abs(min, max) / factorial(Array_xy.size() + 1));
+                    break;
+                case Alternativ_Lagrang_interpolation_double_generatePoints_optimal:
+                    return 2 * (std::pow((max - min) / 4, Array_xy.size() + 1)) / factorial(Array_xy.size() + 1);
+                    break;
+
+                case Lagrang_interpolation_double_generatePoints_equally_sufficient_:
+                    return (pol.maximum_abs(min, max) / factorial(Array_xy.size() + 1));
+                    break;
+                case Lagrang_interpolation_double_generatePoints_optimal:
+                    return 2 * (std::pow((max - min) / 4, Array_xy.size() + 1)) / factorial(Array_xy.size() + 1);
+                    break;
+
+                case nuton_interpolation_double_generatePoints_equally_sufficient_:        break;
+                case nuton_interpolation_double_generatePoints_optimal:                    break;
+                default:return P(1);
+                }
+                return P(1);
+            }
+        }
+        using namespace technical_functions;
+
+        //generate with points for interpolinomial function
+        namespace point_generators {
+            template<typename T>std::vector<std::pair<T, T>> GeneratePointsFuncPtr(int k, T x0, T step, polynomial<T>& polynom, const std::function<T(polynomial<T>, T)>& F) {
+                std::vector<std::pair<T, T>> points;
+                for (int i = 0; i < k; ++i) {
+                    T x = x0 + i * step;
+                    points.emplace_back(x, F(polynom, x));
+                }
+                return points;
+            }
+
+            template<typename T, typename Func>std::vector<std::pair<T, T>> GeneratePointsEquallySufficientWithStepSize(int k, T x0, T step, Func F) {
+                std::vector<std::pair<T, T>> points;
+                for (int i = 0; i < k; ++i) {
+                    T x = x0 + i * step;
+                    points.emplace_back(x, F(x));
+                }
+                return points;
+            }
+
+            template<typename T, typename Func>std::vector<std::pair<T, T>> GeneratePointsEquallySufficient(int k, T a, T b, Func F) {
+                T step = (b - a) / k;
+                std::vector<std::pair<T, T>> points;
+                for (int i = 0; i < k; ++i) {
+                    T x = a + i * step;
+                    points.emplace_back(x, F(x));
+                }
+                return points;
+            }
+
+            template<typename T, typename Func>std::vector<std::pair<T, T>> GeneratePointsOptimal(int n, T a, T b, Func F) {
+                std::vector<std::pair<T, T>> points;
+                for (int i = 0; i < n; ++i) {
+                    T x = (0.5) * ((b - a) * std::cos(M_PI * ((2.0 * i + 1) / (2 * (n)+1))) + (b + a));
+                    points.emplace_back(x, F(x));
+                }
+                return points;
+            }
+        }
+        using namespace point_generators;
+
+        template<typename P>polynomial<P> NutonInterpolation(std::vector<std::pair<P, P>> Array_xy) {
+
+            Array_xy = FilterByUniqueX(Array_xy);
+            polynomial<P> Ans = 0, w_k = 1;
+
+            for (size_t i = 1; i < Array_xy.size(); i++)
+            {
+
+                Ans = Ans + w_k * (Array_xy[0].second);
+                for (size_t j = 0; j < Array_xy.size() - i; j++)
+                {
+                    Array_xy[j].second = (Array_xy[j + 1].second - Array_xy[j].second) / (Array_xy[j + i].first - Array_xy[j].first);
+                }
+
+                w_k = w_k * ((static_cast<polynomial<P>>(1) >> 1) - Array_xy[i - 1].first);
+            }
+            Ans = Ans.cutbag();
+            return Ans;
+        }
+
+        template<typename P>polynomial<P> AlternativNutonInterpolation(std::vector<std::pair<P, P>> Array_xy) {
+            Array_xy = FilterByUniqueX(Array_xy);
+            polynomial<P> Ans = 0, w_k = 1;
+            size_t n = Array_xy.size();
+
+            for (size_t i = 0; i < n; ++i) {
+
+                P diff = 0;
+                for (size_t j = 0; j <= i; ++j) {
+
+                    P denominator = 1;
+                    for (size_t k = 0; k <= i; ++k) {
+                        if (k != j) {
+                            denominator *= (Array_xy[j].first - Array_xy[k].first);
                         }
-                        diff += Array_xy[j].second / denominator;
                     }
-
-                    Ans = Ans + w_k * diff;
-
-                    if (i < n - 1) {
-                        w_k = w_k * ((static_cast<polynomial<P>>(1) >> 1) - Array_xy[i].first);
-                    }
+                    diff += Array_xy[j].second / denominator;
                 }
 
-                return Ans.cutbag();
+                Ans = Ans + w_k * diff;
+
+                if (i < n - 1) {
+                    w_k = w_k * ((static_cast<polynomial<P>>(1) >> 1) - Array_xy[i].first);
+                }
             }
 
-            namespace numerator_of_the_kth_basic_Lagrange_polynomial{
-                // return wₖ(T₀) = (t - t₀) × (t - t₁) × ... × (t - tₖ₋₁) × (t - tₖ₊₁) × ... × (t - tₙ)
-                // n=array.size(),
-                // k = T0
-                // tₛ = array[s]
-                template<typename P>polynomial<P> w_k_T0(std::vector<P> array, int64_t T0)
+            return Ans.cutbag();
+        }
+
+        namespace numerator_of_the_kth_basic_Lagrange_polynomial {
+            // return wₖ(T₀) = (t - t₀) × (t - t₁) × ... × (t - tₖ₋₁) × (t - tₖ₊₁) × ... × (t - tₙ)
+            // n=array.size(),
+            // k = T0
+            // tₛ = array[s]
+            template<typename P>polynomial<P> w_k_T0(std::vector<P> array, int64_t T0)
+            {
+                polynomial<P> a(1);
+                for (uint64_t i = 0; i < array.size(); i++)
                 {
-                    polynomial<P> a(1);
-                    for (uint64_t i = 0; i < array.size(); i++)
-                    {
-                        if (i != T0) {
-                            polynomial<P> b(1);
-                            b = 1; b = b >> 1;
-                            b = b - array[i];
-                            a = a * b;
-                        }
+                    if (i != T0) {
+                        polynomial<P> b(1);
+                        b = 1; b = b >> 1;
+                        b = b - array[i];
+                        a = a * b;
                     }
-                    return a;
                 }
-                // return wₖ(T₀) = (t - t₀) × (t - t₁) × ... × (t - tₖ₋₁) × (t - tₖ₊₁) × ... × (t - tₙ)
-                // n=array.size(),
-                // k = T0
-                // tₛ = array[s].first
-                template<typename P>polynomial<P> w_k_T0(std::vector<std::pair<P, P>>& array_xy, int64_t T0)
-                {
-                    polynomial<P> a(1);
-                    for (uint64_t i = 0; i < array_xy.size(); i++)
-                    {
-                        if (i != T0) {
-                            polynomial<P> b(1);
-                            b = 1; b = b >> 1;
-                            b = b - array_xy[i].first;
-                            a = a * b;
-                        }
-                    }
-                    return a;
-                }
+                return a;
             }
-            using namespace numerator_of_the_kth_basic_Lagrange_polynomial;
-
-            template<typename P>polynomial<P> LagrangInterpolation(std::vector<std::pair<P, P>> Array_xy) {
-                Array_xy = filter_by_unique_x(Array_xy);
-                polynomial<P> ans(0);
-                for (uint64_t i = 0; i < Array_xy.size(); i++)
+            // return wₖ(T₀) = (t - t₀) × (t - t₁) × ... × (t - tₖ₋₁) × (t - tₖ₊₁) × ... × (t - tₙ)
+            // n=array.size(),
+            // k = T0
+            // tₛ = array[s].first
+            template<typename P>polynomial<P> w_k_T0(std::vector<std::pair<P, P>>& array_xy, int64_t T0)
+            {
+                polynomial<P> a(1);
+                for (uint64_t i = 0; i < array_xy.size(); i++)
                 {
-                    auto pl = w_k_T0(Array_xy, i);
-                    ans = ans + (pl / (pl(Array_xy[i].first))) * Array_xy[i].second;
+                    if (i != T0) {
+                        polynomial<P> b(1);
+                        b = 1; b = b >> 1;
+                        b = b - array_xy[i].first;
+                        a = a * b;
+                    }
                 }
-                return ans;
+                return a;
             }
-            
-            template<typename P>polynomial<P> AlternativLagrangInterpolation(std::vector<std::pair<P, P>> Array_xy) {
-                Array_xy = filter_by_unique_x(Array_xy);
-                
-                matrix<P> A(Array_xy.size()),B(Array_xy.size(),1);
-                
-                for (uint64_t i = 0; i < Array_xy.size(); i++)
+        }
+        using namespace numerator_of_the_kth_basic_Lagrange_polynomial;
+
+        template<typename P>polynomial<P> LagrangInterpolation(std::vector<std::pair<P, P>> Array_xy) {
+            Array_xy = FilterByUniqueX(Array_xy);
+            polynomial<P> ans(0);
+            for (uint64_t i = 0; i < Array_xy.size(); i++)
+            {
+                auto pl = w_k_T0(Array_xy, i);
+                ans = ans + (pl / (pl(Array_xy[i].first))) * Array_xy[i].second;
+            }
+            return ans;
+        }
+
+        template<typename P>polynomial<P> AlternativLagrangInterpolation(std::vector<std::pair<P, P>> Array_xy) {
+            Array_xy = FilterByUniqueX(Array_xy);
+
+            matrix<P> A(Array_xy.size()), B(Array_xy.size(), 1);
+
+            for (uint64_t i = 0; i < Array_xy.size(); i++)
+            {
+                P el = Array_xy[i].first, el_ = 1;
+                for (size_t j = 0; j < Array_xy.size(); j++)
                 {
-                    P el = Array_xy[i].first, el_= 1;
-                    for (size_t j = 0; j < Array_xy.size(); j++)
-                    {
-                        A[i][j] = el_ ;
-                        el_ = el_ * el;
-                    }
-                    B[i][0] = Array_xy[i].second;
+                    A[i][j] = el_;
+                    el_ = el_ * el;
                 }
-                A = (A.inverse_M()) * B;
-                //std::cout << A << '\n';
-                polynomial<P> ans(0);
-                ans.set_deg(A.getcol()) ;
-                for (uint64_t i = 0; i < A.getcol()-1; i++)
-                {
-                    ans[i] = A[i][0];
-                    //std::cout << A[i][0] << '\n';
+                B[i][0] = Array_xy[i].second;
+            }
+            A = (A.inverse_M()) * B;
+            //std::cout << A << '\n';
+            polynomial<P> ans(0);
+            ans.set_deg(A.getcol());
+            for (uint64_t i = 0; i < A.getcol() - 1; i++)
+            {
+                ans[i] = A[i][0];
+                //std::cout << A[i][0] << '\n';
+            }
+            return ans;
+
+        }
+
+        namespace transformation_of_a_function_into_a_polynomial {
+            //gives an nuton interpolation of the n degree of the passed function to obtain points at an equal distance from each other
+            template<typename P, typename Func>polynomial<P> N_n(int n, P a, P b, Func F) {
+                return NutonInterpolation(FilterByUniqueX(GeneratePointsEquallySufficientWithStepSize(n, a, (b - a) / n, F)));
+            }
+            //gives nuton an interpolation of the n degree of the passed function to obtain points at the optimal distance from each other
+            template<typename P, typename Func>polynomial<P> N_optn(int n, P a, P b, Func F) {
+                return NutonInterpolation(FilterByUniqueX(GeneratePointsOptimal(n, a, b, F)));
+            }
+            //gives an lagrang interpolation of the n degree of the passed function to obtain points at an equal distance from each other
+            template<typename P, typename Func>polynomial<P> L_n(int n, P a, P b, Func F) {
+                return LagrangInterpolation(FilterByUniqueX(GeneratePointsEquallySufficientWithStepSize(n, a, (b - a) / n, F)));
+
+            }
+            //gives lagrang an interpolation of the n degree of the passed function to obtain points at the optimal distance from each 
+            template<typename P, typename Func>polynomial<P> L_optn(int n, P a, P b, Func F) {
+                return LagrangInterpolation(FilterByUniqueX(GeneratePointsOptimal(n, a, b, F)));
+            }
+        }
+        using namespace transformation_of_a_function_into_a_polynomial;
+
+        namespace max_error {
+            //gives the maximum error of the function GeneratePointsEquallySufficientWithStepSize and NutonInterpolation on the interval [a;b], F := working function
+            template<typename P, typename Func>P RN_n(int n, P a, P b, Func F) {
+                auto table = FilterByUniqueX(GeneratePointsEquallySufficientWithStepSize(n, a, (b - a) / n, F));
+                auto interpolinom = NutonInterpolation(table);
+                P Max_ans = 0;
+                for (const auto& p : table) {
+                    Max_ans = std::max(Max_ans, std::abs(polynomialfunctions::f_polyn_x0_(interpolinom, p.first) - p.second));
                 }
-                return ans;
-                
+                return Max_ans;
+            }
+            //gives the maximum error of the function GeneratePointsOptimal and NutonInterpolation on the interval [a;b], F := working 
+            template<typename P, typename Func>P RN_optn(int n, P a, P b, Func F) {
+                auto table = FilterByUniqueX(GeneratePointsOptimal(n, a, b, F));
+                auto interpolinom = NutonInterpolation(table);
+                P Max_ans = 0;
+                for (const auto& p : table) {
+                    Max_ans = std::max(Max_ans, std::abs(polynomialfunctions::f_polyn_x0_(interpolinom, p.first) - p.second));
+                }
+                return Max_ans;
             }
 
-            namespace transformation_of_a_function_into_a_polynomial {
-                //gives an nuton interpolation of the n degree of the passed function to obtain points at an equal distance from each other
-                template<typename P, typename Func>polynomial<P> N_n(int n, P a, P b, Func F) {
-                    return NutonInterpolation(filter_by_unique_x(generatePoints_equally_sufficient_with_step_size(n, a, (b - a) / n, F)));
+            //gives the maximum error of the function GeneratePointsEquallySufficientWithStepSize and LagrangInterpolation on the interval [a;b], F := working function
+            template<typename P, typename Func>double RL_n(int n, P a, P b, Func F) {
+                auto table = FilterByUniqueX(GeneratePointsEquallySufficientWithStepSize(n, a, (b - a) / n, F));
+                auto interpolinom = LagrangInterpolation(table);
+                double Max_ans = 0;
+                for (const auto& p : table) {
+                    Max_ans = std::max(Max_ans, std::abs(polynomialfunctions::f_polyn_x0_(interpolinom, p.first) - p.second));
                 }
-                //gives nuton an interpolation of the n degree of the passed function to obtain points at the optimal distance from each other
-                template<typename P, typename Func>polynomial<P> N_optn(int n, P a, P b, Func F) {
-                    return NutonInterpolation(filter_by_unique_x(generatePoints_optimal(n, a, b, F)));
-                }
-                //gives an lagrang interpolation of the n degree of the passed function to obtain points at an equal distance from each other
-                template<typename P, typename Func>polynomial<P> L_n(int n, P a, P b, Func F) {
-                    return LagrangInterpolation(filter_by_unique_x(generatePoints_equally_sufficient_with_step_size(n, a, (b - a) / n, F)));
-
-                }
-                //gives lagrang an interpolation of the n degree of the passed function to obtain points at the optimal distance from each 
-                template<typename P, typename Func>polynomial<P> L_optn(int n, P a, P b, Func F) {
-                    return LagrangInterpolation(filter_by_unique_x(generatePoints_optimal(n, a, b, F)));
-                }
+                return Max_ans;
             }
-            using namespace transformation_of_a_function_into_a_polynomial;
 
-            namespace max_error {
-                //gives the maximum error of the function generatePoints_equally_sufficient_with_step_size and NutonInterpolation on the interval [a;b], F := working function
-                template<typename P, typename Func>P RN_n(int n, P a, P b, Func F) {
-                    auto table = filter_by_unique_x(generatePoints_equally_sufficient_with_step_size(n, a, (b - a) / n, F));
-                    auto interpolinom = NutonInterpolation(table);
-                    P Max_ans = 0;
-                    for (const auto& p : table) {
-                        Max_ans = std::max(Max_ans, std::abs(polynomialfunctions::f_polyn_x0_(interpolinom, p.first) - p.second));
-                    }
-                    return Max_ans;
+            //gives the maximum error of the function GeneratePointsOptimal and LagrangInterpolation on the interval [a;b], F := working 
+            template<typename P, typename Func>double RL_optn(int n, P a, P b, Func F) {
+                auto table = FilterByUniqueX(GeneratePointsOptimal(n, a, b, F));
+                auto interpolinom = LagrangInterpolation(table);
+                double Max_ans = 0;
+                for (const auto& p : table) {
+                    Max_ans = std::max(Max_ans, std::abs(polynomialfunctions::f_polyn_x0_(interpolinom, p.first) - p.second));
                 }
-                //gives the maximum error of the function generatePoints_optimal and NutonInterpolation on the interval [a;b], F := working 
-                template<typename P, typename Func>P RN_optn(int n, P a, P b, Func F) {
-                    auto table = filter_by_unique_x(generatePoints_optimal(n, a, b, F));
-                    auto interpolinom = NutonInterpolation(table);
-                    P Max_ans = 0;
-                    for (const auto& p : table) {
-                        Max_ans = std::max(Max_ans, std::abs(polynomialfunctions::f_polyn_x0_(interpolinom, p.first) - p.second));
-                    }
-                    return Max_ans;
-                }
+                return Max_ans;
+            }
 
-                //gives the maximum error of the function generatePoints_equally_sufficient_with_step_size and LagrangInterpolation on the interval [a;b], F := working function
-                template<typename P, typename Func>double RL_n(int n, P a, P b, Func F) {
-                    auto table = filter_by_unique_x(generatePoints_equally_sufficient_with_step_size(n, a, (b - a) / n, F));
-                    auto interpolinom = LagrangInterpolation(table);
-                    double Max_ans = 0;
-                    for (const auto& p : table) {
-                        Max_ans = std::max(Max_ans, std::abs(polynomialfunctions::f_polyn_x0_(interpolinom, p.first) - p.second));
-                    }
-                    return Max_ans;
-                }
+            //Main function of obtaining the maximum error for the interpolation function on the interval [a,b].
+            //n - degree of interpolation polinom,  m - degree of check 
+            template<typename P,
+                typename TheTypeOfFunctionThatBeingInterpolated,
+                typename TypeOfInterpolationFunc,
+                typename TypeFuncOfPointGeneration = decltype(GeneratePointsOptimal<P, TheTypeOfFunctionThatBeingInterpolated>) >
+            auto ErrorOfTheInterpolationFunction(uint64_t n, uint64_t m, P a, P b,
+                TheTypeOfFunctionThatBeingInterpolated F,
+                TypeOfInterpolationFunc interpolation,
+                TypeFuncOfPointGeneration point_generation) -> std::pair<double, decltype(interpolation(std::declval<std::vector<std::pair<P, P>>>())) >
+            {
+                auto table = FilterByUniqueX(point_generation(n + m, a, b, F));
 
-                //gives the maximum error of the function generatePoints_optimal and LagrangInterpolation on the interval [a;b], F := working 
-                template<typename P, typename Func>double RL_optn(int n, P a, P b, Func F) {
-                    auto table = filter_by_unique_x(generatePoints_optimal(n, a, b, F));
-                    auto interpolinom = LagrangInterpolation(table);
-                    double Max_ans = 0;
-                    for (const auto& p : table) {
-                        Max_ans = std::max(Max_ans, std::abs(polynomialfunctions::f_polyn_x0_(interpolinom, p.first) - p.second));
-                    }
-                    return Max_ans;
-                }
+                auto interpolinom = interpolation(
+                    FilterByUniqueX(point_generation(n, a, b, F))
+                );
 
-                //Main function of obtaining the maximum error for the interpolation function on the interval [a,b].
-                //n - degree of interpolation polinom,  m - degree of check 
-                template<typename P,
-                    typename TheTypeOfFunctionThatBeingInterpolated,
-                    typename TypeOfInterpolationFunc,
-                    typename TypeFuncOfPointGeneration = decltype(generatePoints_optimal<P, TheTypeOfFunctionThatBeingInterpolated>) >
-                auto ErrorOfTheInterpolationFunction(uint64_t n, uint64_t m, P a, P b,
-                    TheTypeOfFunctionThatBeingInterpolated F,
-                    TypeOfInterpolationFunc interpolation,
-                    TypeFuncOfPointGeneration point_generation) -> std::pair<double, decltype(interpolation(std::declval<std::vector<std::pair<P, P>>>())) >
-                {
-                    auto table = filter_by_unique_x(point_generation(n + m, a, b, F));
-
-                    auto interpolinom = interpolation(
-                        filter_by_unique_x(point_generation(n, a, b, F))
+                double Max_ans = 0;
+                for (const auto& p : table) {
+                    Max_ans = std::max(
+                        Max_ans,
+                        std::abs((interpolinom(p.first)) - p.second)
                     );
-
-                    double Max_ans = 0;
-                    for (const auto& p : table) {
-                        Max_ans = std::max(
-                            Max_ans,
-                            std::abs((interpolinom(p.first)) - p.second)
-                        );
-                    }
-                    return { Max_ans,std::move(interpolinom) };
                 }
+                return { Max_ans,std::move(interpolinom) };
             }
-            using namespace max_error;
+        }
+        using namespace max_error;
 
-            namespace output_of_characteristics_for_different_data_size_parameters {
-               
+        namespace output_of_characteristics_for_different_data_size_parameters {
 
-                template<typename P = double, typename TypeOfInterpolationFunc /*= decltype(LagrangInterpolation<double>)*/, typename TheTypeOfFunctionThatBeingInterpolated>
-                std::stringstream ShowInterpolationStatistic(TypeOfInterpolationFunc func_interpolation, int n = 10, int m_ = 99, const std::string& interpolation_name = "Unknown",
-                    TheTypeOfFunctionThatBeingInterpolated F = [](double x) { return std::cos(x) / std::sin(x) + x * x; },
-                    P a = LDBL_EPSILON - 2 * M_PI, P b = 2 * M_PI - LDBL_EPSILON,
-                    const uint64_t number_of_displaying_function = 0
-                ) {
-                    //the function will limit the number of points shown
-                    auto ShouldAddPoint = [](uint64_t i, uint64_t n, uint64_t num_display) {
-                        if (num_display == 0) return true;
-                        if (n == 0) return false;
-                        if (n == 1) return (i == 1);
+            template<typename P = double, typename TypeOfInterpolationFunc /*= decltype(LagrangInterpolation<double>)*/, typename TheTypeOfFunctionThatBeingInterpolated>
+            std::stringstream ShowInterpolationStatistic(TypeOfInterpolationFunc func_interpolation, int n = 10, int m_ = 99, const std::string& interpolation_name = "Unknown",
+                TheTypeOfFunctionThatBeingInterpolated F = [](double x) { return std::cos(x) / std::sin(x) + x * x; },
+                P a = LDBL_EPSILON - 2 * M_PI, P b = 2 * M_PI - LDBL_EPSILON,
+                const uint64_t number_of_displaying_function = 0
+            ) {
+                //the function will limit the number of points shown
+                auto ShouldAddPoint = [](uint64_t i, uint64_t n, uint64_t num_display) {
+                    if (num_display == 0) return true;
+                    if (n == 0) return false;
+                    if (n == 1) return (i == 1);
 
-                        double step = (num_display > 1) ? (n - 1.0) / (num_display - 1) : 0;
-                        if (i == 1 || i == n) return true;
-                        if (num_display == 1) return (i == n);
+                    double step = (num_display > 1) ? (n - 1.0) / (num_display - 1) : 0;
+                    if (i == 1 || i == n) return true;
+                    if (num_display == 1) return (i == n);
 
-                        double position = (i - 1.0) / step;
-                        double fractional = position - std::floor(position);
-                        return std::min(fractional, 1.0 - fractional) < 0.01;
-                        };
+                    double position = (i - 1.0) / step;
+                    double fractional = position - std::floor(position);
+                    return std::min(fractional, 1.0 - fractional) < 0.01;
+                    };
 
-                    using InterpolationResult = decltype(func_interpolation(std::declval<std::vector<std::pair<P, P>>>()));
-                    std::stringstream Ans;
-                    int s1 = std::max(std::toupper(log10(n)), 3), s2 = std::max(std::toupper(log10(n + m_)), 3), s3 = 2 + interpolation_name.size() + 2, s4 = std::string{ "R_teoretical_n" }.size() + 6, s5 = std::string{ "R_teoretical_opt__n" }.size() + 6;
-                    Ans << "\n"
-                        << std::left
-                        << "+" + (std::string(s1, '-') + "+") + (std::string(s2, '-') + "+") + (std::string(s3, '-') + "+") + (std::string(s3 + 5, '-') + "+") + (std::string(s4, '-') + "+") + (std::string(s5, '-'))
-                        << "+" << "\n"
+                using InterpolationResult = decltype(func_interpolation(std::declval<std::vector<std::pair<P, P>>>()));
+                std::stringstream Ans;
+                int s1 = std::max(std::toupper(log10(n)), 3), s2 = std::max(std::toupper(log10(n + m_)), 3), s3 = 2 + interpolation_name.size() + 2, s4 = std::string{ "R_teoretical_n" }.size() + 6, s5 = std::string{ "R_teoretical_opt__n" }.size() + 6;
+                Ans << "\n"
+                    << std::left
+                    << "+" + (std::string(s1, '-') + "+") + (std::string(s2, '-') + "+") + (std::string(s3, '-') + "+") + (std::string(s3 + 5, '-') + "+") + (std::string(s4, '-') + "+") + (std::string(s5, '-'))
+                    << "+" << "\n"
 
-                        << std::left
-                        << std::setw(1) << "|"
-                        << std::setw(s1) << "(n)"
-                        << std::setw(1) << "|"
-                        << std::setw(s2) << "(m)"
-                        << std::setw(1) << "|"
-                        << std::setw(s3) << "R_" + interpolation_name + "_n"
-                        << std::setw(1) << "|"
-                        << std::setw(s3 + 5) << "R_" + interpolation_name + "_opt__n"
+                    << std::left
+                    << std::setw(1) << "|"
+                    << std::setw(s1) << "(n)"
+                    << std::setw(1) << "|"
+                    << std::setw(s2) << "(m)"
+                    << std::setw(1) << "|"
+                    << std::setw(s3) << "R_" + interpolation_name + "_n"
+                    << std::setw(1) << "|"
+                    << std::setw(s3 + 5) << "R_" + interpolation_name + "_opt__n"
 
 
-                        << std::setw(1) << "|"
-                        << std::setw(s4) << "R_teoretical_n/M_n+1"
-                        << std::setw(1) << "|"
-                        << std::setw(s5) << "R_teoretical_opt__n/M_n+1"
-                        << std::setw(1) << "|"
+                    << std::setw(1) << "|"
+                    << std::setw(s4) << "R_teoretical_n/M_n+1"
+                    << std::setw(1) << "|"
+                    << std::setw(s5) << "R_teoretical_opt__n/M_n+1"
+                    << std::setw(1) << "|"
 
-                        << "\n+" + (std::string(s1, '-') + "+") + (std::string(s2, '-') + "+") + (std::string(s3, '-') + "+") + (std::string(s3 + 5, '-') + "+") + (std::string(s4, '-') + "+") + (std::string(s5, '-'))
-                        << "+" << "\n";
+                    << "\n+" + (std::string(s1, '-') + "+") + (std::string(s2, '-') + "+") + (std::string(s3, '-') + "+") + (std::string(s3 + 5, '-') + "+") + (std::string(s4, '-') + "+") + (std::string(s5, '-'))
+                    << "+" << "\n";
 
-                    std::vector<std::function<P(P)>> functions_n, functions_opt, functions_n_abs_diff, functions_opt_abs_diff;
-                    //==
-                    functions_n.reserve(n + 1);
-                    functions_n.push_back(F);
+                std::vector<std::function<P(P)>> functions_n, functions_opt, functions_n_abs_diff, functions_opt_abs_diff;
+                //==
+                functions_n.reserve(n + 1);
+                functions_n.push_back(F);
 
-                    functions_opt.reserve(n + 1);
-                    functions_opt.push_back(F);
-                    //==
-                    functions_n_abs_diff.reserve(n);
-                    functions_opt_abs_diff.reserve(n);
+                functions_opt.reserve(n + 1);
+                functions_opt.push_back(F);
+                //==
+                functions_n_abs_diff.reserve(n);
+                functions_opt_abs_diff.reserve(n);
 
-                    //==
-                    for (uint64_t i = 2; i <= n; i++)
-                    {
-                        auto rn = ErrorOfTheInterpolationFunction(i, m_, a, b, F, func_interpolation, generatePoints_equally_sufficient_);
-                        auto rn_opt = ErrorOfTheInterpolationFunction(i, m_, a, b, F, func_interpolation, generatePoints_optimal);
-                        //
-                        auto interp_fn = rn.second;//func_interpolation(generatePoints_equally_sufficient_(i, a, b, F));
-                        auto interp_fopt = rn_opt.second;//func_interpolation(generatePoints_optimal(i, a, b, F));
+                //==
+                for (uint64_t i = 2; i <= n; i++)
+                {
+                    auto rn = ErrorOfTheInterpolationFunction(i, m_, a, b, F, func_interpolation, GeneratePointsEquallySufficient);
+                    auto rn_opt = ErrorOfTheInterpolationFunction(i, m_, a, b, F, func_interpolation, GeneratePointsOptimal);
+                    //
+                    auto interp_fn = rn.second;//func_interpolation(GeneratePointsEquallySufficient(i, a, b, F));
+                    auto interp_fopt = rn_opt.second;//func_interpolation(GeneratePointsOptimal(i, a, b, F));
 
-                        if (ShouldAddPoint(i, n, number_of_displaying_function)) {
-                            //auto poly = N_optn(i, a, b, F);
-                            functions_n.push_back(rn.second);
-                            functions_opt.push_back(rn_opt.second);
-                            functions_n_abs_diff.push_back([interp_fn, F](P x) {return std::abs(interp_fn(x) - F(x)); });
-                            functions_opt_abs_diff.push_back([interp_fopt, F](P x) { return std::abs(interp_fopt(x) - F(x)); });
-                        }
-                        //
-
-                        Ans << std::left
-                            << std::setw(1) << "|"
-                            << std::setw(s1) << i
-                            << std::setw(1) << "|"
-                            << std::setw(s2) << m_
-                            << std::setw(1) << "|"
-                            << std::setw(s3) << std::setprecision(12) << rn.first
-                            << std::setw(1) << "|"
-                            << std::setw(s3 + 5) << std::setprecision(12) << rn_opt.first;
-                        if constexpr (std::is_same_v<InterpolationResult, polynomial<P>>) {
-                            Ans << std::setw(1) << "|"
-                                << std::setw(s4) << std::setprecision(12) << methodic_error(teoretical_max_error.at(interpolation_name + "generatePoints_equally_sufficient_"), generatePoints_equally_sufficient_(i, a, b, F), func_interpolation)
-                                << std::setw(1) << "|"
-                                << std::setw(s5) << std::setprecision(12) << methodic_error(teoretical_max_error.at(interpolation_name + "generatePoints_optimal"), generatePoints_optimal(i, a, b, F), func_interpolation)
-                                << std::setw(1) << "|"
-                                << "\n";
-                        }
-                        else if constexpr (std::is_same_v<InterpolationResult, Spline<P>>) {
-                            Ans << std::setw(1) << "|"
-                                << std::setw(s4) << std::setprecision(12) << "has not"
-                                << std::setw(1) << "|"
-                                << std::setw(s5) << std::setprecision(12) << "has not"
-                                << std::setw(1) << "|"
-                                << "\n";
-                        }
-
+                    if (ShouldAddPoint(i, n, number_of_displaying_function)) {
+                        //auto poly = N_optn(i, a, b, F);
+                        functions_n.push_back(rn.second);
+                        functions_opt.push_back(rn_opt.second);
+                        functions_n_abs_diff.push_back([interp_fn, F](P x) {return std::abs(interp_fn(x) - F(x)); });
+                        functions_opt_abs_diff.push_back([interp_fopt, F](P x) { return std::abs(interp_fopt(x) - F(x)); });
                     }
-                    Ans << "+" + (std::string(s1, '-') + "+") + (std::string(s2, '-') + "+") + (std::string(s3, '-') + "+") + (std::string(s3 + 5, '-') + "+") + (std::string(s4, '-') + "+") + (std::string(s5, '-')) << "+"
-                        << "\n";
-                    std::cout << Ans.str();
+                    //
 
-                    // // // //
-                    std::vector<std::function<P(P)>> addition_functions_n, addition_functions_opt, addition_functions_n_abs_diff, addition_functions_opt_abs_diff;
-                    if (interpolation_name == "Spline_interpolator<3, 2, double>") {
-
-
-                        auto func_interpolation_two = NutonInterpolation<double>;
-
-                        auto rn = ErrorOfTheInterpolationFunction(n, m_, a, b, F, func_interpolation_two, generatePoints_equally_sufficient_);
-                        auto rn_opt = ErrorOfTheInterpolationFunction(n, m_, a, b, F, func_interpolation_two, generatePoints_optimal);
-                        //
-                        auto interp_fn = rn.second;//func_interpolation(generatePoints_equally_sufficient_(i, a, b, F));
-                        auto interp_fopt = rn_opt.second;//func_interpolation(generatePoints_optimal(i, a, b, F));
-
-
-                        addition_functions_n.push_back(rn.second);
-                        addition_functions_opt.push_back(rn_opt.second);
-                        addition_functions_n_abs_diff.push_back([interp_fn, F](P x) {return std::abs(interp_fn(x) - F(x)); });
-                        addition_functions_opt_abs_diff.push_back([interp_fopt, F](P x) { return std::abs(interp_fopt(x) - F(x)); });
+                    Ans << std::left
+                        << std::setw(1) << "|"
+                        << std::setw(s1) << i
+                        << std::setw(1) << "|"
+                        << std::setw(s2) << m_
+                        << std::setw(1) << "|"
+                        << std::setw(s3) << std::setprecision(12) << rn.first
+                        << std::setw(1) << "|"
+                        << std::setw(s3 + 5) << std::setprecision(12) << rn_opt.first;
+                    if constexpr (std::is_same_v<InterpolationResult, polynomial<P>>) {
+                        Ans << std::setw(1) << "|"
+                            << std::setw(s4) << std::setprecision(12) << MethodicError(teoretical_max_error.at(interpolation_name + "GeneratePointsEquallySufficient"), GeneratePointsEquallySufficient(i, a, b, F), func_interpolation)
+                            << std::setw(1) << "|"
+                            << std::setw(s5) << std::setprecision(12) << MethodicError(teoretical_max_error.at(interpolation_name + "GeneratePointsOptimal"), GeneratePointsOptimal(i, a, b, F), func_interpolation)
+                            << std::setw(1) << "|"
+                            << "\n";
                     }
-                    // // // //
+                    else if constexpr (std::is_same_v<InterpolationResult, Spline<P>>) {
+                        Ans << std::setw(1) << "|"
+                            << std::setw(s4) << std::setprecision(12) << "has not"
+                            << std::setw(1) << "|"
+                            << std::setw(s5) << std::setprecision(12) << "has not"
+                            << std::setw(1) << "|"
+                            << "\n";
+                    }
+
+                }
+                Ans << "+" + (std::string(s1, '-') + "+") + (std::string(s2, '-') + "+") + (std::string(s3, '-') + "+") + (std::string(s3 + 5, '-') + "+") + (std::string(s4, '-') + "+") + (std::string(s5, '-')) << "+"
+                    << "\n";
+                std::cout << Ans.str();
+
+                // // // //
+                std::vector<std::function<P(P)>> addition_functions_n, addition_functions_opt, addition_functions_n_abs_diff, addition_functions_opt_abs_diff;
+                if (interpolation_name == "Spline_interpolator<3, 2, double>") {
+
+
+                    auto func_interpolation_two = NutonInterpolation<double>;
+
+                    auto rn = ErrorOfTheInterpolationFunction(n, m_, a, b, F, func_interpolation_two, GeneratePointsEquallySufficient);
+                    auto rn_opt = ErrorOfTheInterpolationFunction(n, m_, a, b, F, func_interpolation_two, GeneratePointsOptimal);
+                    //
+                    auto interp_fn = rn.second;//func_interpolation(GeneratePointsEquallySufficient(i, a, b, F));
+                    auto interp_fopt = rn_opt.second;//func_interpolation(GeneratePointsOptimal(i, a, b, F));
+
+
+                    addition_functions_n.push_back(rn.second);
+                    addition_functions_opt.push_back(rn_opt.second);
+                    addition_functions_n_abs_diff.push_back([interp_fn, F](P x) {return std::abs(interp_fn(x) - F(x)); });
+                    addition_functions_opt_abs_diff.push_back([interp_fopt, F](P x) { return std::abs(interp_fopt(x) - F(x)); });
+                }
+                // // // //
 #if __has_include(<SFML/Graphics.hpp>)
 
-                    DrawFunctions(functions_n, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_n"), addition_functions_n);
-                    DrawFunctions(functions_opt, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_opt__n"), addition_functions_opt);
+                DrawFunctions(functions_n, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_n"), addition_functions_n);
+                DrawFunctions(functions_opt, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_opt__n"), addition_functions_opt);
 
-                    DrawFunctions(functions_n_abs_diff, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_n_abs_diff"), addition_functions_n_abs_diff);
-                    DrawFunctions(functions_opt_abs_diff, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "opt_n_abs_diff"), addition_functions_opt_abs_diff);
+                DrawFunctions(functions_n_abs_diff, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "_n_abs_diff"), addition_functions_n_abs_diff);
+                DrawFunctions(functions_opt_abs_diff, a, b, std::vector<std::pair<P, P>>{}, ("R_" + interpolation_name + "opt_n_abs_diff"), addition_functions_opt_abs_diff);
 
 
 #else
-                    std::cout << "\n__has_include(<SFML/Graphics.hpp>)==0\n"
-                        << "not working DrawFunctions(functions_n)" << "\n"
-                        << "not working DrawFunctions(functions_opt)" << "\n";
+                std::cout << "\n__has_include(<SFML/Graphics.hpp>)==0\n"
+                    << "not working DrawFunctions(functions_n)" << "\n"
+                    << "not working DrawFunctions(functions_opt)" << "\n";
 #endif
-                    return Ans;
-                }
-                
-
+                return Ans;
             }
-            using  namespace output_of_characteristics_for_different_data_size_parameters;
-            
+
+        }
+        using  namespace output_of_characteristics_for_different_data_size_parameters;
+
     }
 };
 
-    namespace aproximate {
+#if 0
+namespace aproximate {
     namespace auxiliary_functions {
         // dot of ortagoality
         //degree of polinom
@@ -679,7 +673,7 @@ namespace counting_methods_2 {
             y.push_back(point.second);
         }
 
-        std::vector<polynomial<P>> phi = counting_methods_2::aproximate::GetSystemOfOrthogonalPolynomials(x, n);
+        std::vector<polynomial<P>> phi = ::aproximate::GetSystemOfOrthogonalPolynomials(x, n);
 
         std::vector<P> c(n, 0.0);
 
@@ -764,7 +758,7 @@ namespace counting_methods_2 {
             functions_ortog.push_back(F);
 
             // // // //data
-            std::vector<std::pair<double, double>> clean_points = counting_methods_2::polynomial_interpolation::nuton2::generatePoints_equally_sufficient_(size, a, b, F);
+            std::vector<std::pair<double, double>> clean_points = ::polynomial_interpolation::nuton2::GeneratePointsEquallySufficient(size, a, b, F);
             auto noisy_points = AddNoiseToPoints(clean_points, 3, 0.2);
             noisy_points.insert(noisy_points.end(), clean_points.begin(), clean_points.end());
             // // // //
@@ -805,5 +799,4 @@ namespace counting_methods_2 {
     using namespace output_of_characteristics_for_different_data_size_parameters;
 
 }
-
-}
+#endif
