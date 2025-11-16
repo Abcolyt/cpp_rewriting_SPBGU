@@ -643,15 +643,15 @@ namespace sem_5 {
 
     template<typename TArg, typename TResult>
     struct TestConfig {
-        std::function<TResult(TArg)> function;      // Интегрируемая функция
-        std::function<TResult(TArg)> reference;     // Первообразная (эталонная функция)
+        std::function<TResult(TArg)> function;  // Integrated function
+        std::function<TResult(TArg)> reference; // Primitive (reference function)
         TArg a;
         TArg b;
-        TResult expected;                           // Ожидаемый результат
-        TResult tolerance;                          // Допустимая погрешность
+        TResult expected;                       // Expected result
+        TResult tolerance;                      // Margin of error
         int points;
-        std::string name;                           // Имя конфигурации( для отладки)
-        TArg alpha;                                 // Дополнительный параметр
+        std::string name;                       // Configuration name(for debugging)
+        TArg alpha;                             // Additional parameter
         TArg beta;
         int max_iteration = 10;
     };
@@ -678,12 +678,12 @@ namespace sem_5 {
            0.0,.25,
            1
     };
-    
     }
 
     void sem_5_part1() {
         using namespace integral;
         auto configurate = exemple_1;
+        IntegrationResult<double> result;
 #define EXECUTION_PART all
 
 #if EXECUTION_PART == 10 || EXECUTION_PART == all
@@ -719,9 +719,6 @@ namespace sem_5 {
         //The rate of convergence according to Aitken's rule.
         // 
         //The length of the step ℎ of the partition.
-        IntegrationResult<double> result;
-
-        
 #if EXECUTION_PART == 21 || EXECUTION_PART == all
         result = adaptive_integrate<IntegrateMethod::NEWTON_COTES_3_POINT>(
                 configurate.function, configurate.a, configurate.b, configurate.tolerance, 1, { configurate.alpha, configurate.beta });
@@ -746,8 +743,6 @@ namespace sem_5 {
         ////
 #undef EXECUTION_PART
     }
-
-
 
     namespace differential_equation_conf {
 
@@ -1144,8 +1139,6 @@ namespace sem_5 {
 
         auto working_example = training_example;
         std::stringstream buffer;
-
-
         auto compute_error = [](const auto& var, const auto& working_example) {
             using ValueType = std::decay_t<decltype(var.second)>;
 
@@ -1161,18 +1154,12 @@ namespace sem_5 {
         //A second-order calculation scheme based on second-order conditions for the 2-stage explicit Rungi-Kutta method for the c2 parameter
 #if EXECUTION_PART == 11 || EXECUTION_PART == all
        
-         
-
-       
-
-
 #endif  
 
         // Implementation of RK scheme construction with parameter c2 = ξ
         // 1.2 Implement constant-step RK method with total error estimation using Runge method
         //     (ε = 1e-4), initial step selection according to algorithm
 #if EXECUTION_PART == 12 || EXECUTION_PART == all
-        
         auto solution1 = SolveASystemOfOrdinaryDifferentialEquationsEqualStepsWithATotalError<DifferencialMethod::RungeKutta3ndOrder1,double,matrix<double>>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, working_example.global_accuracy, working_example.c2);
         std::cout << "sol1 \n";
         
@@ -1222,7 +1209,6 @@ namespace sem_5 {
         std::cout << buffer.str();
         buffer.str("");
         buffer.clear();
-
 #endif
 
         // 3.2 Determine integration step h for constant-step methods (2-stage RK 2nd order
@@ -1268,27 +1254,21 @@ namespace sem_5 {
 
         // 3.3.2 Plot ratio of true local error to estimated local error vs x
 #if EXECUTION_PART == 332 || EXECUTION_PART == all
-
         CauchyComparasionRatioTrueLocalErrorToEstimatedLocalError_vs_X<DifferencialMethod::RK2, DifferencialMethod::RK3>(working_example);
-        
 #endif
 
         // 3.3.3 Plot number of right-hand side evaluations vs accuracy ε
 #if EXECUTION_PART == 333 || EXECUTION_PART == all
         std::vector<double> display_call_count_number;
         for (int i=0; i < 15; i++) {
-
             auto solution = SolveODE<DifferencialMethod::RK3, ErrorMethod::RungeLocal>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, 1.0/std::pow(2,3*i), working_example.c2);
             std::cout << "i:" << i << "\tcount:" << rhs_counter.count() << "\n";
             display_call_count_number.push_back(rhs_counter.count());
             rhs_counter.reset();
-
         }
-        
         std::vector<std::function<double(double)>> getOXhFunctionsVector;
         getOXhFunctionsVector.push_back({ createLambda(display_call_count_number) });
         DrawFunctions(getOXhFunctionsVector);
-
 #endif
         ////
 

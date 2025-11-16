@@ -654,7 +654,6 @@ namespace details {
         }
         ////
 
-
         //main function
         template<typename T = double>
         std::pair<matrix<T>, matrix<T>> GetNGausCoefficientWithP_x_FunctionConstants(const std::unordered_map<int, T>& miu) {
@@ -1179,7 +1178,5 @@ IntegrationResult<TResult> optimized_adaptive_integration(
     return result;
 #undef DEBUG_INPUT
 }
-
-
 
 #include "../_cpp_realisation_file/integral.cpp"
