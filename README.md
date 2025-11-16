@@ -31,7 +31,7 @@
   documents
 
 ## библиотеки
-- sfml в Array_xy_To_.h
+- sfml в Array_xy_To_.h - отрисовка графиков
 - google tests, для взаимодействий с тестами
 
 скачивал через vcpkg
