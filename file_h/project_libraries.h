@@ -21,7 +21,7 @@
 
 //My algorithms for libraries
 #include "../file_h/counting_methods_1.h"
-#include "../file_h/counting_methods_2.h"
+#include "../file_h/interpolators.h"
 #include "../file_h/Array_xy_To_.h"   ////drawing graphs 
 #include "../file_h/calc_computing_f.h"
 #include "../file_h/Spline.h"

@@ -5,8 +5,6 @@ VisualStudioVersion = 17.7.34031.279
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cpp_rewriting_SPBGU", "cpp_rewriting_SPBGU.vcxproj", "{DF8716F3-C335-4BB5-9906-09ECF7166D0D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sample-Test1", "..\googltests_to_rewriting_SPBGU_proj\Sample-Test1.vcxproj", "{316163DC-602C-45DD-95AA-2ECE64DE167F}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Google_Test_cpprewriting_1_16_0", "..\Google_Test_cpprewriting_1_16_0\Google_Test_cpprewriting_1_16_0.vcxproj", "{67930721-665A-446F-8505-F0E3379DA1B0}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DF8716F3-C335-4BB5-9906-09ECF7166D0D} = {DF8716F3-C335-4BB5-9906-09ECF7166D0D}
@@ -30,14 +28,6 @@ Global
 		{DF8716F3-C335-4BB5-9906-09ECF7166D0D}.Release|x64.Build.0 = Release|x64
 		{DF8716F3-C335-4BB5-9906-09ECF7166D0D}.Release|x86.ActiveCfg = Release|Win32
 		{DF8716F3-C335-4BB5-9906-09ECF7166D0D}.Release|x86.Build.0 = Release|Win32
-		{316163DC-602C-45DD-95AA-2ECE64DE167F}.Debug|x64.ActiveCfg = Debug|x64
-		{316163DC-602C-45DD-95AA-2ECE64DE167F}.Debug|x64.Build.0 = Debug|x64
-		{316163DC-602C-45DD-95AA-2ECE64DE167F}.Debug|x86.ActiveCfg = Debug|Win32
-		{316163DC-602C-45DD-95AA-2ECE64DE167F}.Debug|x86.Build.0 = Debug|Win32
-		{316163DC-602C-45DD-95AA-2ECE64DE167F}.Release|x64.ActiveCfg = Release|x64
-		{316163DC-602C-45DD-95AA-2ECE64DE167F}.Release|x64.Build.0 = Release|x64
-		{316163DC-602C-45DD-95AA-2ECE64DE167F}.Release|x86.ActiveCfg = Release|Win32
-		{316163DC-602C-45DD-95AA-2ECE64DE167F}.Release|x86.Build.0 = Release|Win32
 		{67930721-665A-446F-8505-F0E3379DA1B0}.Debug|x64.ActiveCfg = Debug|x64
 		{67930721-665A-446F-8505-F0E3379DA1B0}.Debug|x64.Build.0 = Debug|x64
 		{67930721-665A-446F-8505-F0E3379DA1B0}.Debug|x86.ActiveCfg = Debug|Win32

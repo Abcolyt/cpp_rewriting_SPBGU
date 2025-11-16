@@ -1,10 +1,10 @@
-#pragma once
 #include "file_h/complex.h"
 #include "file_h/fraction.h"
 #include "file_h/polynomial.h"
 #include "file_h/matrix.h"
+#pragma once
 
-class Polynomial;
+//class Polynomial;
 
 namespace counting_methods {
 
@@ -15,19 +15,11 @@ namespace counting_methods {
             std::cerr << "error file open: " << filename << std::endl;
             return; 
         }
-
         func();
-
         fclose(file);
     }
 
-
-
-
     namespace polinomial {
-
-
-
 
         void polynomial_test() {
             polynomial<Complex> plnm, b;
@@ -38,11 +30,7 @@ namespace counting_methods {
             {
                 std::cout << "root:(" << ans[i].first << ")\niteration for this root:" << ans[i].second << " \n";
             }
-
-
         }
-
-
     }
 
     namespace nonlinear_system_with_simple_iterations {
@@ -82,7 +70,7 @@ namespace counting_methods {
 
             throw std::runtime_error("Maximum iterations reached without convergence");
         }
-
+        
         int run_nnssi_with_setted_nonlinear_function() {
             //We define the functions of the system of equations 13
             std::vector<Function> functions1 = {
@@ -109,10 +97,11 @@ namespace counting_methods {
 
             return 0;
         }
+
         int run_nnssi_with_setted_linear_function() {
             //We define the functions of the system of equations 13
             std::vector<Function> functions1 = {
-                [](const std::vector<double>& x) { return (24.4781 - (0.0496 * x[1] + 0.0444 * x[2] + 0.0393 * x[3])) / 16; },
+                [](const std::vector<double>& x) { return (24.4781 - (.0496 * x[1] + .0444 * x[2] + .0393 * x[3])) / 16; },
                 [](const std::vector<double>& x) { return (26.0849 - (.0688 * x[0] + .0585 * x[2] + .0534 * x[3])) / 15.1; } ,
                 [](const std::vector<double>& x) { return (27.3281 - (.0829 * x[0] + .0777 * x[1] + .0674 * x[3])) / 14.2000; },
                 [](const std::vector<double>& x) { return (28.2078 - (.0970 * x[0] + .0918 * x[1] + .0867 * x[2])) / 13.3000;  }
@@ -138,12 +127,7 @@ namespace counting_methods {
             return 0;
         }
 
-
     }
-
-
-
-
 
     namespace nonlinear_system_with_the_tangent_method {
         using Function = std::function<double(const std::vector<double>&)>;
@@ -234,7 +218,6 @@ namespace counting_methods {
                 };
                 };
 
-            
             std::vector<double> initial_guess = { 0.1, 0.1 };
 
             try {
@@ -274,8 +257,6 @@ namespace counting_methods {
         }
 
         void gaus_solver_linear_sistem() {
-
-
             try
             {
                 matrix<double> a;
@@ -314,11 +295,7 @@ namespace counting_methods {
             A[2][0] = 1.3446; A[2][1] = 21.9666; A[2][2] = 74.7291; A[2][3] = 93.3867;
             A[3][0] = 1.9192; A[3][1] = 28.7604; A[3][2] = 93.3867; A[3][3] = 208.6609;
 
-
-
-
             std::cout << "inpyt matrix:\n" << A;
-
             try {
                 matrix<double> A_inv = (A.cholesky().inverse_M()).transpose() * A.cholesky().inverse_M();
                 std::cout << " A^{-1}:\n" << A_inv;

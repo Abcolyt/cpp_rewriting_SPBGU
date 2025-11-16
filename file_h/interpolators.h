@@ -406,7 +406,6 @@ namespace demonstrate_statistic{
     ) {
         using namespace polynomial_interpolation;
         using namespace polynomial_interpolation::max_error;
-        using namespace polynomial_interpolation::transformation_of_a_function_into_a_polynomial;
 
         //the function will limit the number of points shown
         auto ShouldAddPoint = [](uint64_t i, uint64_t n, uint64_t num_display) {
@@ -552,10 +551,10 @@ using namespace demonstrate_statistic;
 
 enum class InterpolationMethod
 {
-    NutonOptimal = 0,//The calculation of the divided differences is iterative
-    AlternativNuton,
-    LagrangOptimal,
-    AlternativLagrang
+    NutonOptimal = 0,   //The calculation of the divided differences is iterative o(n^2)
+    AlternativNuton,    //o(n^3)
+    LagrangOptimal,     //o(n^2)
+    AlternativLagrang   //o(n^3)
 };
 
 template<typename P, InterpolationMethod method>polynomial<P> GetInterpolationPolynom(std::vector<std::pair<P, P>> Array_xy) {
