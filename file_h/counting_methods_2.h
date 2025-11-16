@@ -54,6 +54,27 @@ namespace point_generators {
         }
         return points;
     }
+
+    template<typename P>std::vector<std::pair<P, P>> FilterByUniqueX(std::vector<std::pair<P, P>> Array_xy) {
+
+        std::sort(
+            Array_xy.begin(),
+            Array_xy.end(),
+            [](const auto& a, const auto& b) {return a.first < b.first; }
+        );
+
+        std::vector<std::pair<P, P>> result;
+        result.push_back(Array_xy[0]);
+        for (size_t i = 1; i < Array_xy.size(); ++i) {
+
+            if (Array_xy[i].first == Array_xy[i - 1].first) {
+
+                continue;
+            }
+            result.push_back(Array_xy[i]);
+        }
+        return result;
+    }
 }
 using namespace point_generators;
 
@@ -70,27 +91,6 @@ namespace polynomial_interpolation {
             return (exponent == 0) ? 1 : (base * pow(base, exponent - 1));
         }
 
-        template<typename P>std::vector<std::pair<P, P>> FilterByUniqueX(std::vector<std::pair<P, P>> Array_xy) {
-
-            std::sort(
-                Array_xy.begin(),
-                Array_xy.end(),
-                [](const auto& a, const auto& b) {return a.first < b.first; }
-            );
-
-            std::vector<std::pair<P, P>> result;
-            result.push_back(Array_xy[0]);
-            for (size_t i = 1; i < Array_xy.size(); ++i) {
-
-                if (Array_xy[i].first == Array_xy[i - 1].first) {
-
-                    continue;
-                }
-                result.push_back(Array_xy[i]);
-            }
-            return result;
-        }
-            
         namespace numerator_of_the_kth_basic_Lagrange_polynomial {
             // return wₖ(T₀) = (t - t₀) × (t - t₁) × ... × (t - tₖ₋₁) × (t - tₖ₊₁) × ... × (t - tₙ)
             // n=array.size(),
@@ -132,7 +132,6 @@ namespace polynomial_interpolation {
         using namespace numerator_of_the_kth_basic_Lagrange_polynomial;
     }
     using namespace technical_functions;
-
     //Iterative calculation of divided differences iterative
     template<typename P>polynomial<P> NutonInterpolation(std::vector<std::pair<P, P>> Array_xy) {
 
