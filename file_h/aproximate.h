@@ -204,7 +204,7 @@ namespace aproximate {
             functions_ortog.push_back(F);
 
             // // // //data
-            std::vector<std::pair<double, double>> clean_points = ::polynomial_interpolation::nuton2::GeneratePointsEquallySufficient(size, a, b, F);
+            std::vector<std::pair<double, double>> clean_points = GeneratePointsEquallySufficient(size, a, b, F);
             auto noisy_points = AddNoiseToPoints(clean_points, 3, 0.2);
             noisy_points.insert(noisy_points.end(), clean_points.begin(), clean_points.end());
             // // // //

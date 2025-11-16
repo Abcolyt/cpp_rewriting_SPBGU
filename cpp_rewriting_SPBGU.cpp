@@ -40,7 +40,7 @@ namespace sem_4 {
     }
 
 #define SHOW_INTERPOL_STAT(func,n,m, ...) \
-    ::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic(func,n,m+50, #func, __VA_ARGS__)
+    demonstrate_statistic::ShowInterpolationStatistic(func,n,m+50, #func, __VA_ARGS__)
 
 
     //
@@ -251,7 +251,7 @@ namespace sem_4 {
         //#define degree_of_the_polynomial 7
 
 
-        std::vector<std::pair<double, double>> clean_points = ::polynomial_interpolation::nuton2::GeneratePointsEquallySufficient(size, the_left_border, the_right_border, [](double x) { return identifier; });
+        std::vector<std::pair<double, double>> clean_points = GeneratePointsEquallySufficient(size, the_left_border, the_right_border, [](double x) { return identifier; });
         auto noisy_points = AddNoiseToPoints(clean_points, 3, 0.2);
         noisy_points.insert(noisy_points.end(), clean_points.begin(), clean_points.end());
         std::sort(noisy_points.begin(), noisy_points.end());
@@ -267,7 +267,7 @@ namespace sem_4 {
 
     void sem_4() {
 
-        using namespace ::polynomial_interpolation::nuton2;
+        using namespace ::polynomial_interpolation;
 
 
 #define PART_OF_TASK 4
@@ -285,7 +285,7 @@ namespace sem_4 {
         using SplineInterpolatorFunc = Spline<double>(*)(std::vector<std::pair<double, double>>);
 
         //x-std::sin(x) - 0.25
-        ::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        ::polynomial_interpolation::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<3, 2, double>,   // interpolator
             50, 50,                              // n, m_
             "Spline_interpolator<3, 2, double>",
@@ -374,7 +374,7 @@ namespace sem_4 {
         std::cout << "spline: <3,2> <2,1> <1,0>\n";
 
         //x-std::sin(x) - 0.25
-        ::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        demonstrate_statistic::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<3, 2, double>, // interpolator
             50, 50,                      // n, m_
             "Spline_interpolator<3, 2, double>",
@@ -383,7 +383,7 @@ namespace sem_4 {
             5
         );
 
-        ::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        demonstrate_statistic::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<2, 1, double>, // interpolator
             50, 50,                      // n, m_
             "Spline_interpolator<2, 1, double>",
@@ -392,7 +392,7 @@ namespace sem_4 {
             20
         );
 
-        ::polynomial_interpolation::nuton2::output_of_characteristics_for_different_data_size_parameters::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
+        demonstrate_statistic::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
             Spline_interpolator<1, 0, double>, // interpolator
             10, 20,                      // n, m_
             "Spline_interpolator<1,0, double>",
