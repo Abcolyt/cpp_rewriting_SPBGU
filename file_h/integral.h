@@ -766,7 +766,9 @@ namespace details {
 
         //coeff - nodes, coeff2 - weights
         template<typename TResult, typename TArg, typename T_type = double>
-        std::pair<matrix<T_type>, matrix<T_type>> GetNGausCoefficientWithP_x_FunctionConstants(uint64_t n, double t0, double T, double a, double b, double alpha, double beta, std::function<TResult(TArg, TArg, TArg, TArg, TArg, TArg, int)> feature_function = {}) {
+        std::pair<matrix<T_type>, matrix<T_type>> GetNGausCoefficientWithP_x_FunctionConstants(
+            uint64_t n, double t0, double T, double a, double b, double alpha, double beta,
+            std::function<TResult(TArg, TArg, TArg, TArg, TArg, TArg, int)> feature_function = {}) {
             //return GetNGausCoefficientWithP_x_FunctionConstants(counting_methods_3::FillIntegralMap(a, b, alpha, beta, n));
 #define Debug 1
 

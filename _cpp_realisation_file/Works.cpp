@@ -1,4 +1,5 @@
-﻿#include "file_h\project_libraries.h"
+﻿#if 0
+#include "file_h\project_libraries.h"
 
 //uncomment it and you can use it carefully. 
 //Performance is not guaranteed
@@ -546,3 +547,5 @@ void GetaPartialIntegralSum_Singlethreaded(const IntegratedFunction integrated_f
     ////
     std::cout << "ans_sum=" << ans_sum << '\n';
 }
+
+#endif

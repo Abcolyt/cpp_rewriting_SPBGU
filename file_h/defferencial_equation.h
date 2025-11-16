@@ -25,6 +25,7 @@ enum class ErrorMethod {
     RungeGlobal,
     RungeLocal
 };
+
 namespace details {
     //the values of the degrees of accuracy of the corresponding method
     const std::unordered_map<DifferencialMethod, uint16_t> order_of_accuracy_differencial_method{

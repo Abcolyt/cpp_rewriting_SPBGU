@@ -20,7 +20,6 @@ namespace counting_methods {
     }
 
     namespace polinomial {
-
         void polynomial_test() {
             polynomial<Complex> plnm, b;
             std::cin >> plnm;

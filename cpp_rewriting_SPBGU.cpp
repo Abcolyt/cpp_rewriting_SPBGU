@@ -8,7 +8,7 @@ namespace sem_3 {
 
 #if 1
         //calc_computing_f::matrix_calc<double>();
-    //C:\Users\User\source\repos\cpp_rewriting_SPBGU\input_matrix.txt
+        //C:\Users\User\source\repos\cpp_rewriting_SPBGU\input_matrix.txt
         /*counting_methods::polinomial::polynomial_test();*/
         //counting_methods::nonlinear_system_with_simple_iterations::run_nnssi_with_setted_nonlinear_function();
 
@@ -122,6 +122,7 @@ namespace sem_4 {
         std::cout << "Eigenvalue: " << result_.first << "\nEigenvector:\n" << result_.second;
 
     }
+
     void Z5_1_2_const() {
         std::cout << "Z5_2_const:\n\n";
         matrix<double> A = matrix<double>::zeros(4, 4);
@@ -411,7 +412,7 @@ namespace sem_4 {
 
 #elif PART_OF_TASK == 6
         Z6_1(20, 7);
-        ::aproximate::output_of_characteristics_for_different_data_size_parameters::ShowAproximateStatistic([](double x) { return (x - std::sin(x) - 0.25); });
+        aproximate::output_of_characteristics_for_different_data_size_parameters::ShowAproximateStatistic([](double x) { return (x - std::sin(x) - 0.25); });
 #endif
 
 
