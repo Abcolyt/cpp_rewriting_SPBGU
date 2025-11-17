@@ -42,7 +42,6 @@ namespace sem_4 {
 #define SHOW_INTERPOL_STAT(func,n,m, ...) \
     demonstrate_statistic::ShowInterpolationStatistic(func,n,m+50, #func, __VA_ARGS__)
 
-
     //
 
     void test_solve_system() {
@@ -180,10 +179,6 @@ namespace sem_4 {
             j++;
             std::cout << "root_[" << j << "]= " << i.first << "\n";
         }
-
-
-
-
     }
 
     void Z5_qr(int Size = 4) {
@@ -206,19 +201,15 @@ namespace sem_4 {
             j++;
             std::cout << "eig[" << j << "]= " << i << "\n";
         }
-
-
     }
-    //
-    // 
-    // 
+
+    // Adds noise to pairs of points (to the second, y coordinate)
     template<typename T>
     std::vector<std::pair<T, T>> AddNoiseToPoints(
         const std::vector<std::pair<T, T>>& points,
         int measurements_per_point = 3,
         T noise_level = T(0.1)
     ) {
-
         std::vector<std::pair<T, T>> noisy_points;
         noisy_points.reserve(points.size() * measurements_per_point);
 
@@ -238,7 +229,6 @@ namespace sem_4 {
                 noisy_points.emplace_back(x, y_noisy);
             }
         }
-
         return noisy_points;
     }
 

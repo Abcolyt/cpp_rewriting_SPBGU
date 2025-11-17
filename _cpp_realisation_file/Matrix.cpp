@@ -556,7 +556,7 @@ template<typename T>matrix<T> matrix<T>::cholesky() const
         throw std::invalid_argument("Matrix must be square for Cholesky decomposition.");
     }
 
-    matrix<T> L(colsize, rowsize); // Создаем матрицу L размером n x n
+    matrix<T> L(colsize, rowsize); // Creating a matrix L of size n x n
 
     for (uint64_t i = 0; i < colsize; ++i) {
         for (uint64_t j = 0; j <= i; ++j) {
@@ -567,7 +567,7 @@ template<typename T>matrix<T> matrix<T>::cholesky() const
             }
 
             if (i == j) {
-                // Диагональные элементы
+                // Diagonal elements
 
                //std::cout << "i=" << i << "j=" << j << " " << ((*this)[i][i] - sum) << "   ";
 
@@ -578,7 +578,7 @@ template<typename T>matrix<T> matrix<T>::cholesky() const
                 //std::cout << "i=" << i << "j=" << j << " " << L[i][j] <<"   ";
             }
             else {
-                // Недиагональные элементы
+                // Off-diagonal elements
                 L[i][j] = ((*this)[i][j] - sum) / (L[j][j]);
 
             }
@@ -852,7 +852,7 @@ template<typename T>
              matrix<T> Q_i = Q.get_column(i); 
              R[i][j] = matrixfunction::dot_product(Q_i, v);   
 
-             // Вычитаем проекцию
+             // Subtract the projection
              for (uint64_t k = 0; k < m; ++k) {
                  v[k][0] -= R[i][j] * Q_i[k][0];
              }
@@ -872,16 +872,16 @@ template<typename T>
 
  template <typename T>
  matrix<T> matrix<T>::submatrix(uint64_t start_row, uint64_t start_col,uint64_t rows, uint64_t cols) const {
-     // Проверка границ
+     // Checking boundaries
      if (start_row + rows > rowsize || start_col + cols > colsize) {
          throw std::out_of_range("Submatrix dimensions exceed matrix bounds");
      }
 
-     matrix<T> sub(rows, cols); // Создать подматрицу размера rows x cols
+     matrix<T> sub(rows, cols); // Create a submatrix of rows x cols size
 
      for (uint64_t i = 0; i < rows; ++i) {
          for (uint64_t j = 0; j < cols; ++j) {
-             // Проверка индексов (опционально)
+             // Checking indexes (optional)
              if (start_row + i >= rowsize || start_col + j >= colsize) {
                  throw std::out_of_range("Index out of bounds");
              }
@@ -904,7 +904,7 @@ template<typename T>
              break;
          }
 
-         // Проверка на случай матрицы 2x2
+         // Checking for the case of a 2x2 matrix
          if (n == 2) {
              auto a = H[0][0], b = H[0][1], c = H[1][0], d = H[1][1];
              T trace = a + d;
@@ -925,15 +925,15 @@ template<typename T>
              break;
          }
 
-         // Поиск разделения на подматрицы
+         // Searching for division into submatrices
          int m = n - 2;
          while (m >= 0 && std::abs(H[m + 1][m]) < epsilon) {
              m--;
          }
 
-         // Если найдено разделение
+         // If a split is found
          if (m == n - 2) {
-             // Обработка 2x2 блока
+             // Processing 2x2 blocks
              matrix<T> sub = H.submatrix(n - 2, n - 2, 2, 2);
              auto a = sub[0][0], b = sub[0][1], c = sub[1][0], d = sub[1][1];
              T trace = a + d;
@@ -955,18 +955,18 @@ template<typename T>
              H = H.submatrix(0, 0, n, n);
          }
          else if (m >= 0) {
-             // Вычисление сдвигов
+             // Calculation of shifts
              matrix<T> sub = H.submatrix(n - 2, n - 2, 2, 2);
              auto [lambda1, lambda2] = compute_2x2_eigenvalues(sub);
              T s = lambda1.real() + lambda2.real();
              T t = lambda1.real() * lambda2.real() - lambda1.imag() * lambda2.imag();
 
-             // Вычисление вектора для преобразования Хаусхолдера
+             // Calculation of the vector for the Householder transformation
              T x = H[0][0] * H[0][0] - s * H[0][0] + t + H[0][1] * H[1][0];
              T y = H[1][0] * (H[0][0] + H[1][1] - s);
              T z = H[2][1] * H[1][0];
 
-             // Построение вектора w
+             // Building the vector w
              matrix<T> w(n, 1);
              T norm = std::sqrt(x * x + y * y + z * z);
              if (norm == 0) {
@@ -983,14 +983,14 @@ template<typename T>
                  for (int i = 3; i < n; ++i) w[i][0] = 0;
              }
 
-             // Построение матрицы Хаусхолдера
+             // Building a Householder matrix
              matrix<T> I = matrix<T>::eye(n);
              matrix<T> P = I - (w * w.transpose()) * (2.0 / (w.transpose() * w)[0][0]);
 
-             // Применение преобразования
+             // Applying the transformation
              H = P * H * P;
 
-             // Возврат к форме Хессенберга (упрощенно)
+             // Return to the Hessenberg form (simplified)
              for (int i = 0; i < n - 1; ++i) {
                  for (int j = i + 2; j < n; ++j) {
                      H[j][i] = 0;
@@ -998,7 +998,7 @@ template<typename T>
              }
          }
          else {
-             // Уменьшение размера матрицы
+             // Reducing the size of the matrix
              eigenvalues.emplace_back(H[n - 1][n - 1], 0);
              n--;
              H = H.submatrix(0, 0, n, n);
@@ -1209,7 +1209,7 @@ namespace matrixfunction {
             throw std::invalid_argument("vec0 must be a column vector with size matching A.");
         }
         matrix<T> z = vec0;
-        z = z * (1.0 / z.norm()); // Нормировка
+        z = z * (1.0 / z.norm()); // normorize z
 
         //std::cout << z << '\n';
             ////1.2
@@ -1243,7 +1243,7 @@ namespace matrixfunction {
                 }
             }
             if (count == 0) break;
-            mu = mu / count; // Среднее μ
+            mu = mu / count; // Average μ
 
 #else
             mu = (z.transpose() * y)[0][0];
@@ -1366,7 +1366,7 @@ namespace matrixfunction {
         return eigen_pairs;
     }
 
-
+    //// LUP system solver
     template<typename T>
     matrix<T> forward_substitution(const matrix<T>& L, const matrix<T>& b) {
         int n = L.getrow();
@@ -1395,7 +1395,6 @@ namespace matrixfunction {
         return x;
     }
 
-    //  Решение системы 
     template<typename T>
     matrix<T> solve_system(const matrix<T>& A, const matrix<T>& b) {
         auto lup = A.LUP();
@@ -1404,6 +1403,257 @@ namespace matrixfunction {
         matrix<T> x = backward_substitution(lup.U, y);
         return x;
     }
+    ////
+    
+    //// Hessenberg form
+    template <typename T>
+    matrix<T> get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(const matrix<T>& A, int k) {
+        int n = A.getcol();
+        if (n != A.getrow()) throw std::invalid_argument("Matrix must be square");
+        if (k < 0 || k >= n - 1) throw std::invalid_argument("Invalid column index");
 
+        // // Selecting editor x from list k, initial entry k+1
+        int m = n - k - 1;
+        matrix<T> x(m, 1); // Column-vector
+        for (int i = 0; i < m; ++i) {
+            x[i][0] = A[k + 1 + i][k];
+        }
+
+        // Calculating the norm of x and s
+        T norm_x = x.norm();
+        if (norm_x == 0) return matrix<T>::eye(n);
+
+        T s = std::copysign(norm_x, x[0][0]);
+
+        // Construction of the vector v = x - s * e
+        matrix<T> v = x;
+        v[0][0] = v[0][0] - s;
+
+        // Calculation of mu = 2 / (v^T*v) !
+        matrix<T> vT = v.transpose();
+        matrix<T> vtv = vT * v;
+        if (vtv[0][0] == 0) return matrix<T>::eye(n);
+        T mu = T(2) / vtv[0][0];
+
+        //// Construction of the Householder matrix 1. H = I - mu * v * v^T
+        matrix<T> H = matrix<T>::eye(n);
+        matrix<T> outer = v * vT;
+        outer = outer * mu;
+
+        // 2.
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < m; ++j) {
+                H[k + 1 + i][k + 1 + j] -= outer[i][j];
+            }
+        }
+        ////
+        return H;
+    }
+
+    template <typename T>
+    matrix<T> hessenberg_upper_form(matrix<T> A) {
+        int n = A.getcol();
+        if (n != A.getrow()) throw std::invalid_argument("Matrix must be square");
+
+        for (int k = 0; k < n - 2; ++k) {
+            matrix<T> H = get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(A, k);
+            A = H * A * H; // <= H==H^-1
+        }
+        return A;
+    }
+    ////
+
+    //// QR Decomposition
+    template <typename T>
+    QRResult<T> qr_decomposition(const matrix<T>& A) {
+        int m = A.getrow();
+        int n = A.getcol();
+        QRResult<T> result;
+        result.Q = matrix<T>::eye(m);
+        result.R = A;
+
+        for (int j = 0; j < n; ++j) {
+            for (int i = j + 1; i < m; ++i) {
+                // Calculation of Givens rotation for zeroing R[i][j]
+                T a = result.R[j][j];
+                T b = result.R[i][j];
+                if (std::abs(b) < 1e-10) continue;
+
+                T r = std::hypot(a, b);
+                T c = a / r;
+                T s = -b / r;
+
+                // Applying rotation to R
+                for (int k = j; k < n; ++k) {
+                    T temp = c * result.R[j][k] - s * result.R[i][k];
+                    result.R[i][k] = s * result.R[j][k] + c * result.R[i][k];
+                    result.R[j][k] = temp;
+                }
+
+                for (int k = 0; k < m; ++k) {
+                    T temp = c * result.Q[k][j] - s * result.Q[k][i];
+                    result.Q[k][i] = s * result.Q[k][j] + c * result.Q[k][i];
+                    result.Q[k][j] = temp;
+                }
+            }
+        }
+
+        return result;
+    }
+    ////
+    
+    ////Eigenvalues and vectors
+
+    //2*2 matrix
+    template<typename T>
+    std::pair<std::complex<T>, std::complex<T>> compute_2x2_eigenvalues(const matrix<T>& A) {
+        T a = A[0][0], b = A[0][1], c = A[1][0], d = A[1][1];
+        T trace = a + d;
+        T det = a * d - b * c;
+        T discriminant = trace * trace - 4 * det;
+
+        if (discriminant >= 0) {
+            T sqrt_disc = std::sqrt(discriminant);
+            return { std::complex<T>((trace + sqrt_disc) / 2, 0),
+                    std::complex<T>((trace - sqrt_disc) / 2, 0) };
+        }
+        else {
+            T real = trace / 2;
+            T imag = std::sqrt(-discriminant) / 2;
+            return { std::complex<T>(real, imag),
+                    std::complex<T>(real, -imag) };
+        }
+    }
+
+    //n*n
+    template <typename T>
+    std::vector<std::complex<double>> compute_eigenvalues(const matrix<T>& A, double eps ) {
+        auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), (T)1e-10);
+        std::vector<std::complex<double>> eigenvalues;
+
+        while (H.getrow() >= 3 && H.getcol() >= 3) {
+            const uint64_t N = H.getcol() - 1;
+
+            if (std::abs(H[N][N - 1]) <= eps) {
+                eigenvalues.push_back(H[N][N]);
+                H = H.submatrix(0, 0, N, N);
+                continue;
+            }
+
+            auto qrH = H.qr();
+            H = matrixfunction::sanitize_zeros(qrH.R * qrH.Q, (T)eps);
+        }
+
+        if (H.getrow() >= 2 && H.getcol() >= 2) {
+            auto last_evs = matrixfunction::compute_2x2_eigenvalues(H);
+            eigenvalues.push_back(last_evs.first);
+            eigenvalues.push_back(last_evs.second);
+        }
+        else if (H.getrow() == 1 && H.getcol() == 1) {
+            eigenvalues.push_back(H[0][0]);
+        }
+
+        return eigenvalues;
+    }
+    
+    template <typename T>
+    std::vector<std::complex<double>> compute_eigenvalues_3_qr(const matrix<T>& A, double eps) {
+#define second_convergence false
+        auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), static_cast<T>(1e-12));
+        std::vector<std::complex<double>> eigenvalues;
+
+        // Variables for tracking convergence status
+        T prev_mu = T(0);
+        bool first_iteration = true;
+        uint64_t current_size = H.getrow();
+
+        while (H.getrow() >= 3 && H.getcol() >= 3) {
+            const uint64_t n = H.getrow();
+            const uint64_t N = n - 1;
+
+            if (n != current_size) {
+                first_iteration = true;
+                current_size = n;
+            }
+
+            if (std::abs(H[N][N - 1]) <= eps) {
+                eigenvalues.push_back(H[N][N]);
+                H = H.submatrix(0, 0, N, N);
+                //std::cout <<"std::abs(H[N][N - 1]) <= eps"<< std::abs(H[N][N - 1])  << "\n";
+                continue;
+            }
+#if second_convergence == true
+            if (!first_iteration && std::abs(H[N][N] - prev_mu) < (1.0 / 3.0) * std::abs(prev_mu)) {
+                eigenvalues.push_back(H[N][N]);
+                H = H.submatrix(0, 0, N, N);
+                first_iteration = true;
+                //std::cout << "!first_iteration && std::abs(H[N][N] - prev_mu) < (1.0 / 3.0) * std::abs(prev_mu):\nabs:" << std::abs(H[N][N - 1]) << "\n abs(prey_mu)"<< std::abs(prev_mu)<<"\n";
+                continue;
+            }
+#endif
+            // shift
+            T mu = H[N][N];
+            prev_mu = mu;
+            first_iteration = false;
+
+            matrix<T> H_shifted = H - matrix<double>::eye(H.getrow()) * mu;
+            //for (uint64_t i = 0; i < n; ++i) {
+            //    H_shifted[i][i] -= mu;  // H - mu*I
+            //}
+
+            auto qrH = H_shifted.qr();
+            H = qrH.R * qrH.Q;
+            //H=H + matrix<double>::eye(H.getrow()) * mu;
+            for (uint64_t i = 0; i < n; ++i) {
+                H[i][i] += mu;              // + mu*I
+            }
+
+            H = matrixfunction::sanitize_zeros(H, static_cast<T>(eps));
+        }
+
+        if (H.getrow() == 2 && H.getcol() == 2) {
+            auto last_evs = matrixfunction::compute_2x2_eigenvalues(H);
+            eigenvalues.push_back(last_evs.first);
+            eigenvalues.push_back(last_evs.second);
+        }
+        else if (H.getrow() == 1 && H.getcol() == 1) {
+            eigenvalues.push_back(H[0][0]);
+        }
+
+        return eigenvalues;
+    }
+
+    ////
+
+    //// scalar product of vectors
+    template <typename T>
+    T dot_product(const matrix<T>& a, const matrix<T>& b) {
+
+        const bool a_is_col = (a.getcol() > 1 && a.getrow() == 1);
+        const bool a_is_row = (a.getrow() > 1 && a.getcol() == 1);
+        const bool b_is_col = (b.getcol() > 1 && b.getrow() == 1);
+        const bool b_is_row = (b.getrow() > 1 && b.getcol() == 1);
+
+        if (!(a_is_col || a_is_row) || !(b_is_col || b_is_row)) {
+            throw std::invalid_argument("Both arguments must be vectors");
+        }
+
+        const uint64_t a_len = a_is_col ? a.getcol() : a.getrow();
+        const uint64_t b_len = b_is_col ? b.getcol() : b.getrow();
+
+        if (a_len != b_len) {
+            throw std::invalid_argument("Vectors must have the same length");
+        }
+
+        T result = 0;
+        for (uint64_t i = 0; i < a_len; ++i) {
+            const T a_val = a_is_col ? a[0][i] : a[i][0]; // For column [i][0], for row [0][i]
+            const T b_val = b_is_col ? b[0][i] : b[i][0];
+            result += a_val * b_val;
+        }
+
+        return result;
+    }
+    ////
 
 }

@@ -14,13 +14,16 @@
 //#include "../file_h/complex.h"
 
 extern enum class output_mode;
+
 template<typename T> class matrix;
+
 template<typename T>
 struct is_matrix : std::false_type {};
 template<typename T>
 struct is_matrix<matrix<T>> : std::true_type {};
 
-template<typename T>struct LUResult {
+template<typename T>
+struct LUResult {
     matrix<T> L;
     matrix<T> U;
     matrix<T> P; 
@@ -42,10 +45,7 @@ namespace matrixfunction {
 
     template <typename T>matrix<int> elementwise_equal_matrix(const matrix<T>& a, const matrix<T>& b, T epsilon = static_cast<T>(1e-6));
 
-    template<typename T>
-    matrix<T> sanitize_zeros(matrix<T> m, const T eps = std::numeric_limits<T>::epsilon() * 10) {
-        
-
+    template<typename T>matrix<T> sanitize_zeros(matrix<T> m, const T eps = std::numeric_limits<T>::epsilon() * 10) {
         for (uint64_t i = 0; i < m.getrow(); ++i) {
             for (uint64_t j = 0; j < m.getcol(); ++j) {
                 if (std::abs(m[i][j]) < eps) {
@@ -56,7 +56,7 @@ namespace matrixfunction {
         return m;
     }
 
-////LUP system solver
+//// LUP system solver
     template<typename T>
     matrix<T> forward_substitution(const matrix<T>& L, const matrix<T>& b);
     template<typename T>
@@ -65,106 +65,19 @@ namespace matrixfunction {
     matrix<T> solve_system(const matrix<T>& A, const matrix<T>& b);
 ////
     
-////Hessenberg form
+//// Hessenberg form
     
     template <typename T>
-    matrix<T> get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(const matrix<T>& A, int k) {
-        int n = A.getcol();
-        if (n != A.getrow()) throw std::invalid_argument("Matrix must be square");
-        if (k < 0 || k >= n - 1) throw std::invalid_argument("Invalid column index");
-
-        // Выбор подвектора x из столбца k, начиная с элемента k+1
-        int m = n - k - 1;
-        matrix<T> x(m, 1); // Столбец-вектор
-        for (int i = 0; i < m; ++i) {
-            x[i][0] = A[k + 1 + i][k];
-        }
-        //std::cout << x << "\n";
-
-        // Вычисление нормы x и s
-        T norm_x = x.norm();
-        if (norm_x == 0) return matrix<T>::eye(n);
-
-        T s = std::copysign(norm_x, x[0][0]);
-
-        // Построение вектора v = x - s * e
-        matrix<T> v = x;
-        v[0][0] = v[0][0] - s;
-
-        //std::cout << "v:" << v << "\n";
-        // Вычисление mu = 2 / (v^T * v) !
-        matrix<T> vT = v.transpose();
-        matrix<T> vtv = vT * v;
-        if (vtv[0][0] == 0) return matrix<T>::eye(n);
-        T mu = T(2) / vtv[0][0];
-
-        //// Построение матрицы Хаусхолдера 1. H = I - mu * v * v^T
-        matrix<T> H = matrix<T>::eye(n);
-        matrix<T> outer = v * vT;
-        outer = outer * mu;
-        //std::cout <<"outer:" << outer << "\n";
-
-        // 2.
-        for (int i = 0; i < m; ++i) {
-            for (int j = 0; j < m; ++j) {
-                H[k + 1 + i][k + 1 + j] -= outer[i][j];
-            }
-        }
-        ////
-        return H;
-    }
+    matrix<T> get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(const matrix<T>& A, int k);
 
     template <typename T>
-    matrix<T> hessenberg_upper_form(matrix<T> A) {
-        int n = A.getcol();
-        if (n != A.getrow()) throw std::invalid_argument("Matrix must be square");
-
-        for (int k = 0; k < n - 2; ++k) {
-            matrix<T> H = get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(A, k);
-            A = H * A * H; // <= H==H^-1
-        }
-        return A;
-    }
+    matrix<T> hessenberg_upper_form(matrix<T> A);
 
 ////
 
 //// QR Decomposition
     template <typename T>
-    QRResult<T> qr_decomposition(const matrix<T>& A) {
-        int m = A.getrow();
-        int n = A.getcol();
-        QRResult<T> result;
-        result.Q = matrix<T>::eye(m); 
-        result.R = A;                
-
-        for (int j = 0; j < n; ++j) {
-            for (int i = j + 1; i < m; ++i) {
-                // Вычисление вращения Гивенса для обнуления R[i][j]
-                T a = result.R[j][j];
-                T b = result.R[i][j];
-                if (std::abs(b) < 1e-10) continue;
-
-                T r = std::hypot(a, b);
-                T c = a / r;
-                T s = -b / r;
-
-                // Применение вращения к R
-                for (int k = j; k < n; ++k) {
-                    T temp = c * result.R[j][k] - s * result.R[i][k];
-                    result.R[i][k] = s * result.R[j][k] + c * result.R[i][k];
-                    result.R[j][k] = temp;
-                }
-
-                for (int k = 0; k < m; ++k) {
-                    T temp = c * result.Q[k][j] - s * result.Q[k][i];
-                    result.Q[k][i] = s * result.Q[k][j] + c * result.Q[k][i];
-                    result.Q[k][j] = temp;
-                }
-            }
-        }
-
-        return result;
-    }
+    QRResult<T> qr_decomposition(const matrix<T>& A);
 ////
 
 ////Eigenvalues and vectors
@@ -185,134 +98,24 @@ namespace matrixfunction {
     template <typename T>
     std::vector<std::pair<T, matrix<T>>> inverse_power_method_with_shifts(
         matrix<T> A,const std::vector<T>& initial_shifts,
-        double epsilon = 1e-6,double delta = 1e-8,int max_iter = 10000
-    );
+        double epsilon = 1e-6,double delta = 1e-8,int max_iter = 10000);
 
     //one shift
     template <typename T>
     std::pair<T, matrix<T>> inverse_power_method_with_shift(
         matrix<T> A,T sigma0,const matrix<T>& vec0,
-        double epsilon = 1e-6,double delta = 1e-8,int max_iter = 10000
-    );
+        double epsilon = 1e-6,double delta = 1e-8,int max_iter = 10000);
     //2*2 matrix
     template<typename T>
-    std::pair<std::complex<T>, std::complex<T>> compute_2x2_eigenvalues(const matrix<T>& A) {
-        T a = A[0][0], b = A[0][1], c = A[1][0], d = A[1][1];
-        T trace = a + d;
-        T det = a * d - b * c;
-        T discriminant = trace * trace - 4 * det;
-
-        if (discriminant >= 0) {
-            T sqrt_disc = std::sqrt(discriminant);
-            return { std::complex<T>((trace + sqrt_disc) / 2, 0),
-                    std::complex<T>((trace - sqrt_disc) / 2, 0) };
-        }
-        else {
-            T real = trace / 2;
-            T imag = std::sqrt(-discriminant) / 2;
-            return { std::complex<T>(real, imag),
-                    std::complex<T>(real, -imag) };
-        }
-    }
+    std::pair<std::complex<T>, std::complex<T>> compute_2x2_eigenvalues(const matrix<T>& A);
     // a lot of shift
 
     //n*n
+    template <typename T>
+    std::vector<std::complex<double>> compute_eigenvalues(const matrix<T>& A, double eps = 1e-9);
 
     template <typename T>
-    std::vector<std::complex<double>> compute_eigenvalues(const matrix<T>& A, double eps = 1e-9) {
-        auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), (T)1e-10);
-        std::vector<std::complex<double>> eigenvalues;
-
-        while (H.getrow() >= 3 && H.getcol() >= 3) {
-            const uint64_t N = H.getcol() - 1;
-
-            if (std::abs(H[N][N - 1]) <= eps) {
-                eigenvalues.push_back(H[N][N]);
-                H = H.submatrix(0, 0, N, N);
-                continue;
-            }
-
-            auto qrH = H.qr();
-            H = matrixfunction::sanitize_zeros(qrH.R * qrH.Q, (T)eps);
-        }
-
-        if (H.getrow() >= 2 && H.getcol() >= 2) {
-            auto last_evs = matrixfunction::compute_2x2_eigenvalues(H);
-            eigenvalues.push_back(last_evs.first);
-            eigenvalues.push_back(last_evs.second);
-        }
-        else if (H.getrow() == 1 && H.getcol() == 1) {
-            eigenvalues.push_back(H[0][0]);
-        }
-
-        return eigenvalues;
-    }
-
-    template <typename T>std::vector<std::complex<double>> compute_eigenvalues_3_qr(const matrix<T>& A, double eps = 1e-12) {
-#define second_convergence false
-        auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), static_cast<T>(1e-12));
-        std::vector<std::complex<double>> eigenvalues;
-
-        // Переменные для отслеживания состояния сходимости
-        T prev_mu = T(0);
-        bool first_iteration = true;
-        uint64_t current_size = H.getrow();
-
-        while (H.getrow() >= 3 && H.getcol() >= 3) {
-            const uint64_t n = H.getrow();
-            const uint64_t N = n - 1;
-
-            if (n != current_size) {
-                first_iteration = true;
-                current_size = n;
-            }
-
-            if (std::abs(H[N][N - 1]) <= eps) {
-                eigenvalues.push_back(H[N][N]);
-                H = H.submatrix(0, 0, N, N);
-                //std::cout <<"std::abs(H[N][N - 1]) <= eps"<< std::abs(H[N][N - 1])  << "\n";
-                continue;
-            }
-#if second_convergence == true
-            if (!first_iteration && std::abs(H[N][N] - prev_mu) < (1.0 / 3.0) * std::abs(prev_mu)) {
-                eigenvalues.push_back(H[N][N]);
-                H = H.submatrix(0, 0, N, N);
-                first_iteration = true;
-                //std::cout << "!first_iteration && std::abs(H[N][N] - prev_mu) < (1.0 / 3.0) * std::abs(prev_mu):\nabs:" << std::abs(H[N][N - 1]) << "\n abs(prey_mu)"<< std::abs(prev_mu)<<"\n";
-                continue;
-            }
-#endif
-            //  сдвиг 
-            T mu = H[N][N];
-            prev_mu = mu;  
-            first_iteration = false;
-
-            matrix<T> H_shifted = H - matrix<double>::eye(H.getrow()) * mu;
-            //for (uint64_t i = 0; i < n; ++i) {
-            //    H_shifted[i][i] -= mu;  // H - mu*I
-            //}
-
-            auto qrH = H_shifted.qr();      
-            H = qrH.R * qrH.Q;  
-            //H=H + matrix<double>::eye(H.getrow()) * mu;
-            for (uint64_t i = 0; i < n; ++i) {
-                H[i][i] += mu;              // + mu*I
-            }
-
-            H = matrixfunction::sanitize_zeros(H, static_cast<T>(eps));
-        }
-
-        if (H.getrow() == 2 && H.getcol() == 2) {
-            auto last_evs = matrixfunction::compute_2x2_eigenvalues(H);
-            eigenvalues.push_back(last_evs.first);
-            eigenvalues.push_back(last_evs.second);
-        }
-        else if (H.getrow() == 1 && H.getcol() == 1) {
-            eigenvalues.push_back(H[0][0]);
-        }
-
-        return eigenvalues;
-    }
+    std::vector<std::complex<double>> compute_eigenvalues_3_qr(const matrix<T>& A, double eps = 1e-12);
 
 
 #if 0
@@ -387,35 +190,9 @@ namespace matrixfunction {
 
 ////
 
-////scalar product of vectors
+//// scalar product of vectors
     template <typename T>
-    T dot_product(const matrix<T>& a, const matrix<T>& b) {
-
-        const bool a_is_col = (a.getcol() > 1 && a.getrow() == 1);
-        const bool a_is_row = (a.getrow() > 1 && a.getcol() == 1);
-        const bool b_is_col = (b.getcol() > 1 && b.getrow() == 1);
-        const bool b_is_row = (b.getrow() > 1 && b.getcol() == 1);
-
-        if (!(a_is_col || a_is_row) || !(b_is_col || b_is_row)) {
-            throw std::invalid_argument("Both arguments must be vectors");
-        }
-
-        const uint64_t a_len = a_is_col ? a.getcol() : a.getrow();
-        const uint64_t b_len = b_is_col ? b.getcol() : b.getrow();
-
-        if (a_len != b_len) {
-            throw std::invalid_argument("Vectors must have the same length");
-        }
-
-        T result = 0;
-        for (uint64_t i = 0; i < a_len; ++i) {
-            const T a_val = a_is_col ? a[0][i] : a[i][0]; // Для столбца [i][0], для строки [0][i]
-            const T b_val = b_is_col ? b[0][i] : b[i][0];
-            result += a_val * b_val;
-        }
-
-        return result;
-    }
+    T dot_product(const matrix<T>& a, const matrix<T>& b);
 ////
 
 

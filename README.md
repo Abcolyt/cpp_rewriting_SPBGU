@@ -23,6 +23,7 @@ nonlinear_system_with_simple_iterations, nonlinear_system_with_newton метод
  реализации части кода в:
  _cpp_realisation_file
 
+ остальная реализация в .h файлах
 документация в
 documents
 
