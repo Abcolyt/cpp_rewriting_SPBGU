@@ -35,6 +35,7 @@ struct QRResult {
 };
 namespace matrixfunction {
 //// POWER METHOD
+    // get maximum eigenvalues in matrix
     template<typename T>std::pair<T, matrix<T>> power_method_max(const matrix<T>& A, const matrix<T>& Vec0, double epsilon = 1e-6, int max_iter = 1000);
 
     template<typename T>std::pair<T, matrix<T>> power_method_max(const matrix<T>& A, double epsilon = 1e-6, int max_iter = 1000) {
@@ -84,16 +85,17 @@ namespace matrixfunction {
     //Simplification column vector or row vector
     template <typename T>matrix<T> simplify_eigenvector(const matrix<T>& vec, T epsilon = 1e-6);
     
-    //
-    template<typename T>std::vector<T> GeneratePointsEquallySufficient(int k, T a, T b) {
-        T step = (b - a) / k;
-        std::vector<T> points;
-        for (int i = 0; i < k; ++i) {
-            T x = a + i * step;
-            points.emplace_back(x) ;
-        }
-        return points;
-    }
+    // off code
+    //template<typename T>std::vector<T> GeneratePointsEquallySufficient(int k, T a, T b) {
+    //    T step = (b - a) / k;
+    //    std::vector<T> points;
+    //    for (int i = 0; i < k; ++i) {
+    //        T x = a + i * step;
+    //        points.emplace_back(x) ;
+    //    }
+    //    return points;
+    //}
+
     //a lot of shifts
     template <typename T>
     std::vector<std::pair<T, matrix<T>>> inverse_power_method_with_shifts(

@@ -10,7 +10,7 @@
 // 
 enum class DifferencialMethod {
     RungeKutta2ndOrder = 0,
-    RK2 =0,
+    RK2 = 0,
     RungeKutta3ndOrder1 = 1,
     RK3 = 1,
     RungeKutta3ndOrder2 = 2,
@@ -309,26 +309,26 @@ std::vector<std::pair<Targ, Tresult>> SolveASystemOfOrdinaryDifferentialEquation
 
         //         |eps / 2^(s+1)      |eps           |eps * 2^s
         // ------------------------------------------------------------> oX
-        //   sc4      sc2                   sc2         sc1
+        //   sc4      sc3                   sc2         sc1
         if (error > rho * std::pow(2, s)) {
-            // Scenario 1: the error is too large => reduce the step
+            // Scenario 1) the error is too large => reduce the step
             h = std::max(h / 2, h_min);
             continue; // repeat the calculation with a new step
         }
         else if (rho < error && error <= rho * std::pow(2, s)) {
-            // Scenario 2: we make a more accurate decision (y_half), reduce the next step
+            // Scenario 2) we make a more accurate decision (y_half), reduce the next step
             x_current += current_step;
             y_current = y_half;
             h = std::max(h / 2, h_min);
         }
         else if (rho / std::pow(2, s + 1) <= error && error <= rho) {
-            // Scenario 3: we make a decision, leave the step unchanged
+            // Scenario 3) we make a decision, leave the step unchanged
             x_current += current_step;
             y_current = y_h;
             // h remains the same
         }
         else if (error < rho / std::pow(2, s + 1)) {
-            // Scenario 4: the error is small - we make a decision, increase the step
+            // Scenario 4) the error is small - we make a decision, increase the step
             x_current += current_step;
             y_current = y_h;
             h = std::min(h * 2, h_max);

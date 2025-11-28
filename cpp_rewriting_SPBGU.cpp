@@ -979,17 +979,17 @@ namespace sem_5 {
 
             order_of_accuracy_differencial_method.at(method2));
 
-        std::cout << "GetEpsStepSize " << h_eps_2 << "\n";
-        std::cout << "(working_example.x_target - working_example.x0)" << (working_example.x_target - working_example.x0) << "\n";
-        std::cout << " std::ceil((working_example.x_target - working_example.x0) / h_eps_2)" <</* std::ceil*/((working_example.x_target - working_example.x0) / h_eps_2) << "\n";
+        //std::cout << "GetEpsStepSize " << h_eps_2 << "\n";
+        //std::cout << "(working_example.x_target - working_example.x0)" << (working_example.x_target - working_example.x0) << "\n";
+        //std::cout << " std::ceil((working_example.x_target - working_example.x0) / h_eps_2)" <</* std::ceil*/((working_example.x_target - working_example.x0) / h_eps_2) << "\n";
 
         solution4 = SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method2>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, std::ceil((working_example.x_target - working_example.x0) / h_eps_2), working_example.c2);
 
         std::vector<std::pair<double, double>> display_vec_2;
 
-        buffer << "sol4_RK3 h_opt :\n";
+        //buffer << "sol4_RK3 h_opt :\n";
 
-        std::cout << "\n\n\n\n\n\n\n\n mY solution4 size!!!!!!!!!!!!!!! " << solution4.size() << "\n";
+        //std::cout << "\n\n\n\n\n\n\n\n mY solution4 size!!!!!!!!!!!!!!! " << solution4.size() << "\n";
         for (auto& var : solution4)
         {
             //buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}" << "difference:" << compute_error(var, working_example) << "\n";
@@ -1040,18 +1040,30 @@ namespace sem_5 {
         auto solution6 = SolveODE<method1, ErrorMethod::RungeLocal>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, 1e-9, working_example.c2);
 
         std::vector<std::pair<double, double>> vector_x_ratior_true_err_and_estimated_err_method1;
+        buffer << "\ni\tx_i\tl_i\trho_i\tl_i/rho_i\n";
+
+        double last_error = 0;
         for (int i = 1; i < solution6.size(); i++)
         {
             auto var = solution6[i];
-            buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}"
-                << "difference:" << solution6[i].first - solution6[i - 1].first << "\n";
-
-            vector_x_ratior_true_err_and_estimated_err_method1.push_back({ solution6[i].first,compute_error(var, working_example) / (
-                RungeError(details::SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method1>(working_example.f, solution6[i - 1].first,solution6[i - 1].second,solution6[i].first,2,working_example.c2).back().second,
-                    details::SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method1>(working_example.f, solution6[i - 1].first,solution6[i - 1].second,solution6[i].first,4,working_example.c2).back().second,
+            //buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}"<< "difference:" << solution6[i].first - solution6[i - 1].first << "\n";
+            auto l = compute_error(var, working_example);
+            auto ro = (
+                RungeError(details::SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method1>(working_example.f, solution6[i - 1].first, solution6[i - 1].second, solution6[i].first, 8, working_example.c2).back().second,
+                    details::SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method1>(working_example.f, solution6[i - 1].first, solution6[i - 1].second, solution6[i].first, 16, working_example.c2).back().second,
                     order_of_accuracy_differencial_method.at(method1)
-                    )) });
+                ));
+            //i|x|y|l|ro|l/ro
+            //buffer << "i\tx_i\ty_i\tl_i\trho\n";
+            //buffer << i << "\t" << var.first << "\t" << var.second << "\t" << l << "\t" << ro << "\n";
+
+           
+            buffer << i << "\t" << std::setw(10) << var.first << "\t" << l << "\t" << ro << "\t" << l/ro<< "\n";
+
+            vector_x_ratior_true_err_and_estimated_err_method1.push_back({ solution6[i].first, (l - last_error) / ro  });
+            last_error = l;
         }
+        last_error = 0;
         std::cout << buffer.str();
         buffer.str("");
         buffer.clear();
@@ -1068,17 +1080,22 @@ namespace sem_5 {
         solution6 = SolveODE<method2, ErrorMethod::RungeLocal>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, 1e-9, working_example.c2);
 
         std::vector<std::pair<double, double>> vector_x_ratior_true_err_and_estimated_err_method2;
+        buffer << "\ni\tx_i\tl_i\trho_i\tl_i/rho_i\n";
         for (int i = 1; i < solution6.size(); i++)
         {
             auto var = solution6[i];
-            buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}"
-                << "difference:" << solution6[i].first - solution6[i - 1].first << "\n";
-
-            vector_x_ratior_true_err_and_estimated_err_method2.push_back({ solution6[i].first,compute_error(var, working_example) / (
-                RungeError(details::SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method2>(working_example.f, solution6[i - 1].first,solution6[i - 1].second,solution6[i].first,2,working_example.c2).back().second,
-                    details::SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method2>(working_example.f, solution6[i - 1].first,solution6[i - 1].second,solution6[i].first,4,working_example.c2).back().second,
+            //buffer << "{" << var.first << ";" << var.second << "} exact sol:{" << var.first << ";" << working_example.exact_y(var.first) << "}"<< "difference:" << solution6[i].first - solution6[i - 1].first << "\n";
+            auto l = compute_error(var, working_example);
+            auto ro = (
+                RungeError(details::SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method2>(working_example.f, solution6[i - 1].first, solution6[i - 1].second, solution6[i].first, 8, working_example.c2).back().second,
+                    details::SolveASystemOfOrdinaryDifferentialEquationsEqualSteps<method2>(working_example.f, solution6[i - 1].first, solution6[i - 1].second, solution6[i].first, 16, working_example.c2).back().second,
                     order_of_accuracy_differencial_method.at(method2)
-                    )) });
+                ));
+            buffer << i << "\t" << std::setw(10) << var.first << "\t" << l << "\t" << ro << "\t" << l / ro << "\n";
+
+
+            vector_x_ratior_true_err_and_estimated_err_method2.push_back({ solution6[i].first, (l - last_error) /ro });
+            last_error = l;
         }
         std::cout << buffer.str();
         buffer.str("");
@@ -1119,7 +1136,7 @@ namespace sem_5 {
 
 
     void sem_5_part2(){
-#define EXECUTION_PART 333
+#define EXECUTION_PART 332
         /*
         The Cauchy problem :
             dy1(𝑥) / dx = 𝐴_𝑦2(𝑥),
@@ -1170,7 +1187,7 @@ namespace sem_5 {
         // 2.1 Implement automatic step-size control using 2-stage RK 2nd order method
         //     with local error estimation (ρ = 1e-5) and Runge method
 #if EXECUTION_PART == 21 || EXECUTION_PART == all
-        auto solution2 = SolveASystemOfOrdinaryDifferentialEquationsDifferentStepsWithALocalError< DifferencialMethod::RungeKutta2ndOrder>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, working_example.local_accuracy, working_example.c2);
+        auto solution2 = SolveASystemOfOrdinaryDifferentialEquationsDifferentStepsWithALocalError< DifferencialMethod::RungeKutta2ndOrder>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, working_example.local_accuracy/10, working_example.c2);
         
         std::cout << "sol2 \n";
         for (auto& var : solution2)
@@ -1188,7 +1205,6 @@ namespace sem_5 {
         // 3.1 Implement constant-step and automatic-step methods using classical RK schemes
         //     of 3rd or 4th order (opponent scheme)
 #if EXECUTION_PART == 31 || EXECUTION_PART == all
-        
         auto solution3 = SolveODE<DifferencialMethod::RK3, ErrorMethod::RungeGlobal>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, working_example.local_accuracy, working_example.c2);
 
         std::cout << "sol3 \n";
@@ -1246,19 +1262,28 @@ namespace sem_5 {
         // 3.3.2 Plot ratio of true local error to estimated local error vs x
 #if EXECUTION_PART == 332 || EXECUTION_PART == all
         CauchyComparasionRatioTrueLocalErrorToEstimatedLocalError_vs_X<DifferencialMethod::RK2, DifferencialMethod::RK3>(working_example);
+        //i|x|y|l|ro|l/ro
 #endif
 
         // 3.3.3 Plot number of right-hand side evaluations vs accuracy ε
 #if EXECUTION_PART == 333 || EXECUTION_PART == all
-        std::vector<double> display_call_count_number;
+        std::vector<double> display_call_count_number, display_call_count_number2;
+        std::cout << "eps=1.0/std::pow(2,3*i)\n";
         for (int i=0; i < 15; i++) {
-            auto solution = SolveODE<DifferencialMethod::RK3, ErrorMethod::RungeLocal>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, 1.0/std::pow(2,3*i), working_example.c2);
-            std::cout << "i:" << i << "\tcount:" << rhs_counter.count() << "\n";
+            auto solution = SolveODE<DifferencialMethod::RK2, ErrorMethod::RungeLocal>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, 1.0/std::pow(2,3*i), working_example.c2);
+            std::cout << "i:" << i << "\tcountRK2:" << rhs_counter.count() ;
             display_call_count_number.push_back(rhs_counter.count());
+            rhs_counter.reset();
+
+            solution = SolveODE<DifferencialMethod::RK3, ErrorMethod::RungeLocal>(working_example.f, working_example.x0, working_example.y0, working_example.x_target, 1.0 / std::pow(2, 3 * i), working_example.c2);
+            std::cout << "\tcountRK3:" << rhs_counter.count() << "\n";
+            display_call_count_number2.push_back(rhs_counter.count());
             rhs_counter.reset();
         }
         std::vector<std::function<double(double)>> getOXhFunctionsVector;
         getOXhFunctionsVector.push_back({ createLambda(display_call_count_number) });
+        getOXhFunctionsVector.push_back({ createLambda(display_call_count_number2) });
+
         DrawFunctions(getOXhFunctionsVector);
 #endif
         ////
@@ -1275,9 +1300,9 @@ int main() {
 
     
 
-    //sem_4::sem_4();
+    sem_4::sem_4();
     //sem_5::sem_5_part1();
-    sem_5::sem_5_part2();
+    //sem_5::sem_5_part2();
 
 
 
