@@ -58,7 +58,7 @@ namespace sem_4 {
         b[2][0] = 8.0;
 
         // Решаем систему: A * x = b
-        matrix<double> x = matrixfunction::solve_system(A, b);
+        matrix<double> x = matrixfunction::SolveSystem(A, b);
 
         // Ожидаемое решение: [2.0, 2.0, 2.0]
         std::cout << "Solution:\n" << x << std::endl;
@@ -82,7 +82,7 @@ namespace sem_4 {
         b[2][0] = 13.0;
 
         // Решаем систему: A * x = b
-        matrix<double> x = matrixfunction::solve_system(A, b);
+        matrix<double> x = matrixfunction::SolveSystem(A, b);
 
 
         // Ожидаемое решение: x = [1, 2, 3]
@@ -111,14 +111,14 @@ namespace sem_4 {
         std::cout << "T * A *(T^-1):\n" << A << "\n";
 
         std::vector<double> shifts = { 0.9, -1.5, 4.5 ,20 };
-        std::vector<std::pair<double, matrix<double>>> result = matrixfunction::inverse_power_method_with_shifts(A, shifts);
+        std::vector<std::pair<double, matrix<double>>> result = matrixfunction::InversePowerMethodWithShifts(A, shifts);
         for (auto p : result)
         {
             std::cout << "Eigenvalue: " << p.first << "\nEigenvector:\n" << p.second << "\n";
         }
         matrix<double> vec0 = matrix<double>::ones(Size, 1);
         // std::cout << vec0 << "\n";
-        auto result_ = matrixfunction::inverse_power_method_with_shift(A, 1.5, vec0);
+        auto result_ = matrixfunction::InversePowerMethodWithShift(A, 1.5, vec0);
         std::cout << "Eigenvalue: " << result_.first << "\nEigenvector:\n" << result_.second;
 
     }
@@ -143,7 +143,7 @@ namespace sem_4 {
 
 
         std::vector<double> shifts = { 1000, 10, 1 ,0 };
-        std::vector<std::pair<double, matrix<double>>> result = matrixfunction::inverse_power_method_with_shifts(A, shifts);
+        std::vector<std::pair<double, matrix<double>>> result = matrixfunction::InversePowerMethodWithShifts(A, shifts);
         std::cout << "inverse_with_shifts_Power_meth:\n\n";
         for (auto p : result)
         {
@@ -152,8 +152,8 @@ namespace sem_4 {
 
         std::cout << "matrixfunction::power_method_average:\n\n";
         auto Ans = matrixfunction::power_method_average(A, matrix<double>::ones(A.getcol(), 1), 1e-10, 10000);
-        //matrixfunction::power_method_max(A, matrix<double>::ones(A.getcol(), 1),1e-10,10000);
-        std::cout << "Eigenvalue: " << Ans.first << "\nEigenvector:\n" << matrixfunction::simplify_eigenvector(Ans.second) << "\n";
+        //matrixfunction::PowerMethodMax(A, matrix<double>::ones(A.getcol(), 1),1e-10,10000);
+        std::cout << "Eigenvalue: " << Ans.first << "\nEigenvector:\n" << matrixfunction::SimplifyEigenvector(Ans.second) << "\n";
     }
 
     void Z5_plus(int Size = 4) {
@@ -200,7 +200,7 @@ namespace sem_4 {
         std::cout << "T * A *(T^-1):\n" << A << " \n  ";
         //std::cout << "A_:\n" << A_ << "\n";
         uint64_t j = 0;
-        for (auto& i : matrixfunction::compute_eigenvalues_3_qr(A))
+        for (auto& i : matrixfunction::ComputeEigenvalues3QR(A))
         {
             j++;
             std::cout << "eig[" << j << "]= " << i << "\n";
@@ -286,9 +286,9 @@ namespace sem_4 {
 
         //x-std::sin(x) - 0.25
         interpolators::polynomial_interpolation::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
-            Spline_interpolator<3, 2, double>, // interpolator
+            SplineInterpolator<3, 2, double>, // interpolator
             50, 50,                      // n, m_
-            "Spline_interpolator<3, 2, double>",
+            "SplineInterpolator<3, 2, double>",
             [](double x) { return  identifier; },
             the_left_border, the_right_border,
             5
@@ -322,18 +322,18 @@ namespace sem_4 {
         b = polynomialfunctions::filter_large_epsilon(b, 1e-9);
         std::cout << "\nAlternativ_Lagrang_interpolation:" << b;
 
-        auto spl4 = Spline_interpolator<4, 3, double>(GeneratePointsEquallySufficient(5, -12.0, 12.0, a));
-        std::cout << "\nSpline_interpolator<4,3, double>:" << spl4 << "\n";
+        auto spl4 = SplineInterpolator<4, 3, double>(GeneratePointsEquallySufficient(5, -12.0, 12.0, a));
+        std::cout << "\nSplineInterpolator<4,3, double>:" << spl4 << "\n";
 
-        auto spl3 = Spline_interpolator<3, 2, double>(GeneratePointsEquallySufficient(5, -12.0, 12.0, a));
-        std::cout << "\nSpline_interpolator<3,2, double>:" << spl3 << "\n";
+        auto spl3 = SplineInterpolator<3, 2, double>(GeneratePointsEquallySufficient(5, -12.0, 12.0, a));
+        std::cout << "\nSplineInterpolator<3,2, double>:" << spl3 << "\n";
 
-        auto spl2 = Spline_interpolator<2, 1, double>(GeneratePointsEquallySufficient(5, -12.0, 12.0, a));
-        std::cout << "\nSpline_interpolator<2, 1, double>:" << spl2 << "\n";
+        auto spl2 = SplineInterpolator<2, 1, double>(GeneratePointsEquallySufficient(5, -12.0, 12.0, a));
+        std::cout << "\nSplineInterpolator<2, 1, double>:" << spl2 << "\n";
 
 
-        auto spl1 = Spline_interpolator<1, 0, double>(GeneratePointsEquallySufficient(5, -12.0, 12.0, a));
-        std::cout << "\nSpline_interpolator<1, 0, double>:" << spl1 << "\n";
+        auto spl1 = SplineInterpolator<1, 0, double>(GeneratePointsEquallySufficient(5, -12.0, 12.0, a));
+        std::cout << "\nSplineInterpolator<1, 0, double>:" << spl1 << "\n";
 #define identifier (x-std::sin(x) - 0.25)
 #define the_left_border -M_PI / 4
 #define the_right_border M_PI / 4
@@ -375,27 +375,27 @@ namespace sem_4 {
 
         //x-std::sin(x) - 0.25
         interpolators::polynomial_interpolation::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
-            Spline_interpolator<3, 2, double>, // interpolator
+            SplineInterpolator<3, 2, double>, // interpolator
             50, 50,                      // n, m_
-            "Spline_interpolator<3, 2, double>",
+            "SplineInterpolator<3, 2, double>",
             [](double x) { return  identifier; },
             the_left_border, the_right_border,
             5
         );
 
         interpolators::polynomial_interpolation::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
-            Spline_interpolator<2, 1, double>, // interpolator
+            SplineInterpolator<2, 1, double>, // interpolator
             50, 50,                      // n, m_
-            "Spline_interpolator<2, 1, double>",
+            "SplineInterpolator<2, 1, double>",
             [](double x) { return identifier; },
             the_left_border, the_right_border,
             20
         );
 
         interpolators::polynomial_interpolation::ShowInterpolationStatistic<double, SplineInterpolatorFunc>(
-            Spline_interpolator<1, 0, double>, // interpolator
+            SplineInterpolator<1, 0, double>, // interpolator
             10, 20,                      // n, m_
-            "Spline_interpolator<1,0, double>",
+            "SplineInterpolator<1,0, double>",
             [](double x) { return identifier; },
             the_left_border, the_right_border,
             20

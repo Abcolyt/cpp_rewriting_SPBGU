@@ -612,7 +612,7 @@ namespace details {
                 }
 
 
-                matrix<T> coeff = matrixfunction::solve_system(A, b);
+                matrix<T> coeff = matrixfunction::SolveSystem(A, b);
 
                 return coeff;
             }
@@ -648,7 +648,7 @@ namespace details {
                         A[j][i] = nodes_in_the_integration_gap[i][0] * A[j - 1][i];
                     }
                 }
-                matrix<TResult> coeff = matrixfunction::solve_system(A, b_);
+                matrix<TResult> coeff = matrixfunction::SolveSystem(A, b_);
                 return coeff;
             }
         }
@@ -688,7 +688,7 @@ namespace details {
             std::cout << "A" << A << '\n';
             std::cout << "B" << B << '\n';
 #endif
-            matrix<T> coeff = matrixfunction::solve_system(A, B);
+            matrix<T> coeff = matrixfunction::SolveSystem(A, B);
 #if Debug == 1
             std::cout << "coeff" << coeff << '\n';
             std::cout << "A*coeff" << A * coeff << '\n';
@@ -753,7 +753,7 @@ namespace details {
             std::cout << "A':" << A2 << "\n";
             std::cout << "B':" << B2 << "\n";
 #endif
-            matrix<T> coeff2 = matrixfunction::solve_system(A2, B2);
+            matrix<T> coeff2 = matrixfunction::SolveSystem(A2, B2);
 #if Debug == 1
 
             std::cout << "c'_j:" << coeff2 << '\n';
@@ -801,7 +801,7 @@ namespace details {
             std::cout << "A" << A << '\n';
             std::cout << "B" << B << '\n';
 #endif
-            matrix<double> coeff = matrixfunction::solve_system(A, B);
+            matrix<double> coeff = matrixfunction::SolveSystem(A, B);
 #if Debug == 1
             std::cout << "coeff" << coeff << '\n';
             std::cout << "A*coeff" << A * coeff << '\n';
@@ -858,7 +858,7 @@ namespace details {
             std::cout << "A':" << A2 << "\n";
             std::cout << "B':" << B2 << "\n";
 #endif
-            matrix<T_type> coeff2 = matrixfunction::solve_system(A2, B2);
+            matrix<T_type> coeff2 = matrixfunction::SolveSystem(A2, B2);
 #if Debug == 1
 
             std::cout << "c'_j:" << coeff2 << '\n';
@@ -1046,7 +1046,7 @@ IntegrationResult<TResult> adaptive_integrate(
                 b_vec[i][0] = -approximations[i];
             }
             try {
-                matrix<TResult> coeff = matrixfunction::solve_system(A, b_vec);
+                matrix<TResult> coeff = matrixfunction::SolveSystem(A, b_vec);
 
                 // coeff : [C_m, C_{m+1}, ..., J(f)]^T
                 TResult J_estimate = coeff[size - 1][0]; // J(f)

@@ -95,6 +95,24 @@ namespace aproximate {
 
     // // // ///
     template<typename P>polynomial<P> LeastSquaresNormal(std::vector<std::pair<P, P>> Array_xy, uint64_t degree_of_the_polynomial = 5) {
+        auto convert_pairs_to_vector = []<typename T>(const std::vector<std::pair<T, T>>&input,
+            bool take_first_element = true) {
+            std::vector<T> output;
+            output.reserve(input.size());
+
+            auto extractor = [take_first_element](const std::pair<T, T>& pair) {
+                return take_first_element ? pair.first : pair.second;
+                };
+
+            std::transform(
+                input.begin(),
+                input.end(),
+                std::back_inserter(output),
+                extractor
+            );
+
+            return output;
+        };;
         auto V = matrix<double>::vander(convert_pairs_to_vector(Array_xy), degree_of_the_polynomial);
         matrix<double> b((Array_xy.size()), 1);
         int i = 0;
@@ -102,7 +120,7 @@ namespace aproximate {
             b[i][0] = I;
             i++;
         }
-        auto matrx_ans = matrixfunction::sanitize_zeros(V.pseudo_inverse() * b, 1e-9);
+        auto matrx_ans = matrixfunction::SanitizeZeros(V.pseudo_inverse() * b, 1e-9);
         polynomial<double> pol_ans; pol_ans.set_deg(degree_of_the_polynomial);
         for (size_t i = 0; i < degree_of_the_polynomial; i++)
         {

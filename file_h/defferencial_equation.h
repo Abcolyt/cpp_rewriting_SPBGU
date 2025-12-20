@@ -85,13 +85,13 @@ namespace details {
 
     // gives an error estimate using the runge method
     template<typename T>
-    auto RungeError(const T& y1, const T& y2, uint64_t s) {
+    auto RungeError(const T& y1, const T& y2, uint64_t s, uint16_t L = 2) {
         if constexpr (is_matrix<T>::value) {
             //std::cout << (y1 - y2) <<'\n';
-            return (y1 - y2).norm() / (std::pow(2, s) - 1);
+            return (y1 - y2).norm() / (std::pow(L, s) - 1);
         }
         else if constexpr (std::is_arithmetic_v<T>) {
-            return std::abs(y1 - y2) / (std::pow(2, s) - 1);
+            return std::abs(y1 - y2) / (std::pow(L, s) - 1);
         }
         else {
             static_assert(sizeof(T) == 0, "Unsupported type for RungeError");

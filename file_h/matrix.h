@@ -34,95 +34,83 @@ struct QRResult {
     matrix<T> R;
 };
 namespace matrixfunction {
+////
+    template <typename T>bool IsEqualMatrix(const matrix<T>& a, const matrix<T>& b, T epsilon = static_cast<T>(1e-6));
+
+    template <typename T>matrix<int> ElementwiseEqualMatrix(const matrix<T>& a, const matrix<T>& b, T epsilon = static_cast<T>(1e-6));
+
+    template<typename T>matrix<T> SanitizeZeros(matrix<T> m, const T eps = std::numeric_limits<T>::epsilon() * 10);
+
+    // scalar product of vectors
+    template <typename T>T DotProduct(const matrix<T>& a, const matrix<T>& b);
+////
+
 //// POWER METHOD
     // get maximum eigenvalues in matrix
-    template<typename T>std::pair<T, matrix<T>> power_method_max(const matrix<T>& A, const matrix<T>& Vec0, double epsilon = 1e-6, int max_iter = 1000);
+    template<typename T>std::pair<T, matrix<T>> PowerMethodMax(const matrix<T>& A, const matrix<T>& Vec0, double epsilon = 1e-6, int max_iter = 1000);
 
-    template<typename T>std::pair<T, matrix<T>> power_method_max(const matrix<T>& A, double epsilon = 1e-6, int max_iter = 1000) {
-        return matrixfunction::power_method_max(A, matrix<T>::ones(A.getcol(), 1), epsilon, max_iter);
+    template<typename T>std::pair<T, matrix<T>> PowerMethodMax(const matrix<T>& A, double epsilon = 1e-6, int max_iter = 1000) {
+        return matrixfunction::PowerMethodMax(A, matrix<T>::ones(A.getcol(), 1), epsilon, max_iter);
     }
-////
-    template <typename T>bool is_equal(const matrix<T>& a, const matrix<T>& b, T epsilon = static_cast<T>(1e-6));
-
-    template <typename T>matrix<int> elementwise_equal_matrix(const matrix<T>& a, const matrix<T>& b, T epsilon = static_cast<T>(1e-6));
-
-    template<typename T>matrix<T> sanitize_zeros(matrix<T> m, const T eps = std::numeric_limits<T>::epsilon() * 10) {
-        for (uint64_t i = 0; i < m.getrow(); ++i) {
-            for (uint64_t j = 0; j < m.getcol(); ++j) {
-                if (std::abs(m[i][j]) < eps) {
-                    m[i][j] = T(0);
-                }
-            }
-        }
-        return m;
-    }
-
 //// LUP system solver
+    //details
     template<typename T>
-    matrix<T> forward_substitution(const matrix<T>& L, const matrix<T>& b);
+    matrix<T> ForwardSubstitution(const matrix<T>& L, const matrix<T>& b);
     template<typename T>
-    matrix<T> backward_substitution(const matrix<T>& U, const matrix<T>& y);
+    matrix<T> BackwardSubstitution(const matrix<T>& U, const matrix<T>& y);
+    //
+
     template<typename T>
-    matrix<T> solve_system(const matrix<T>& A, const matrix<T>& b);
+    matrix<T> SolveSystem(const matrix<T>& A, const matrix<T>& b);
 ////
     
 //// Hessenberg form
     
+    //details
     template <typename T>
-    matrix<T> get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(const matrix<T>& A, int k);
+    matrix<T> GetTheHouseholderMatrixForReductionToTheUpperHessenbergMatrix(const matrix<T>& A, int k);
 
     template <typename T>
-    matrix<T> hessenberg_upper_form(matrix<T> A);
+    matrix<T> HessenbergUpperForm(matrix<T> A);
 
 ////
 
 //// QR Decomposition
     template <typename T>
-    QRResult<T> qr_decomposition(const matrix<T>& A);
+    QRResult<T> QRDecomposition(const matrix<T>& A);
 ////
 
 ////Eigenvalues and vectors
     //Simplification column vector or row vector
-    template <typename T>matrix<T> simplify_eigenvector(const matrix<T>& vec, T epsilon = 1e-6);
+    template <typename T>matrix<T> SimplifyEigenvector(const matrix<T>& vec, T epsilon = 1e-6);
     
-    // off code
-    //template<typename T>std::vector<T> GeneratePointsEquallySufficient(int k, T a, T b) {
-    //    T step = (b - a) / k;
-    //    std::vector<T> points;
-    //    for (int i = 0; i < k; ++i) {
-    //        T x = a + i * step;
-    //        points.emplace_back(x) ;
-    //    }
-    //    return points;
-    //}
-
     //a lot of shifts
     template <typename T>
-    std::vector<std::pair<T, matrix<T>>> inverse_power_method_with_shifts(
+    std::vector<std::pair<T, matrix<T>>> InversePowerMethodWithShifts(
         matrix<T> A,const std::vector<T>& initial_shifts,
         double epsilon = 1e-6,double delta = 1e-8,int max_iter = 10000);
 
     //one shift
     template <typename T>
-    std::pair<T, matrix<T>> inverse_power_method_with_shift(
+    std::pair<T, matrix<T>> InversePowerMethodWithShift(
         matrix<T> A,T sigma0,const matrix<T>& vec0,
         double epsilon = 1e-6,double delta = 1e-8,int max_iter = 10000);
     //2*2 matrix
     template<typename T>
-    std::pair<std::complex<T>, std::complex<T>> compute_2x2_eigenvalues(const matrix<T>& A);
+    std::pair<std::complex<T>, std::complex<T>> Compute2x2Eigenvalues(const matrix<T>& A);
     // a lot of shift
 
     //n*n
     template <typename T>
-    std::vector<std::complex<double>> compute_eigenvalues(const matrix<T>& A, double eps = 1e-9);
+    std::vector<std::complex<double>> ComputeEigenvalues(const matrix<T>& A, double eps = 1e-9);
 
     template <typename T>
-    std::vector<std::complex<double>> compute_eigenvalues_3_qr(const matrix<T>& A, double eps = 1e-12);
+    std::vector<std::complex<double>> ComputeEigenvalues3QR(const matrix<T>& A, double eps = 1e-12);
 
 
 #if 0
     template <typename T>
-    std::vector<T> qr_algorithm_with_shifts(matrix<T>& H, T epsilon = 1e-6, int max_iter = 1000) {
+    std::vector<T> QRAlgorithmWithShifts(matrix<T>& H, T epsilon = 1e-6, int max_iter = 1000) {
         int n = H.getcol();
         std::vector<T> eigenvalues;
 
@@ -150,7 +138,7 @@ namespace matrixfunction {
                 }
 
                 matrix<T> I = matrix<T>::eye(n);
-                QRResult<T> qr = qr_decomposition(H - (I* shift));
+                QRResult<T> qr = QRDecomposition(H - (I* shift));
                 H = qr.R * qr.Q +  I* shift;
 
                 T current_shift = H[n - 1][n - 1];
@@ -181,9 +169,9 @@ namespace matrixfunction {
         return eigenvalues;
     }
 #else
-    template <typename T>std::vector<T> qr_algorithm_with_shifts(matrix<T>& H, T epsilon = 1e-6, int max_iter = 1000) {
+    template <typename T>std::vector<T> QRAlgorithmWithShifts(matrix<T>& H, T epsilon = 1e-6, int max_iter = 1000) {
         while (H.getrow() >= 2 && H.getcol())
-            compute_2x2_eigenvalues(H.submatrix(H.getrow() - 2, H.getcol() - 2, H.getrow(), H.getcol()));
+            Compute2x2Eigenvalues(H.submatrix(H.getrow() - 2, H.getcol() - 2, H.getrow(), H.getcol()));
                 return 0;
     }
 #endif
@@ -192,10 +180,7 @@ namespace matrixfunction {
 
 ////
 
-//// scalar product of vectors
-    template <typename T>
-    T dot_product(const matrix<T>& a, const matrix<T>& b);
-////
+
 
 
 }

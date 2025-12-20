@@ -762,12 +762,12 @@ template<typename T>
      if (colsize != rowsize) {
          throw std::invalid_argument("Matrix must be square.");
      }
-     return matrixfunction::power_method_max(*this, matrix<T>::ones(colsize, 1), epsilon, max_iter).first;
+     return matrixfunction::PowerMethodMax(*this, matrix<T>::ones(colsize, 1), epsilon, max_iter).first;
  }
  // Method for calculating the maximum eigenvalue with initial vector
  template<typename T>
  T matrix<T>::max_eigenvalue(const matrix<T>& initial_vec, double epsilon , int max_iter ) const {
-     return matrixfunction::power_method_max(*this, initial_vec, epsilon, max_iter);
+     return matrixfunction::PowerMethodMax(*this, initial_vec, epsilon, max_iter);
  }
 template<typename T>
  T matrix<T>::norm(int p) const {
@@ -850,7 +850,7 @@ template<typename T>
 
          for (uint64_t i = 0; i < j; ++i) {
              matrix<T> Q_i = Q.get_column(i); 
-             R[i][j] = matrixfunction::dot_product(Q_i, v);   
+             R[i][j] = matrixfunction::DotProduct(Q_i, v);   
 
              // Subtract the projection
              for (uint64_t k = 0; k < m; ++k) {
@@ -894,7 +894,7 @@ template<typename T>
  #if 0
  template <typename T>
  std::vector<std::complex<T>> matrix<T>::eigenvalues_qr_double_shift(double epsilon) const {
-     matrix<T> H = hessenberg_upper_form(*this);
+     matrix<T> H = HessenbergUpperForm(*this);
      std::vector<std::complex<T>> eigenvalues;
      int n = H.getcol();
 
@@ -957,7 +957,7 @@ template<typename T>
          else if (m >= 0) {
              // Calculation of shifts
              matrix<T> sub = H.submatrix(n - 2, n - 2, 2, 2);
-             auto [lambda1, lambda2] = compute_2x2_eigenvalues(sub);
+             auto [lambda1, lambda2] = Compute2x2Eigenvalues(sub);
              T s = lambda1.real() + lambda2.real();
              T t = lambda1.real() * lambda2.real() - lambda1.imag() * lambda2.imag();
 
@@ -1009,7 +1009,7 @@ template<typename T>
  }
  #endif     
 namespace matrixfunction {
-    template<typename T>std::pair<T,matrix<T>> power_method_max(const matrix<T>& A, const matrix<T>& Vec0, double epsilon, int max_iter ) {
+    template<typename T>std::pair<T,matrix<T>> PowerMethodMax(const matrix<T>& A, const matrix<T>& Vec0, double epsilon, int max_iter ) {
 
         if (A.getcol() != A.getrow()) {
             throw std::invalid_argument("Matrix must be square for power method.");
@@ -1110,7 +1110,7 @@ namespace matrixfunction {
         throw std::runtime_error("Power method did not converge within the specified iterations.");
     }
 
-    template <typename T>bool is_equal(const matrix<T>& a, const matrix<T>& b, T epsilon) {
+    template <typename T>bool IsEqualMatrix(const matrix<T>& a, const matrix<T>& b, T epsilon) {
         if (a.getcol() != b.getcol() || a.getrow() != b.getrow()) {
             return false;
         }
@@ -1129,7 +1129,7 @@ namespace matrixfunction {
         return true;
     }
     
-    template <typename T>    matrix<int> elementwise_equal_matrix(const matrix<T>& a, const matrix<T>& b, T epsilon) {
+    template <typename T>    matrix<int> ElementwiseEqualMatrix(const matrix<T>& a, const matrix<T>& b, T epsilon) {
         if (a.getcol() != b.getcol() || a.getrow() != b.getrow()) {
             throw std::invalid_argument("Matrices must have the same dimensions");
         }
@@ -1149,9 +1149,20 @@ namespace matrixfunction {
         return result;
     }
 
+
+    template<typename T>matrix<T> SanitizeZeros(matrix<T> m, const T eps) {
+        for (uint64_t i = 0; i < m.getrow(); ++i) {
+            for (uint64_t j = 0; j < m.getcol(); ++j) {
+                if (std::abs(m[i][j]) < eps) {
+                    m[i][j] = T(0);
+                }
+            }
+        }
+        return m;
+    }
     //Simplification column vector or row vector
     template <typename T>
-    matrix<T> simplify_eigenvector(const matrix<T>& vec, T epsilon ) {
+    matrix<T> SimplifyEigenvector(const matrix<T>& vec, T epsilon ) {
         T max_val = 0;
         matrix<T> simplified;
         if (vec.getcol() == 1) {
@@ -1193,7 +1204,7 @@ namespace matrixfunction {
 
     //one shift
     template <typename T>
-    std::pair<T, matrix<T>> inverse_power_method_with_shift(
+    std::pair<T, matrix<T>> InversePowerMethodWithShift(
         matrix<T> A,
         T sigma0,
         const matrix<T>& vec0,
@@ -1228,7 +1239,7 @@ namespace matrixfunction {
                 sigma += epsilon;
                 continue;
             }
-            matrix<T> y = solve_system(A_shifted, z);//Y_ k+1 = y_(iter) from z_(iter-1)
+            matrix<T> y = SolveSystem(A_shifted, z);//Y_ k+1 = y_(iter) from z_(iter-1)
             ////
 
 
@@ -1272,7 +1283,7 @@ namespace matrixfunction {
             z = y * (1.0 / y_norm);
         }
         if (converged) {
-            return { sigma, (simplify_eigenvector(z)) };
+            return { sigma, (SimplifyEigenvector(z)) };
         }
         else {
             std::cout << "Warning: Convergence not achieved for shift: " << sigma << " " << z << "\n";
@@ -1281,7 +1292,7 @@ namespace matrixfunction {
 
     //a lot of shifts
     template <typename T>
-    std::vector<std::pair<T, matrix<T>>> inverse_power_method_with_shifts(
+    std::vector<std::pair<T, matrix<T>>> InversePowerMethodWithShifts(
         matrix<T> A,
         const std::vector<T>& initial_shifts,
         double epsilon,
@@ -1313,7 +1324,7 @@ namespace matrixfunction {
                     sigma += epsilon;
                     continue;
                 }
-                matrix<T> y = solve_system(A_shifted, z);//Y_ k+1 = y_(iter) from z_(iter-1)
+                matrix<T> y = SolveSystem(A_shifted, z);//Y_ k+1 = y_(iter) from z_(iter-1)
                 ////
 
 
@@ -1357,7 +1368,7 @@ namespace matrixfunction {
                 z = y * (1.0 / y_norm);
             }
             if (converged) {
-                eigen_pairs.emplace_back(sigma, simplify_eigenvector(z));
+                eigen_pairs.emplace_back(sigma, SimplifyEigenvector(z));
             }
             else {
                 std::cout << "Warning: Convergence not achieved for shift: " << sigma << " " << z << "\n";
@@ -1368,7 +1379,7 @@ namespace matrixfunction {
 
     //// LUP system solver
     template<typename T>
-    matrix<T> forward_substitution(const matrix<T>& L, const matrix<T>& b) {
+    matrix<T> ForwardSubstitution(const matrix<T>& L, const matrix<T>& b) {
         int n = L.getrow();
         matrix<T> y(n, 1);
         for (int i = 0; i < n; ++i) {
@@ -1382,7 +1393,7 @@ namespace matrixfunction {
     }
 
     template<typename T>
-    matrix<T> backward_substitution(const matrix<T>& U, const matrix<T>& y) {
+    matrix<T> BackwardSubstitution(const matrix<T>& U, const matrix<T>& y) {
         int n = U.getrow();
         matrix<T> x(n, 1);
         for (int i = n - 1; i >= 0; --i) {
@@ -1396,18 +1407,18 @@ namespace matrixfunction {
     }
 
     template<typename T>
-    matrix<T> solve_system(const matrix<T>& A, const matrix<T>& b) {
+    matrix<T> SolveSystem(const matrix<T>& A, const matrix<T>& b) {
         auto lup = A.LUP();
         matrix<T> Pb = lup.P * b;
-        matrix<T> y = forward_substitution(lup.L, Pb);
-        matrix<T> x = backward_substitution(lup.U, y);
+        matrix<T> y = ForwardSubstitution(lup.L, Pb);
+        matrix<T> x = BackwardSubstitution(lup.U, y);
         return x;
     }
     ////
     
     //// Hessenberg form
     template <typename T>
-    matrix<T> get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(const matrix<T>& A, int k) {
+    matrix<T> GetTheHouseholderMatrixForReductionToTheUpperHessenbergMatrix(const matrix<T>& A, int k) {
         int n = A.getcol();
         if (n != A.getrow()) throw std::invalid_argument("Matrix must be square");
         if (k < 0 || k >= n - 1) throw std::invalid_argument("Invalid column index");
@@ -1451,12 +1462,12 @@ namespace matrixfunction {
     }
 
     template <typename T>
-    matrix<T> hessenberg_upper_form(matrix<T> A) {
+    matrix<T> HessenbergUpperForm(matrix<T> A) {
         int n = A.getcol();
         if (n != A.getrow()) throw std::invalid_argument("Matrix must be square");
 
         for (int k = 0; k < n - 2; ++k) {
-            matrix<T> H = get_the_Householder_matrix_for_reduction_to_the_upper_Hessenberg_Matrix(A, k);
+            matrix<T> H = GetTheHouseholderMatrixForReductionToTheUpperHessenbergMatrix(A, k);
             A = H * A * H; // <= H==H^-1
         }
         return A;
@@ -1465,7 +1476,7 @@ namespace matrixfunction {
 
     //// QR Decomposition
     template <typename T>
-    QRResult<T> qr_decomposition(const matrix<T>& A) {
+    QRResult<T> QRDecomposition(const matrix<T>& A) {
         int m = A.getrow();
         int n = A.getcol();
         QRResult<T> result;
@@ -1506,7 +1517,7 @@ namespace matrixfunction {
 
     //2*2 matrix
     template<typename T>
-    std::pair<std::complex<T>, std::complex<T>> compute_2x2_eigenvalues(const matrix<T>& A) {
+    std::pair<std::complex<T>, std::complex<T>> Compute2x2Eigenvalues(const matrix<T>& A) {
         T a = A[0][0], b = A[0][1], c = A[1][0], d = A[1][1];
         T trace = a + d;
         T det = a * d - b * c;
@@ -1527,8 +1538,8 @@ namespace matrixfunction {
 
     //n*n
     template <typename T>
-    std::vector<std::complex<double>> compute_eigenvalues(const matrix<T>& A, double eps ) {
-        auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), (T)1e-10);
+    std::vector<std::complex<double>> ComputeEigenvalues(const matrix<T>& A, double eps ) {
+        auto H = matrixfunction::SanitizeZeros(matrixfunction::HessenbergUpperForm(A), (T)1e-10);
         std::vector<std::complex<double>> eigenvalues;
 
         while (H.getrow() >= 3 && H.getcol() >= 3) {
@@ -1541,11 +1552,11 @@ namespace matrixfunction {
             }
 
             auto qrH = H.qr();
-            H = matrixfunction::sanitize_zeros(qrH.R * qrH.Q, (T)eps);
+            H = matrixfunction::SanitizeZeros(qrH.R * qrH.Q, (T)eps);
         }
 
         if (H.getrow() >= 2 && H.getcol() >= 2) {
-            auto last_evs = matrixfunction::compute_2x2_eigenvalues(H);
+            auto last_evs = matrixfunction::Compute2x2Eigenvalues(H);
             eigenvalues.push_back(last_evs.first);
             eigenvalues.push_back(last_evs.second);
         }
@@ -1557,9 +1568,9 @@ namespace matrixfunction {
     }
     
     template <typename T>
-    std::vector<std::complex<double>> compute_eigenvalues_3_qr(const matrix<T>& A, double eps) {
+    std::vector<std::complex<double>> ComputeEigenvalues3QR(const matrix<T>& A, double eps) {
 #define second_convergence false
-        auto H = matrixfunction::sanitize_zeros(matrixfunction::hessenberg_upper_form(A), static_cast<T>(1e-12));
+        auto H = matrixfunction::SanitizeZeros(matrixfunction::HessenbergUpperForm(A), static_cast<T>(1e-12));
         std::vector<std::complex<double>> eigenvalues;
 
         // Variables for tracking convergence status
@@ -1608,11 +1619,11 @@ namespace matrixfunction {
                 H[i][i] += mu;              // + mu*I
             }
 
-            H = matrixfunction::sanitize_zeros(H, static_cast<T>(eps));
+            H = matrixfunction::SanitizeZeros(H, static_cast<T>(eps));
         }
 
         if (H.getrow() == 2 && H.getcol() == 2) {
-            auto last_evs = matrixfunction::compute_2x2_eigenvalues(H);
+            auto last_evs = matrixfunction::Compute2x2Eigenvalues(H);
             eigenvalues.push_back(last_evs.first);
             eigenvalues.push_back(last_evs.second);
         }
@@ -1627,7 +1638,7 @@ namespace matrixfunction {
 
     //// scalar product of vectors
     template <typename T>
-    T dot_product(const matrix<T>& a, const matrix<T>& b) {
+    T DotProduct(const matrix<T>& a, const matrix<T>& b) {
 
         const bool a_is_col = (a.getcol() > 1 && a.getrow() == 1);
         const bool a_is_row = (a.getrow() > 1 && a.getcol() == 1);

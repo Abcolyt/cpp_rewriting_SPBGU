@@ -5,37 +5,7 @@
 #include "../file_h/polynomial.h"
 #include "../file_h/matrix.h"
 
-uint64_t factorial(const int n)
-{
-    uint64_t f = 1;
-    for (int i = 1; i <= n; ++i)
-        f *= i;
-    return f;
-}
-
 extern enum class output_mode;
-template<typename T>
-std::vector<T> convert_pairs_to_vector(
-    const std::vector<std::pair<T, T>>& input,
-    bool take_first_element = true 
-) {
-    std::vector<T> output;
-    output.reserve(input.size());
-
-    
-    auto extractor = [take_first_element](const std::pair<T, T>& pair) {
-        return take_first_element ? pair.first : pair.second;
-    };
-
-    std::transform(
-        input.begin(),
-        input.end(),
-        std::back_inserter(output),
-        extractor
-    );
-
-    return output;
-}
 
 template<typename T>
 class Spline {
@@ -80,10 +50,9 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const Spline<U>& spline);
 
     template<uint64_t M_, uint64_t P, typename T>
-    friend void Spline_interpolator(const std::vector<std::pair<T, T>>& Array_xy);
+    friend void SplineInterpolator(const std::vector<std::pair<T, T>>& Array_xy);
 };
-template<typename T>
-Spline<T>::Spline(T left_border, T right_border, size_t num_sections) {
+template<typename T>Spline<T>::Spline(T left_border, T right_border, size_t num_sections) {
     sections.resize(num_sections);
     polinoms.resize(num_sections-1);
     
@@ -94,8 +63,7 @@ Spline<T>::Spline(T left_border, T right_border, size_t num_sections) {
     sections[num_sections - 1] = right_border;
 }
 
-template<typename T>
-Spline<T>::Spline(std::vector<T> vec) {
+template<typename T>Spline<T>::Spline(std::vector<T> vec) {
     uint64_t Size = vec.size();
     std::sort(vec.begin(), vec.end());
     sections.resize(Size);
@@ -119,8 +87,7 @@ template<typename T>Spline<T>::~Spline()
 {
 }
 
-template<typename T>
-std::ostream& operator<<(std::ostream& os, const Spline<T>& spline) {
+template<typename T>std::ostream& operator<<(std::ostream& os, const Spline<T>& spline) {
     os << "Spline with " << spline.sections_size() << " intervals:\n";
     for (size_t i = 0; i < spline.sections_size() -1; ++i) {
         os << "  Interval [" << spline.sections[i]
@@ -132,7 +99,34 @@ std::ostream& operator<<(std::ostream& os, const Spline<T>& spline) {
 
 #define SPLINE_LOGS 0
     template<uint64_t M_, uint64_t P_= M_ - 1, typename T>
-    Spline<T> Spline_interpolator(std::vector<std::pair<T, T>> Array_xy) {
+Spline<T> SplineInterpolator(std::vector<std::pair<T, T>> Array_xy) {
+
+        auto factorial = [](const int n) {
+            uint64_t f = 1;
+            for (int i = 1; i <= n; ++i)
+                f *= i;
+            return f;
+            };
+        
+        auto convert_pairs_to_vector = []<typename T>(const std::vector<std::pair<T, T>>&input,
+            bool take_first_element = true) {
+            std::vector<T> output;
+            output.reserve(input.size());
+
+            auto extractor = [take_first_element](const std::pair<T, T>& pair) {
+                return take_first_element ? pair.first : pair.second;
+                };
+
+            std::transform(
+                input.begin(),
+                input.end(),
+                std::back_inserter(output),
+                extractor
+            );
+
+            return output;
+        };;
+
     #if SPLINE_LOGS==1
         std::cout << "\n";
         for (auto& I : Array_xy) { std::cout << "x:" << I.first << "y:" << I.second << "\n"; }
@@ -257,7 +251,7 @@ std::ostream& operator<<(std::ostream& os, const Spline<T>& spline) {
         std::cout << a.determinant() << "\n\n";
         std::cout<<"b:\n" << b << "\n\n";
     #endif
-        matrix<T> x = matrixfunction::solve_system(a, b);
+        matrix<T> x = matrixfunction::SolveSystem(a, b);
        
     
         Spline<T> ans(convert_pairs_to_vector(Array_xy));

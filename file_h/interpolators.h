@@ -512,7 +512,7 @@ namespace demonstrate_statistic{
 
         // // // //
         std::vector<std::function<P(P)>> addition_functions_n, addition_functions_opt, addition_functions_n_abs_diff, addition_functions_opt_abs_diff;
-        if (interpolation_name == "Spline_interpolator<3, 2, double>") {
+        if (interpolation_name == "SplineInterpolator<3, 2, double>") {
 
 
             auto func_interpolation_two = NutonInterpolation<double>;
@@ -678,7 +678,7 @@ namespace aproximate {
             b[i][0] = I;
             i++;
         }
-        auto matrx_ans = matrixfunction::sanitize_zeros(V.pseudo_inverse() * b, 1e-9);
+        auto matrx_ans = matrixfunction::SanitizeZeros(V.pseudo_inverse() * b, 1e-9);
         polynomial<double> pol_ans; pol_ans.set_deg(degree_of_the_polynomial);
         for (size_t i = 0; i < degree_of_the_polynomial; i++)
         {
