@@ -1,4 +1,4 @@
-#include "file_h/complex.h"
+﻿#include "file_h/complex.h"
 #include "file_h/fraction.h"
 #include "file_h/polynomial.h"
 #include "file_h/matrix.h"
@@ -152,7 +152,7 @@ namespace counting_methods {
                 //jacobian value
                 std::vector<std::vector<double>> J = jacobian(current_guess);
 
-                //Solve system J * delta = -F ��� delta
+                //Solve system J * delta = -F для delta
                 std::vector<double> delta(num_functions);
 
                 std::vector<std::vector<double>> augmented_matrix(num_functions, std::vector<double>(num_functions + 1));
@@ -206,8 +206,8 @@ namespace counting_methods {
         int nonlinsystem_tangent_method() {
             // We define the functions of the system of equations
             std::vector<Function> functions = {
-                [](const std::vector<double>& x) { return std::tan(x[0] * x[1] + 0.4) - x[0] * x[0]; }, // ������: f1(x1, x2) = x1^2 + x2 - 2
-                [](const std::vector<double>& x) { return 0.8 * x[0] * x[0] + 2 * x[1] * x[1] - 1; } // ������: f2(x1, x2) = x1 - x2^2
+                [](const std::vector<double>& x) { return std::tan(x[0] * x[1] + 0.4) - x[0] * x[0]; }, // Пример: f1(x1, x2) = x1^2 + x2 - 2
+                [](const std::vector<double>& x) { return 0.8 * x[0] * x[0] + 2 * x[1] * x[1] - 1; } // Пример: f2(x1, x2) = x1 - x2^2
             };
 
             Jacobian jacobian = [](const std::vector<double>& x) {
@@ -294,7 +294,7 @@ namespace counting_methods {
             A[2][0] = 1.3446; A[2][1] = 21.9666; A[2][2] = 74.7291; A[2][3] = 93.3867;
             A[3][0] = 1.9192; A[3][1] = 28.7604; A[3][2] = 93.3867; A[3][3] = 208.6609;
 
-            std::cout << "inpyt matrix:\n" << A;
+            std::cout << "input matrix:\n" << A;
             try {
                 matrix<double> A_inv = (A.cholesky().inverse_M()).transpose() * A.cholesky().inverse_M();
                 std::cout << " A^{-1}:\n" << A_inv;
@@ -308,4 +308,310 @@ namespace counting_methods {
             return 0;
         }
     }
+}
+namespace function_optimization{
+	template <typename Func>
+	double dichotomic_minimize(Func f, double a, double b, double eps, const double delta = eps / 2.0) {
+		if (a >= b) {
+			throw std::invalid_argument("should be: a < b");
+		}
+		if (eps <= 0.0) {
+			throw std::invalid_argument("should be: eps>=0");
+		}
+
+
+		while (b - a >= eps) {
+			double c = (a + b) / 2.0;
+			double x1 = c - delta;
+			double x2 = c + delta;
+
+			if (x1 < a) x1 = a;
+			if (x2 > b) x2 = b;
+
+			double f1 = f(x1);
+			double f2 = f(x2);
+
+			if (f1 < f2) {
+				b = x2;         
+			}
+			else {
+				a = x1;          
+			}
+		}
+
+		return (a + b) / 2.0;
+	}
+
+	template <typename Func>
+	double golden_section_minimize(Func f, double a, double b, double eps) {
+		if (a >= b) {
+			throw std::invalid_argument("should be: a < b");
+		}
+		if (eps <= 0.0) {
+			throw std::invalid_argument("should be: eps>=0");
+		}
+
+		const double phi = (1.0 + std::sqrt(5.0)) / 2.0;  // ≈ 1.618
+
+		double x1 = b - (b - a) / phi;
+		double x2 = a + (b - a) / phi;
+		double f1 = f(x1);
+		double f2 = f(x2);
+
+		while (b - a > eps) {
+			if (f1 < f2) {
+				b = x2;
+				x2 = x1;
+				f2 = f1;
+				x1 = b - (b - a) / phi;
+				f1 = f(x1);
+			}
+			else {
+				a = x1;
+				x1 = x2;
+				f1 = f2;
+				x2 = a + (b - a) / phi;
+				f2 = f(x2);
+			}
+		}
+
+		return (a + b) / 2.0;
+	}
+
+	template <typename Func, typename GradFunc>
+	std::pair<double, double> gradient_descent_simple(
+		Func f,
+		GradFunc grad,
+		double x0 = 0.0,
+		double y0 = 0.0,
+		double eps = 1e-11,
+		int max_iter = 1000) {
+
+		double x = x0;
+		double y = y0;
+		double fx = f(x, y);
+
+		for (int iter = 0; iter < max_iter; ++iter) {
+			std::pair<double, double> g = grad(x, y);
+			double gx = g.first;
+			double gy = g.second;
+			double norm2 = gx * gx + gy * gy;
+
+=			if (norm2 < eps * eps) {
+				break;
+			}
+
+			double alpha = 1.0;
+			double new_x, new_y, new_f;
+			bool step_found = false;
+
+			while (alpha > 1e-12) {
+				new_x = x - alpha * gx;
+				new_y = y - alpha * gy;
+				new_f = f(new_x, new_y);
+
+				if (new_f < fx) {
+					step_found = true;
+					break;
+				}
+
+				alpha *= 0.5;
+			}
+
+			if (!step_found) {
+				break;
+			}
+
+			x = new_x;
+			y = new_y;
+			fx = new_f;
+		}
+
+		return { x, y };
+	}
+
+	template <typename Func, typename GradFunc>
+	std::pair<double, double> conjugate_gradient(
+		Func f,
+		GradFunc grad,
+		double x0 = 0.0,
+		double y0 = 0.0,
+		double eps = 1e-6,
+		int max_iter = 1000) {
+
+		double x = x0;
+		double y = y0;
+		double fx = f(x, y);
+
+		auto g = grad(x, y);
+		double gx = g.first;
+		double gy = g.second;
+		double norm2 = gx * gx + gy * gy;
+
+		double dx = -gx;
+		double dy = -gy;
+
+		const int n = 2;          
+
+		for (int iter = 0; iter < max_iter; ++iter) {
+			if (norm2 < eps * eps) {
+				break;
+			}
+
+			double alpha = 1.0;
+			double new_x, new_y, new_f;
+			bool step_found = false;
+
+			while (alpha > 1e-12) {
+				new_x = x + alpha * dx;
+				new_y = y + alpha * dy;
+				new_f = f(new_x, new_y);
+
+				if (new_f < fx) {
+					step_found = true;
+					break;
+				}
+
+				alpha /=2;   
+			}
+
+			if (!step_found) {
+				break;
+			}
+
+			x = new_x;
+			y = new_y;
+			fx = new_f;
+
+			double gx_old = gx;
+			double gy_old = gy;
+			double norm2_old = norm2;
+
+			g = grad(x, y);
+			gx = g.first;
+			gy = g.second;
+			norm2 = gx * gx + gy * gy;
+
+			double beta = 0.0;
+			if (norm2_old > 0.0) {
+				beta = norm2 / norm2_old;
+			}
+
+			double new_dx = -gx + beta * dx;
+			double new_dy = -gy + beta * dy;
+
+			if (new_dx * gx + new_dy * gy >= 0.0) {
+				new_dx = -gx;
+				new_dy = -gy;
+			}
+
+			if ((iter + 1) % n == 0) {
+				new_dx = -gx;
+				new_dy = -gy;
+			}
+
+			dx = new_dx;
+			dy = new_dy;
+		}
+
+		return { x, y };
+	}
+
+	template <typename Func, typename GradFunc>
+	std::pair<double, double> bfgs_minimize(
+		Func f,
+		GradFunc grad,
+		double x0,
+		double y0,
+		double eps = 1e-6,
+		int max_iter = 1000,
+		double c_armijo = 1e-4) {
+
+		// Начальная точка как вектор-столбец
+		matrix<double> x(2, 1);
+		x[0][0] = x0;
+		x[1][0] = y0;
+
+		double fx = f(x[0][0], x[1][0]);
+
+		// Градиент в начальной точке
+		matrix<double> g = grad(x[0][0], x[1][0]); // ожидается размер 2×1
+
+		// Начальное приближение обратного гессиана – единичная матрица 2×2
+		matrix<double> H = matrix<double>::eye(2);
+
+		for (int iter = 0; iter < max_iter; ++iter) {
+			// Проверка нормы градиента
+			double norm2 = DotProduct(g, g);
+			if (norm2 < eps * eps) {
+				break;
+			}
+
+			// Направление спуска p = - H * g
+			matrix<double> p = H * g;
+			p[0][0] = -p[0][0];
+			p[1][0] = -p[1][0];
+
+			// Производная по направлению
+			double directional_deriv = DotProduct(g, p);
+			if (directional_deriv >= 0.0) {
+				// Направление не спусковое – сбрасываем H в единичную и продолжаем
+				H = matrix<double>::eye(2);
+				continue;
+			}
+
+			// Линейный поиск с условием Армихо
+			double alpha = 1.0;
+			matrix<double> x_new(2, 1);
+			double f_new;
+			bool step_found = false;
+
+			while (alpha > 1e-12) {
+				x_new = x + p * alpha;  // предполагается оператор + и умножение на скаляр
+				f_new = f(x_new[0][0], x_new[1][0]);
+
+				if (f_new <= fx + c_armijo * alpha * directional_deriv) {
+					step_found = true;
+					break;
+				}
+				alpha *= 0.5;
+			}
+
+			if (!step_found) {
+				break; // не удалось найти подходящий шаг
+			}
+
+			// Новый градиент
+			matrix<double> g_new = grad(x_new[0][0], x_new[1][0]);
+
+			// Разности
+			matrix<double> s = x_new - x;
+			matrix<double> y_vec = g_new - g; // переименовал, чтобы избежать конфликта с функцией y
+
+			double ys = DotProduct(y_vec, s);
+
+			// Обновление BFGS, если условие кривизны выполнено
+			if (ys > 1e-12) {
+				double rho = 1.0 / ys;
+
+				matrix<double> I = matrix<double>::eye(2);
+				matrix<double> s_yT = s * y_vec.transpose();   // 2×2
+				matrix<double> y_sT = y_vec * s.transpose();   // 2×2
+				matrix<double> s_sT = s * s.transpose();       // 2×2
+
+				matrix<double> A = I - s_yT * rho;
+				matrix<double> B = I - y_sT * rho;
+
+				H = A * H * B + s_sT * rho;
+			}
+
+			// Переход к следующей итерации
+			x = x_new;
+			g = g_new;
+			fx = f_new;
+		}
+
+		return { x[0][0], x[1][0] };
+	}
+
 }
