@@ -1324,19 +1324,17 @@ namespace control_theory {
 // Задания по оптимизации (5 семестр)
 // ============================================================
 namespace optimization_tasks {
-
     using namespace function_optimization;
-
-    // Параметры для тестов
     constexpr double A_PARAM = 1.0;
     constexpr double B_PARAM = 2.0;
     constexpr double EPS_1D = 1e-6;
     constexpr double EPS_ND = 1e-6;
     constexpr int MAX_ITER = 1000;
 
-    // Функция для задания 1: f(x) = a*e^x + b*x
+    //=======================
+    // Функция для задания 1: f(x) = - (a*e^x + b*x)
     double f1(double x) {
-        return A_PARAM * std::exp(x) + B_PARAM * x;
+        return (A_PARAM / std::exp(x) + B_PARAM * x);
     }
 
     // Функция Розенброка: f1(x) = 100(x2 - x1^2)^2 + (1 - x1)^2
@@ -1357,120 +1355,140 @@ namespace optimization_tasks {
         return std::pow(x[0] * x[0] + x[1] - 11.0, 2) + std::pow(x[0] + x[1] * x[1] - 7.0, 2);
     }
 
-    // Градиент функции Химмельблау
     std::vector<double> himmelblau_grad(const std::vector<double>& x) {
         std::vector<double> g(2);
         g[0] = 4.0 * x[0] * (x[0] * x[0] + x[1] - 11.0) + 2.0 * (x[0] + x[1] * x[1] - 7.0);
         g[1] = 2.0 * (x[0] * x[0] + x[1] - 11.0) + 4.0 * x[1] * (x[0] + x[1] * x[1] - 7.0);
         return g;
     }
-
-    // Задание 1: Метод дихотомии
+    //=======================================================================
+    
+    // Task 1: Dichotomy method
     void test_dichotomy() {
-        std::cout << "\n=== Задание 1: Метод дихотомии ===\n";
-        std::cout << "f(x) = " << A_PARAM << "*e^x + " << B_PARAM << "*x\n";
-        
+        std::cout << "\n=== Task 1: Dichotomy Method ===\n";
+        std::cout << "f(x) =-( " << A_PARAM << "/e^x + " << B_PARAM << "*x)\n";
+
         double a = -2.0, b = 2.0;
-        double result = dichotomic_minimize<decltype(f1), OutputMode::Verbose>(
+        double result = dichotomic_minimize<OutputMode::Verbose>(
             f1, a, b, EPS_1D);
-        
-        std::cout << "Минимум найден в точке: x = " << result 
+
+        std::cout << "Minimum found at: x = " << result
                   << ", f(x) = " << f1(result) << "\n";
     }
 
-    // Задание 1: Метод золотого сечения
+    // Task 2: Golden section method
     void test_golden_section() {
-        std::cout << "\n=== Задание 1: Метод золотого сечения ===\n";
-        std::cout << "f(x) = " << A_PARAM << "*e^x + " << B_PARAM << "*x\n";
-        
+        std::cout << "\n=== Task 2: Golden Section Method ===\n";
+        std::cout << "f(x) = " << A_PARAM << "/e^x + " << B_PARAM << "*x\n";
+
         double a = -2.0, b = 2.0;
         double result = golden_section_minimize<OutputMode::Verbose>(
             f1, a, b, EPS_1D);
-        
-        std::cout << "Минимум найден в точке: x = " << result 
+
+        std::cout << "Minimum found at: x = " << result
                   << ", f(x) = " << f1(result) << "\n";
     }
 
-    // Задание 2: Градиентный метод
+    // Task 3: Gradient descent method
     void test_gradient_method() {
-        std::cout << "\n=== Задание 2: Градиентный метод ===\n";
-        
-        // Функция Розенброка
-        std::cout << "\n--- Функция Розенброка ---\n";
+        std::cout << "\n=== Task 3: Gradient Descent Method ===\n";
+
+        // Rosenbrock function
+        std::cout << "\n--- Rosenbrock Function ---\n";
         std::vector<double> x0_rosen = {0.0, 0.0};
         auto result_rosen = gradient_descent<GradMethod::User, OutputMode::Verbose>(
-            rosenbrock, x0_rosen, rosenbrock_grad, EPS_ND, MAX_ITER);
-        
-        std::cout << "Результат: x = (" << result_rosen[0] << ", " << result_rosen[1] 
+            rosenbrock, x0_rosen, rosenbrock_grad, EPS_ND, MAX_ITER*10);
+
+        std::cout <<"min[f1(x)] = 100(x2 - x1^2)^2 + (1 - x1)^2\n" << "Result: x = (" << result_rosen[0] << ", " << result_rosen[1]
                   << "), f(x) = " << rosenbrock(result_rosen) << "\n";
-        
-        // Функция Химмельблау
-        std::cout << "\n--- Функция Химмельблау ---\n";
+
+        // Himmelblau function
+        std::cout << "\n--- Himmelblau Function ---\n";
         std::vector<double> x0_himm = {0.0, 0.0};
         auto result_himm = gradient_descent<GradMethod::User, OutputMode::Verbose>(
             himmelblau, x0_himm, himmelblau_grad, EPS_ND, MAX_ITER);
-        
-        std::cout << "Результат: x = (" << result_himm[0] << ", " << result_himm[1] 
+
+        std::cout << "min[f2(x)] = (x1 ^ 2 + x2 - 11) ^ 2 + (x1 + x2 ^ 2 - 7) ^ 2 \n" << "Result: x = (" << result_himm[0] << ", " << result_himm[1]
                   << "), f(x) = " << himmelblau(result_himm) << "\n";
     }
 
-    // Задание 2: Метод сопряжённых градиентов
+    // Task 4: Conjugate gradient method
     void test_conjugate_gradient() {
-        std::cout << "\n=== Задание 2: Метод сопряжённых градиентов ===\n";
-        
-        // Функция Розенброка
-        std::cout << "\n--- Функция Розенброка ---\n";
-        std::vector<double> x0_rosen = {0.0, 0.0};
+        std::cout << "\n=== Task 4: Conjugate Gradient Method ===\n";
+
+        // Rosenbrock function
+        std::cout << "\n--- Rosenbrock Function ---\n";
+        std::vector<double> x0_rosen = {0.0, 0.1};
         auto result_rosen = conjugate_gradient<GradMethod::User, OutputMode::Verbose>(
-            rosenbrock, x0_rosen, EPS_ND, MAX_ITER, rosenbrock_grad);
-        
-        std::cout << "Результат: x = (" << result_rosen[0] << ", " << result_rosen[1] 
+            rosenbrock, x0_rosen, EPS_ND, MAX_ITER*5, rosenbrock_grad);
+
+        std::cout << "min[f1(x)] = 100(x2 - x1^2)^2 + (1 - x1)^2\n" << "Result: x = (" << result_rosen[0] << ", " << result_rosen[1]
                   << "), f(x) = " << rosenbrock(result_rosen) << "\n";
-        
-        // Функция Химмельблау
-        std::cout << "\n--- Функция Химмельблау ---\n";
+
+        // Himmelblau function
+        std::cout << "\n--- Himmelblau Function ---\n";
         std::vector<double> x0_himm = {0.0, 0.0};
         auto result_himm = conjugate_gradient<GradMethod::User, OutputMode::Verbose>(
             himmelblau, x0_himm, EPS_ND, MAX_ITER, himmelblau_grad);
-        
-        std::cout << "Результат: x = (" << result_himm[0] << ", " << result_himm[1] 
+
+        std::cout << "Result: x = (" << result_himm[0] << ", " << result_himm[1]
                   << "), f(x) = " << himmelblau(result_himm) << "\n";
     }
 
-    // Задание 2: Квазиньютоновский метод (BFGS)
+    // Task 5: Quasi-Newton method (BFGS)
     void test_bfgs() {
-        std::cout << "\n=== Задание 2: Квазиньютоновский метод (BFGS) ===\n";
-        
-        // Функция Розенброка
-        std::cout << "\n--- Функция Розенброка ---\n";
+        std::cout << "\n=== Task 5: Quasi-Newton Method (BFGS) ===\n";
+
+        // Rosenbrock function
+        std::cout << "\n--- Rosenbrock Function ---\n";
         std::vector<double> x0_rosen = {0.0, 0.0};
         auto result_rosen = bfgs_minimize<GradMethod::User, OutputMode::Verbose>(
             rosenbrock, x0_rosen, EPS_ND, MAX_ITER, rosenbrock_grad);
-        
-        std::cout << "Результат: x = (" << result_rosen[0] << ", " << result_rosen[1] 
+
+        std::cout << "min[f1(x)] = 100(x2 - x1^2)^2 + (1 - x1)^2\n"<< "Result: x = (" << result_rosen[0] << ", " << result_rosen[1]
                   << "), f(x) = " << rosenbrock(result_rosen) << "\n";
-        
-        // Функция Химмельблау
-        std::cout << "\n--- Функция Химмельблау ---\n";
+
+        // Himmelblau function
+        std::cout << "\n--- Himmelblau Function ---\n";
         std::vector<double> x0_himm = {0.0, 0.0};
         auto result_himm = bfgs_minimize<GradMethod::User, OutputMode::Verbose>(
             himmelblau, x0_himm, EPS_ND, MAX_ITER, himmelblau_grad);
-        
-        std::cout << "Результат: x = (" << result_himm[0] << ", " << result_himm[1] 
+
+        std::cout  << "Result: x = (" << result_himm[0] << ", " << result_himm[1]
                   << "), f(x) = " << himmelblau(result_himm) << "\n";
+    }
+
+    // Sequential run of all tasks
+    void run_all() {
+        std::cout << "\n";
+        std::cout << "========================================================\n";
+        std::cout << "          SEQUENTIAL RUN OF ALL TASKS                  \n";
+        std::cout << "========================================================\n";
+
+
+        //test_dichotomy();
+        //test_golden_section();
+        
+        //test_gradient_method();
+        test_conjugate_gradient();
+        //test_bfgs();
+
+        std::cout << "\n";
+        std::cout << "========================================================\n";
+        std::cout << "                 ALL TESTS COMPLETED                   \n";
+        std::cout << "========================================================\n";
     }
 
 }
 
 int main() {
 
-    
+    // Запуск заданий по оптимизации
+    optimization_tasks::run_all();
 
-    sem_4::sem_4();
+    //sem_4::sem_4();
     //sem_5::sem_5_part1();
     //sem_5::sem_5_part2();
-
-
 
     system("pause");
     return 0;

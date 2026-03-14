@@ -313,20 +313,23 @@ namespace counting_methods {
 namespace function_optimization{
 	enum class OutputMode { Verbose, Silent };
 
-	template <typename Func, OutputMode mode = OutputMode::Silent>
-	double dichotomic_minimize(Func f, double a, double b, double eps, const double delta = eps / 2.0) {
+	template <OutputMode mode = OutputMode::Silent,typename Func>
+	double dichotomic_minimize(Func f, double a, double b, double eps) {
+		const double delta = eps / 2.0;
 		if (a >= b) throw std::invalid_argument("should be: a < b");
 		if (eps <= 0.0) throw std::invalid_argument("should be: eps>=0");
 
-		if constexpr (mode == OutputMode::Verbose) {
-		int iter = 0;
 		const double h = 1e-8; // шаг для численной производной
+		int iter = 0;
+		const int max_iter = 1000; 
 
-			std::cout << "\nThe dichotomy method (detailed conclusion):\n";
-			std::cout << "Iter\tx\t\tf(x)\t\t|f'(x)|\n";
+		std::ostringstream buffer;
+		if constexpr (mode == OutputMode::Verbose) {
+			buffer << "\nThe dichotomy method:\n";
+			buffer << "Iter\tx\t\tf(x)\t\t|f'(x)|\n";
 		}
 
-		while (b - a >= eps) {
+		while (b - a >= eps && iter < max_iter) {
 			double c = (a + b) / 2.0;
 			double x1 = c - delta;
 			double x2 = c + delta;
@@ -338,15 +341,15 @@ namespace function_optimization{
 			double f2 = f(x2);
 
 			if constexpr (mode == OutputMode::Verbose) {
-			double x_mid = (a + b) / 2.0;
-			double f_mid = f(x_mid);
-			double df = (f(x_mid + h) - f(x_mid - h)) / (2.0 * h);
-			double norm_grad = std::abs(df);
+				double x_mid = (a + b) / 2.0;
+				double f_mid = f(x_mid);
+				double df = (f(x_mid + h) - f(x_mid - h)) / (2.0 * h);
+				double norm_grad = std::abs(df);
 
-				std::cout << std::scientific << std::setprecision(8);
-				std::cout << iter << "\t" << x_mid << "\t" << f_mid << "\t" << norm_grad << "\n";
-			++iter;
+				buffer << std::scientific << std::setprecision(8);
+				buffer << iter << "\t" << x_mid << "\t" << f_mid << "\t" << norm_grad << "\n";
 			}
+			++iter;
 
 			if (f1 < f2) {
 				b = x2;
@@ -360,8 +363,9 @@ namespace function_optimization{
 		if constexpr (mode == OutputMode::Verbose) {
 			double f_res = f(result);
 			double df_res = (f(result + h) - f(result - h)) / (2.0 * h);
-			std::cout << "Final: x_min = " << result << ", f(x_min) = " << f_res
+			buffer << "Final: x_min = " << result << ", f(x_min) = " << f_res
 				<< ", |f'(x_min)| = " << std::abs(df_res) << "\n";
+			std::cout << buffer.str();
 		}
 		return result;
 	}
@@ -373,28 +377,29 @@ namespace function_optimization{
 
 		const double phi = (1.0 + std::sqrt(5.0)) / 2.0; // ≈1.618
 
+		const double h = 1e-8; // шаг для численной производной
+		int iter = 0;
+
+		std::ostringstream buffer;
+		if constexpr (mode == OutputMode::Verbose) {
+			buffer << "\nThe Golden Ratio method:\n";
+			buffer << "Iter\tx\t\tf(x)\t\t|f'(x)|\n";
+		}
+
 		double x1 = b - (b - a) / phi;
 		double x2 = a + (b - a) / phi;
 		double f1 = f(x1);
 		double f2 = f(x2);
 
-
-		if constexpr (mode == OutputMode::Verbose) {
-		const double h = 1e-8;
-		int iter = 0;
-			std::cout << "\nThe Golden Ratio method (detailed output):\n";
-			std::cout << "Iter\tx\t\tf(x)\t\t|f'(x)|\n";
-		}
-
 		while (b - a > eps) {
 			if constexpr (mode == OutputMode::Verbose) {
-			double x_mid = (a + b) / 2.0;
-			double f_mid = f(x_mid);
-			double df = (f(x_mid + h) - f(x_mid - h)) / (2.0 * h);
-			double norm_grad = std::abs(df);
+				double x_mid = (a + b) / 2.0;
+				double f_mid = f(x_mid);
+				double df = (f(x_mid + h) - f(x_mid - h)) / (2.0 * h);
+				double norm_grad = std::abs(df);
 
-				std::cout << std::scientific << std::setprecision(8);
-				std::cout << iter << "\t" << x_mid << "\t" << f_mid << "\t" << norm_grad << "\n";
+				buffer << std::scientific << std::setprecision(8);
+				buffer << iter << "\t" << x_mid << "\t" << f_mid << "\t" << norm_grad << "\n";
 			}
 
 			if (f1 < f2) {
@@ -420,8 +425,9 @@ namespace function_optimization{
 		if constexpr (mode == OutputMode::Verbose) {
 			double f_res = f(result);
 			double df_res = (f(result + h) - f(result - h)) / (2.0 * h);
-			std::cout << "Final: x_min = " << result << ", f(x_min) = " << f_res
+			buffer << "Final: x_min = " << result << ", f(x_min) = " << f_res
 				<< ", |f'(x_min)| = " << std::abs(df_res) << "\n";
+			std::cout << buffer.str();
 		}
 		return result;
 	}
@@ -522,7 +528,7 @@ namespace function_optimization{
 	template <typename T>
 	inline constexpr bool is_std_array_v = is_std_array<T>::value;
 
-	// Основная функция оптимизации
+	//градиентный спуск
 	template <GradMethod method, OutputMode mode = OutputMode::Silent,
 		typename Func, typename Point, typename GradFunc = std::nullptr_t>
 	Point gradient_descent(Func f, Point x0, GradFunc user_grad = nullptr,
@@ -552,10 +558,11 @@ namespace function_optimization{
 		double fx = f(x);
 		double last_norm = 0.0;
 
+		std::ostringstream buffer;
 		if constexpr (mode == OutputMode::Verbose) {
-			std::cout << "\nGradient descent (detailed output):\n";
-			std::cout << "Iter\tPoint\t\t\tf(x)\t\t||grad||\n";
-			std::cout << std::scientific << std::setprecision(8);
+			buffer << "\nGradient descent (detailed output):\n";
+			buffer << "Iter\tPoint\t\t\tf(x)\t\t||grad||\n";
+			buffer << std::scientific << std::setprecision(8);
 		}
 		int iter = 0;
 
@@ -566,12 +573,12 @@ namespace function_optimization{
 			last_norm = std::sqrt(norm2);
 
 			if constexpr (mode == OutputMode::Verbose) {
-				std::cout << iter << "\t(";
+				buffer << iter << "\t(";
 				for (size_t i = 0; i < x.size(); ++i) {
-					std::cout << x[i];
-					if (i + 1 < x.size()) std::cout << ", ";
+					buffer << x[i];
+					if (i + 1 < x.size()) buffer << ", ";
 				}
-				std::cout << ")\t" << fx << "\t" << last_norm << "\n";
+				buffer << ")\t" << fx << "\t" << last_norm << "\n";
 			}
 
 			if (norm2 < eps * eps) break;
@@ -600,12 +607,13 @@ namespace function_optimization{
 		}
 
 		if constexpr (mode == OutputMode::Verbose) {
-			std::cout << "Final, iter=" << iter",\n x = (";
+			buffer << "Final, iter=" << iter << ",\n x = (";
 			for (size_t i = 0; i < x.size(); ++i) {
-				std::cout << x[i];
-				if (i + 1 < x.size()) std::cout << ", ";
+				buffer << x[i];
+				if (i + 1 < x.size()) buffer << ", ";
 			}
-			std::cout << "), f(x) = " << fx << ", ||grad|| = " << last_norm << "\n";
+			buffer << "), f(x) = " << fx << ", ||grad|| = " << last_norm << "\n";
+			std::cout << buffer.str();
 		}
 
 		return x;
@@ -700,7 +708,7 @@ namespace function_optimization{
 		return { x, y };
 	}
 #else
-	// Основная функция метода сопряжённых градиентов
+	// функция метода сопряжённых градиентов
 	template <GradMethod method, OutputMode mode = OutputMode::Silent,
 		typename Func, typename Point, typename GradFunc = std::nullptr_t>
 	Point conjugate_gradient(Func f, Point x0, 
@@ -770,27 +778,29 @@ namespace function_optimization{
 
 		const size_t N = x.size(); // размерность задачи
 
+		std::ostringstream buffer;
 		if constexpr (mode == OutputMode::Verbose) {
-			std::cout << "\nConjugate gradient method (detailed output):\n";
-			std::cout << "Iter\tPoint\t\t\tf(x)\t\t||grad||\n";
-			std::cout << std::scientific << std::setprecision(8);
+			buffer << "\nConjugate gradient method (detailed output):\n";
+			buffer << "Iter\tPoint\t\t\tf(x)\t\t||grad||\n";
+			buffer << std::scientific << std::setprecision(8);
 		}
 
-		for (int iter = 0; iter < max_iter; ++iter) {
+		int iter = 0;
+		for (; iter < max_iter; ++iter) {
 			if constexpr (mode == OutputMode::Verbose) {
-				std::cout << iter << "\t(";
+				buffer << iter << "\t(";
 				for (size_t i = 0; i < x.size(); ++i) {
-					std::cout << x[i];
-					if (i + 1 < x.size()) std::cout << ", ";
+					buffer << x[i];
+					if (i + 1 < x.size()) buffer << ", ";
 				}
-				std::cout << ")\t" << fx << "\t" << g_norm << "\n";
+				buffer << ")\t" << fx << "\t" << g_norm << "\n";
 			}
 
 			// Проверка сходимости
 			if (g_norm2 < eps * eps) break;
 
 			// Одномерная обертка
-			auto line_func = [&](double alpha) -> double {
+			auto line_func_from_F = [&](double alpha) -> double {
 				Point x_new = x;
 				for (size_t i = 0; i < x.size(); ++i) x_new[i] += alpha * d[i];
 				return f(x_new);
@@ -798,7 +808,7 @@ namespace function_optimization{
 
 			double alpha_opt;
 			double f0 = fx;
-			double f1 = line_func(1.0);
+			double f1 = line_func_from_F(1.0);
 
 			double low, high;
 			// Допустим у нас почти унимодальная функция, найдем промежуток на котором она такая
@@ -811,7 +821,7 @@ namespace function_optimization{
 				while (f_curr < f_prev) {                     // пока функция продолжает убывать
 					alpha *= 2.0;                              // удваиваем α
 					f_prev = f_curr;                           // предыдущее значение становится текущим
-					f_curr = line_func(alpha);                  // вычисляем функцию при новом α
+					f_curr = line_func_from_F(alpha);                  // вычисляем функцию при новом α
 
 					if (alpha > 1e10) break;                   // защита от бесконечного цикла 
 				}
@@ -828,7 +838,7 @@ namespace function_optimization{
 				high = 1.0;                                    
 			}
 
-			alpha_opt = golden_section_minimize<OutputMode::Silent>(line_func, low, high, ls_eps);
+			alpha_opt = golden_section_minimize<OutputMode::Silent>(line_func_from_F, low, high, ls_eps);
 
 			//x_new= x + α_opt*d
 			Point x_new = vec_add_scaled_vec(x,alpha_opt,d);
@@ -878,12 +888,13 @@ namespace function_optimization{
 		}
 
 		if constexpr (mode == OutputMode::Verbose) {
-			std::cout << "Final: x = (";
+			buffer << "Final: x = (";
 			for (size_t i = 0; i < x.size(); ++i) {
-				std::cout << x[i];
-				if (i + 1 < x.size()) std::cout << ", ";
+				buffer << x[i];
+				if (i + 1 < x.size()) buffer << ", ";
 			}
-			std::cout << "), f(x) = " << fx << ", ||grad|| = " << (g_norm) << "\n";
+			buffer << "), f(x) = " << fx << ", ||grad|| = " << (g_norm) << "\n";
+			std::cout << buffer.str();
 		}
 
 		return x;
@@ -986,10 +997,8 @@ namespace function_optimization{
 		return { x[0][0], x[1][0] };
 	}
 
-	// ============================================================
-	// Обобщённая версия BFGS для функции произвольной размерности
-	// ============================================================
-
+	
+	// Обобщённая версия BFGS для произвольной размерности
 	template <GradMethod method, OutputMode mode = OutputMode::Silent,
 		typename Func, typename Point, typename GradFunc = std::nullptr_t>
 	Point bfgs_minimize(Func f, Point x0,
@@ -1059,20 +1068,22 @@ namespace function_optimization{
 		// Обратный гессиан – единичная матрица N×N
 		matrix<double> H = matrix<double>::eye(N);
 
+		std::ostringstream buffer;
 		if constexpr (mode == OutputMode::Verbose) {
-			std::cout << "\nBFGS method (detailed output):\n";
-			std::cout << "Iter\tPoint\t\t\tf(x)\t\t||grad||\n";
-			std::cout << std::scientific << std::setprecision(8);
+			buffer << "\nBFGS method (detailed output):\n";
+			buffer << "Iter\tPoint\t\t\tf(x)\t\t||grad||\n";
+			buffer << std::scientific << std::setprecision(8);
 		}
 
-		for (int iter = 0; iter < max_iter; ++iter) {
+		int iter = 0;
+		for (; iter < max_iter; ++iter) {
 			if constexpr (mode == OutputMode::Verbose) {
-				std::cout << iter << "\t(";
+				buffer << iter << "\t(";
 				for (size_t i = 0; i < x.size(); ++i) {
-					std::cout << x[i];
-					if (i + 1 < x.size()) std::cout << ", ";
+					buffer << x[i];
+					if (i + 1 < x.size()) buffer << ", ";
 				}
-				std::cout << ")\t" << fx << "\t" << g_norm << "\n";
+				buffer << ")\t" << fx << "\t" << g_norm << "\n";
 			}
 
 			// Проверка нормы градиента
@@ -1107,6 +1118,9 @@ namespace function_optimization{
 			// Преобразуем p_mat в Point для удобства
 			auto p_mat_to_point = [&p_mat, N]() -> Point {
 				Point res;
+				if constexpr (std::is_same_v<Point, std::vector<double>>) {
+					res.resize(N);
+				}
 				for (size_t i = 0; i < N; ++i) res[i] = p_mat[i][0];
 				return res;
 			};
@@ -1164,12 +1178,13 @@ namespace function_optimization{
 		}
 
 		if constexpr (mode == OutputMode::Verbose) {
-			std::cout << "Final: x = (";
+			buffer << "Final: x = (";
 			for (size_t i = 0; i < x.size(); ++i) {
-				std::cout << x[i];
-				if (i + 1 < x.size()) std::cout << ", ";
+				buffer << x[i];
+				if (i + 1 < x.size()) buffer << ", ";
 			}
-			std::cout << "), f(x) = " << fx << ", ||grad|| = " << g_norm << "\n";
+			buffer << "), f(x) = " << fx << ", ||grad|| = " << g_norm << "\n";
+			std::cout << buffer.str();
 		}
 
 		return x;
