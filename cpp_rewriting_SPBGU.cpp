@@ -1,4 +1,6 @@
 ﻿#include "file_h\project_libraries.h"
+#include <fstream>
+#include <string>
 
 
 //uncomment it and you can use it carefully. 
@@ -1293,35 +1295,9 @@ namespace sem_5 {
     }
 }
 
-/////////////////////////////////////////////////////////
-namespace control_theory {
-
-
-
-    void solveX_IsEqualPXPlusF(){}
-    /*
-    input:
-    x'(t) = P(t)*x(t) + f(t)
-    y(t) = R(t) * x(t) + phi(t)
-    y(t) = x_2(t)
-
-    work:
-    H(t) = R(t) * Y(t)
-    D = Int[0,T](H'(t) * H(t))dt
-    ksi = Int[0,T](H'(t) * g(t))dt
-    g(t) = y(t) - phi(t) - H(t)Int[0,t](Y(r)^-1 * f(r))dr
-    D * x(0) = ksi
-    output:
-    x(0)
-    */
-    void program_two() {
-
-    }
-
-}
 
 // ============================================================
-// Задания по оптимизации (5 семестр)
+// Задания по оптимизации (6 семестр)
 // ============================================================
 namespace optimization_tasks {
     using namespace function_optimization;
@@ -1332,7 +1308,7 @@ namespace optimization_tasks {
     constexpr int MAX_ITER = 1000;
 
     //=======================
-    // Функция для задания 1: f(x) = - (a*e^x + b*x)
+    // Функция для задания 1: f(x) = (a*e^x + b*x)
     double f1(double x) {
         return (A_PARAM / std::exp(x) + B_PARAM * x);
     }
@@ -1366,7 +1342,7 @@ namespace optimization_tasks {
     // Task 1: Dichotomy method
     void test_dichotomy() {
         std::cout << "\n=== Task 1: Dichotomy Method ===\n";
-        std::cout << "f(x) =-( " << A_PARAM << "/e^x + " << B_PARAM << "*x)\n";
+        std::cout << "f(x) =( " << A_PARAM << "/e^x + " << B_PARAM << "*x)\n";
 
         double a = -2.0, b = 2.0;
         double result = dichotomic_minimize<OutputMode::Verbose>(
@@ -1397,7 +1373,7 @@ namespace optimization_tasks {
         std::cout << "\n--- Rosenbrock Function ---\n";
         std::vector<double> x0_rosen = {0.0, 0.0};
         auto result_rosen = gradient_descent<GradMethod::User, OutputMode::Verbose>(
-            rosenbrock, x0_rosen, rosenbrock_grad, EPS_ND, MAX_ITER*10);
+            rosenbrock, x0_rosen, rosenbrock_grad, EPS_ND/10, MAX_ITER*5);
 
         std::cout <<"min[f1(x)] = 100(x2 - x1^2)^2 + (1 - x1)^2\n" << "Result: x = (" << result_rosen[0] << ", " << result_rosen[1]
                   << "), f(x) = " << rosenbrock(result_rosen) << "\n";
@@ -1418,9 +1394,9 @@ namespace optimization_tasks {
 
         // Rosenbrock function
         std::cout << "\n--- Rosenbrock Function ---\n";
-        std::vector<double> x0_rosen = {0.0, 0.1};
+        std::vector<double> x0_rosen = {0.0, 0.0};
         auto result_rosen = conjugate_gradient<GradMethod::User, OutputMode::Verbose>(
-            rosenbrock, x0_rosen, EPS_ND, MAX_ITER*5, rosenbrock_grad);
+            rosenbrock, x0_rosen, EPS_ND, MAX_ITER, rosenbrock_grad, 10e-10);
 
         std::cout << "min[f1(x)] = 100(x2 - x1^2)^2 + (1 - x1)^2\n" << "Result: x = (" << result_rosen[0] << ", " << result_rosen[1]
                   << "), f(x) = " << rosenbrock(result_rosen) << "\n";
@@ -1462,33 +1438,71 @@ namespace optimization_tasks {
     void run_all() {
         std::cout << "\n";
         std::cout << "========================================================\n";
-        std::cout << "          SEQUENTIAL RUN OF ALL TASKS                  \n";
+        std::cout << "||        SEQUENTIAL RUN OF ALL TASKS                  ||\n";
         std::cout << "========================================================\n";
 
 
-        //test_dichotomy();
-        //test_golden_section();
-        
-        //test_gradient_method();
+        test_dichotomy();
+        test_golden_section();
+        test_gradient_method();
         test_conjugate_gradient();
-        //test_bfgs();
+        test_bfgs();
 
         std::cout << "\n";
         std::cout << "========================================================\n";
-        std::cout << "                 ALL TESTS COMPLETED                   \n";
+        std::cout << "||               ALL TESTS COMPLETED                   ||\n";
         std::cout << "========================================================\n";
+    }
+
+    // Sequential run of all tasks with output to file
+    void run_all_to_file(const std::string& filename = "optimization_results.txt") {
+        std::streambuf* original_buf = std::cout.rdbuf();
+        std::ofstream outfile(filename);
+
+        if (!outfile.is_open()) {
+            std::cerr << "Error: Could not open file " << filename << std::endl;
+            return;
+        }
+
+        std::cout.rdbuf(outfile.rdbuf());
+
+        std::cout << "\n";
+        std::cout << "========================================================\n";
+        std::cout << "||   SEQUENTIAL RUN OF ALL TASKS (OUTPUT TO FILE)     ||\n";
+        std::cout << "========================================================\n";
+        std::cout << "Output file: " << filename << "\n";
+        std::cout << "Date: " << __DATE__ << " " << __TIME__ << "\n";
+        std::cout << "\n";
+
+        test_dichotomy();
+        test_golden_section();
+        test_gradient_method();
+        test_conjugate_gradient();
+        test_bfgs();
+
+        std::cout << "\n";
+        std::cout << "========================================================\n";
+        std::cout << "||               ALL TESTS COMPLETED                   ||\n";
+        std::cout << "========================================================\n";
+
+        outfile.close();
+        std::cout.rdbuf(original_buf);
+
+        std::cout << "\n[Results saved to: " << filename << "]\n";
     }
 
 }
 
 int main() {
-
-    // Запуск заданий по оптимизации
-    optimization_tasks::run_all();
-
     //sem_4::sem_4();
     //sem_5::sem_5_part1();
     //sem_5::sem_5_part2();
+
+    // Запуск заданий по оптимизации (вывод в консоль)
+    optimization_tasks::run_all();
+
+    // Запуск заданий по оптимизации (вывод в файл)
+    optimization_tasks::run_all_to_file("optimization_results.txt");
 
     system("pause");
     return 0;

@@ -175,6 +175,7 @@
     <ClInclude Include="file_h\calc_computing_f.h" />
     <ClInclude Include="file_h\complex.h" />
     <ClInclude Include="file_h\counting_methods_1.h" />
+    <ClInclude Include="file_h\function_optimization.h" />
     <ClInclude Include="file_h\interpolators.h" />
     <ClInclude Include="file_h\defferencial_equation.h" />
     <ClInclude Include="file_h\integral.h" />
@@ -182,7 +183,6 @@
     <ClInclude Include="file_h\fraction.h" />
     <ClInclude Include="file_h\matrix.h" />
     <ClInclude Include="file_h\polynomial.h" />
-    <ClInclude Include="file_h\project_libraries.h" />
     <ClInclude Include="file_h\Spline.h" />
   </ItemGroup>
   <ItemGroup>

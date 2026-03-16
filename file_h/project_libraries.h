@@ -24,6 +24,7 @@
 #include "../file_h/eigenvalues.h"//empty file
 #include "../file_h/Array_xy_To_.h"   ////drawing graphs 
 #include "../file_h/counting_methods_1.h"
+#include "file_h/function_optimization.h"
 
 #include "../file_h/interpolators.h"
 #include "../file_h/aproximate.h"
