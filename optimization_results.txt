@@ -3,7 +3,7 @@
 ||   SEQUENTIAL RUN OF ALL TASKS (OUTPUT TO FILE)     ||
 ========================================================
 Output file: optimization_results.txt
-Date: Mar 16 2026 12:35:47
+Date: Mar 16 2026 12:42:28
 
 
 === Task 1: Dichotomy Method ===

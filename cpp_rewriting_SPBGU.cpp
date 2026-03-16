@@ -1307,7 +1307,7 @@ namespace optimization_tasks {
     constexpr double EPS_ND = 1e-6;
     constexpr int MAX_ITER = 1000;
 
-    //=======================
+    //=======================================================================
     // Функция для задания 1: f(x) = (a*e^x + b*x)
     double f1(double x) {
         return (A_PARAM / std::exp(x) + B_PARAM * x);
@@ -1339,6 +1339,9 @@ namespace optimization_tasks {
     }
     //=======================================================================
     
+    
+	//=======================================================================
+    // запуск отдельных методов для соответсвующих функций
     // Task 1: Dichotomy method
     void test_dichotomy() {
         std::cout << "\n=== Task 1: Dichotomy Method ===\n";
@@ -1433,7 +1436,11 @@ namespace optimization_tasks {
         std::cout  << "Result: x = (" << result_himm[0] << ", " << result_himm[1]
                   << "), f(x) = " << himmelblau(result_himm) << "\n";
     }
+	//=======================================================================
 
+
+	//=======================================================================
+    // запуск всего
     // Sequential run of all tasks
     void run_all() {
         std::cout << "\n";
@@ -1490,6 +1497,7 @@ namespace optimization_tasks {
 
         std::cout << "\n[Results saved to: " << filename << "]\n";
     }
+	//=======================================================================
 
 }
 
