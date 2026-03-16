@@ -152,62 +152,6 @@ namespace function_optimization {
 		return result;
 	}
 
-#if 0
-
-	template <typename Func, typename GradFunc>
-	std::pair<double, double> gradient_descent_simple(
-		Func f,
-		GradFunc grad,
-		double x0 = 0.0,
-		double y0 = 0.0,
-		double eps = 1e-11,
-		int max_iter = 1000) {
-
-		double x = x0;
-		double y = y0;
-		double fx = f(x, y);
-
-		for (int iter = 0; iter < max_iter; ++iter) {
-			std::pair<double, double> g = grad(x, y);
-			double gx = g.first;
-			double gy = g.second;
-			double norm2 = gx * gx + gy * gy;
-
-			if (norm2 < eps * eps) {
-				break;
-			}
-
-			double alpha = 1.0;
-			double new_x, new_y, new_f;
-			bool step_found = false;
-
-			while (alpha > 1e-12) {
-				new_x = x - alpha * gx;
-				new_y = y - alpha * gy;
-				new_f = f(new_x, new_y);
-
-				if (new_f < fx) {
-					step_found = true;
-					break;
-				}
-
-				alpha *= 0.5;
-			}
-
-			if (!step_found) {
-				break;
-			}
-
-			x = new_x;
-			y = new_y;
-			fx = new_f;
-		}
-
-		return { x, y };
-	}
-
-#endif
-
 	enum class GradMethod { User, NumericalVector, NumericalArray };
 
 	template <typename Func>
@@ -248,11 +192,51 @@ namespace function_optimization {
 	template <typename T>
 	inline constexpr bool is_std_array_v = is_std_array<T>::value;
 
-	//градиентный спуск
+	// ============================================================================
+	// ГРАДИЕНТНЫЙ СПУСК / GRADIENT DESCENT
+	// ============================================================================
+	// 
+	// Шаблонные параметры:
+	// - method (GradMethod): Способ вычисления градиента
+	//   • GradMethod::User            — пользовательский градиент (быстрее, точнее)
+	//   • GradMethod::NumericalVector — численный градиент для std::vector<double>
+	//   • GradMethod::NumericalArray  — численный градиент для std::array<double, N>
+	//
+	// - Point: Тип точки (вектор параметров)
+	//   • std::vector<double>  — для переменной размерности (heap allocation)
+	//   • std::array<double,N> — для фиксированной размерности (stack allocation, быстрее)
+	//
+	// ВАЖНО: Выбор method должен соответствовать типу Point!
+	// - std::vector<double>  → GradMethod::NumericalVector или GradMethod::User
+	// - std::array<double,N> → GradMethod::NumericalArray или GradMethod::User
+	//
+	// Производительность:
+	// - Все проверки method выполняются на compile-time через if constexpr
+	// - Для std::array компилятор генерирует одну функцию на каждый размер N
+	// - Для std::vector генерируется одна универсальная функция
+	// ============================================================================
+	// Требования к типу Point:
+	// - Должен иметь метод size() возвращающий std::size_t
+	// - Должен поддерживать operator[] для чтения и записи
+	// - Должен быть копируемым
+	// Примеры: std::vector<double>, std::array<double, N>
 	template <GradMethod method, OutputMode mode = OutputMode::Silent,
 		typename Func, typename Point, typename GradFunc = std::nullptr_t>
 	Point gradient_descent(Func f, Point x0, GradFunc user_grad = nullptr,
 		double eps = 1e-6, int max_iter = 1000) {
+
+		// Проверка валидности входных данных
+		if (eps <= 0.0 || !std::isfinite(eps)) {
+			throw std::invalid_argument("gradient_descent: eps must be positive and finite");
+		}
+		if (max_iter <= 0) {
+			throw std::invalid_argument("gradient_descent: max_iter must be positive");
+		}
+		if constexpr (method == GradMethod::User) {
+			if (user_grad == nullptr) {
+				throw std::invalid_argument("gradient_descent: user_grad is required for GradMethod::User");
+			}
+		}
 
 		// Выбор способа получения градиента (compile-time)
 		auto get_gradient = [&](const Point& x) {
@@ -262,14 +246,14 @@ namespace function_optimization {
 			else if constexpr (method == GradMethod::NumericalVector) {
 				static_assert(std::is_same_v<Point, std::vector<double>>,
 					"NumericalVector requires std::vector<double>");
-				static auto num_grad = make_numerical_gradient_vector(f);
+				auto num_grad = make_numerical_gradient_vector(f);
 				return num_grad(x);
 			}
 			else if constexpr (method == GradMethod::NumericalArray) {
 				static_assert(is_std_array_v<Point>,
 					"NumericalArray requires std::array<double, N>");
 				constexpr size_t N = std::tuple_size_v<Point>;
-				static auto num_grad = make_numerical_gradient_array<Func, N>(f);
+				auto num_grad = make_numerical_gradient_array<Func, N>(f);
 				return num_grad(x);
 			}
 			};
@@ -341,103 +325,58 @@ namespace function_optimization {
 		return x;
 	}
 
-
-#if 0  
-	template <typename Func, typename GradFunc>
-	std::pair<double, double> conjugate_gradient(
-		Func f,
-		double x0 = 0.0,
-		double y0 = 0.0,
-		double eps = 1e-6,
-		int max_iter = 1000,
-		GradFunc grad) {
-
-		double x = x0;
-		double y = y0;
-		double fx = f(x, y);
-
-		auto g = grad(x, y);
-		double gx = g.first;
-		double gy = g.second;
-		double norm2 = gx * gx + gy * gy;
-
-		double dx = -gx;
-		double dy = -gy;
-
-		const int N = 2;
-
-		for (int iter = 0; iter < max_iter; ++iter) {
-			if (norm2 < eps * eps) {
-				break;
-			}
-
-			double alpha = 1.0;
-			double new_x, new_y, new_f;
-			bool step_found = false;
-
-			while (alpha > 1e-12) {
-				new_x = x + alpha * dx;
-				new_y = y + alpha * dy;
-				new_f = f(new_x, new_y);
-
-				if (new_f < fx) {
-					step_found = true;
-					break;
-				}
-
-				alpha /= 2;
-			}
-
-			if (!step_found) {
-				break;
-			}
-
-			x = new_x;
-			y = new_y;
-			fx = new_f;
-
-			double gx_old = gx;
-			double gy_old = gy;
-			double norm2_old = norm2;
-
-			g = grad(x, y);
-			gx = g.first;
-			gy = g.second;
-			norm2 = gx * gx + gy * gy;
-
-			double beta = 0.0;
-			if (norm2_old > 0.0) {
-				beta = norm2 / norm2_old;
-			}
-
-			double new_dx = -gx + beta * dx;
-			double new_dy = -gy + beta * dy;
-
-			if (new_dx * gx + new_dy * gy >= 0.0) {
-				new_dx = -gx;
-				new_dy = -gy;
-			}
-
-			if ((iter + 1) % N == 0) {
-				new_dx = -gx;
-				new_dy = -gy;
-			}
-
-			dx = new_dx;
-			dy = new_dy;
-		}
-
-		return { x, y };
-	}
-#else
-	// функция метода сопряжённых градиентов
+	// ============================================================================
+	// МЕТОД СОПРЯЖЁННЫХ ГРАДИЕНТОВ / CONJUGATE GRADIENT METHOD
+	// ============================================================================
+	// 
+	// Шаблонные параметры:
+	// - method (GradMethod): Способ вычисления градиента
+	//   • GradMethod::User            — пользовательский градиент (быстрее, точнее)
+	//   • GradMethod::NumericalVector — численный градиент для std::vector<double>
+	//   • GradMethod::NumericalArray  — численный градиент для std::array<double, N>
+	//
+	// - Point: Тип точки (вектор параметров)
+	//   • std::vector<double>  — для переменной размерности (heap allocation)
+	//   • std::array<double,N> — для фиксированной размерности (stack allocation, быстрее)
+	//
+	// ВАЖНО: Выбор method должен соответствовать типу Point!
+	// - std::vector<double>  → GradMethod::NumericalVector или GradMethod::User
+	// - std::array<double,N> → GradMethod::NumericalArray или GradMethod::User
+	//
+	// Производительность:
+	// - Все проверки method выполняются на compile-time через if constexpr
+	// - Для std::array компилятор генерирует одну функцию на каждый размер N
+	// - Для std::vector генерируется одна универсальная функция
+	// - ls_eps: точность линейного поиска (влияет на сходимость!)
+	// ============================================================================
+	// Требования к типу Point:
+	// - Должен иметь метод size() возвращающий std::size_t
+	// - Должен поддерживать operator[] для чтения и записи
+	// - Должен быть копируемым
+	// Примеры: std::vector<double>, std::array<double, N>
 	template <GradMethod method, OutputMode mode = OutputMode::Silent,
 		typename Func, typename Point, typename GradFunc = std::nullptr_t>
 	Point conjugate_gradient(Func f, Point x0,
 		double eps = 1e-6, int max_iter = 1000, GradFunc user_grad = nullptr,
 		double ls_eps = 1e-6) // точность одномерного поиска
 	{
-		// В освном по Оптимизации Н. Н. Моисеева, страница 73
+		// Проверка валидности входных данных
+		if (eps <= 0.0 || !std::isfinite(eps)) {
+			throw std::invalid_argument("conjugate_gradient: eps must be positive and finite");
+		}
+		if (max_iter <= 0) {
+			throw std::invalid_argument("conjugate_gradient: max_iter must be positive");
+		}
+		if (ls_eps <= 0.0 || !std::isfinite(ls_eps)) {
+			throw std::invalid_argument("conjugate_gradient: ls_eps must be positive and finite");
+		}
+		if constexpr (method == GradMethod::User) {
+			if (user_grad == nullptr) {
+				throw std::invalid_argument("conjugate_gradient: user_grad is required for GradMethod::User");
+			}
+		}
+
+		// В основном по Оптимизации Н. Н. Моисеева, страница 73
 
 		// =====================================
 		// || Лямбды для упрощения восприятия ||
@@ -451,14 +390,14 @@ namespace function_optimization {
 			else if constexpr (method == GradMethod::NumericalVector) {
 				static_assert(std::is_same_v<Point, std::vector<double>>,
 					"NumericalVector requires std::vector<double>");
-				static auto num_grad = make_numerical_gradient_vector(f);
+				auto num_grad = make_numerical_gradient_vector(f);
 				return num_grad(x);
 			}
 			else if constexpr (method == GradMethod::NumericalArray) {
 				static_assert(is_std_array_v<Point>,
 					"NumericalArray requires std::array<double, N>");
 				constexpr size_t N = std::tuple_size_v<Point>;
-				static auto num_grad = make_numerical_gradient_array<Func, N>(f);
+				auto num_grad = make_numerical_gradient_array<Func, N>(f);
 				return num_grad(x);
 			}
 			};
@@ -617,111 +556,56 @@ namespace function_optimization {
 		return x;
 	}
 
-
-#endif
-#if 0
-	template <typename Func, typename GradFunc>
-	std::pair<double, double> bfgs_minimize(
-		Func f,
-		GradFunc grad,
-		double x0,
-		double y0,
-		double eps = 1e-6,
-		int max_iter = 1000,
-		double c_armijo = 1e-4) {
-
-		// Начальная точка как вектор-столбец
-		matrix<double> x(2, 1);
-		x[0][0] = x0;
-		x[1][0] = y0;
-
-		double fx = f(x[0][0], x[1][0]);
-
-		// Градиент в начальной точке
-		matrix<double> g = grad(x[0][0], x[1][0]); // ожидается размер 2×1
-
-		// Начальное приближение обратного гессиана – единичная матрица 2×2
-		matrix<double> H = matrix<double>::eye(2);
-
-		for (int iter = 0; iter < max_iter; ++iter) {
-			// Проверка нормы градиента
-			double norm2 = matrixfunction::DotProduct(g, g);
-			if (norm2 < eps * eps) {
-				break;
-			}
-
-			// Направление спуска p = - H * g
-			matrix<double> p = H * g * (-1.0);
-
-			// Производная по направлению
-			double directional_deriv = matrixfunction::DotProduct(g, p);
-			if (directional_deriv >= 0.0) {
-				// Направление не спусковое – сбрасываем H в единичную и продолжаем
-				H = matrix<double>::eye(2);
-				continue;
-			}
-
-			// Линейный поиск с условием Армихо
-			double alpha = 1.0;
-			matrix<double> x_new(2, 1);
-			double f_new;
-			bool step_found = false;
-
-			while (alpha > 1e-12) {
-				x_new = x + p * alpha;  // предполагается оператор + и умножение на скаляр
-				f_new = f(x_new[0][0], x_new[1][0]);
-
-				if (f_new <= fx + c_armijo * alpha * directional_deriv) {
-					step_found = true;
-					break;
-				}
-				alpha *= 0.5;
-			}
-
-			if (!step_found) {
-				break; // не удалось найти подходящий шаг
-			}
-
-			// Новый градиент
-			matrix<double> g_new = grad(x_new[0][0], x_new[1][0]);
-
-			// Разности
-			matrix<double> s = x_new - x;
-			matrix<double> y_vec = g_new - g; // переименовал, чтобы избежать конфликта с функцией y
-
-			double ys = matrixfunction::DotProduct(y_vec, s);
-
-			// Обновление BFGS, если условие кривизны выполнено
-			if (ys > 1e-12) {
-				double rho = 1.0 / ys;
-
-				matrix<double> I = matrix<double>::eye(2);
-				matrix<double> s_yT = s * y_vec.transpose();   // 2×2
-				matrix<double> y_sT = y_vec * s.transpose();   // 2×2
-				matrix<double> s_sT = s * s.transpose();       // 2×2
-
-				matrix<double> A = I - s_yT * rho;
-				matrix<double> B = I - y_sT * rho;
-
-				H = A * H * B + s_sT * rho;
-			}
-
-			// Переход к следующей итерации
-			x = x_new;
-			g = g_new;
-			fx = f_new;
-		}
-
-		return { x[0][0], x[1][0] };
-	}
-#endif
-
-	// Обобщённая версия BFGS для произвольной размерности
+	// ============================================================================
+	// КВАЗИНЬЮТОНОВСКИЙ МЕТОД BFGS / QUASI-NEWTON BFGS METHOD
+	// ============================================================================
+	// 
+	// Шаблонные параметры:
+	// - method (GradMethod): Способ вычисления градиента
+	//   • GradMethod::User            — пользовательский градиент (быстрее, точнее)
+	//   • GradMethod::NumericalVector — численный градиент для std::vector<double>
+	//   • GradMethod::NumericalArray  — численный градиент для std::array<double, N>
+	//
+	// - Point: Тип точки (вектор параметров)
+	//   • std::vector<double>  — для переменной размерности (heap allocation)
+	//   • std::array<double,N> — для фиксированной размерности (stack allocation, быстрее)
+	//
+	// ВАЖНО: Выбор method должен соответствовать типу Point!
+	// - std::vector<double>  → GradMethod::NumericalVector или GradMethod::User
+	// - std::array<double,N> → GradMethod::NumericalArray или GradMethod::User
+	//
+	// Производительность:
+	// - Все проверки method выполняются на compile-time через if constexpr
+	// - Для std::array компилятор генерирует одну функцию на каждый размер N
+	// - Для std::vector генерируется одна универсальная функция
+	// - c_armijo: параметр условия Армихо (0, 1), обычно 1e-4
+	// ============================================================================
+	// Требования к типу Point:
+	// - Должен иметь метод size() возвращающий std::size_t
+	// - Должен поддерживать operator[] для чтения и записи
+	// - Должен быть копируемым
+	// Примеры: std::vector<double>, std::array<double, N>
 	template <GradMethod method, OutputMode mode = OutputMode::Silent,
 		typename Func, typename Point, typename GradFunc = std::nullptr_t>
 	Point bfgs_minimize(Func f, Point x0,
 		double eps = 1e-6, int max_iter = 1000, GradFunc user_grad = nullptr,
 		double c_armijo = 1e-4) {
+
+		// Проверка валидности входных данных
+		if (eps <= 0.0 || !std::isfinite(eps)) {
+			throw std::invalid_argument("bfgs_minimize: eps must be positive and finite");
+		}
+		if (max_iter <= 0) {
+			throw std::invalid_argument("bfgs_minimize: max_iter must be positive");
+		}
+		if (c_armijo <= 0.0 || c_armijo >= 1.0 || !std::isfinite(c_armijo)) {
+			throw std::invalid_argument("bfgs_minimize: c_armijo must be in (0, 1)");
+		}
+		if constexpr (method == GradMethod::User) {
+			if (user_grad == nullptr) {
+				throw std::invalid_argument("bfgs_minimize: user_grad is required for GradMethod::User");
+			}
+		}
 
 		// =====================================
 		// || Лямбды для упрощения восприятия ||
@@ -735,14 +619,14 @@ namespace function_optimization {
 			else if constexpr (method == GradMethod::NumericalVector) {
 				static_assert(std::is_same_v<Point, std::vector<double>>,
 					"NumericalVector requires std::vector<double>");
-				static auto num_grad = make_numerical_gradient_vector(f);
+				auto num_grad = make_numerical_gradient_vector(f);
 				return num_grad(x);
 			}
 			else if constexpr (method == GradMethod::NumericalArray) {
 				static_assert(is_std_array_v<Point>,
 					"NumericalArray requires std::array<double, N>");
 				constexpr size_t N = std::tuple_size_v<Point>;
-				static auto num_grad = make_numerical_gradient_array<Func, N>(f);
+				auto num_grad = make_numerical_gradient_array<Func, N>(f);
 				return num_grad(x);
 			}
 			};
