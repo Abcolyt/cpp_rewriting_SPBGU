@@ -244,7 +244,7 @@ public:
         other.colsize = 0;
         other.rowsize = 0;
     }
-    ~matrix();//destructor
+	virtual ~matrix() = default;//destructor
 
 
     //DATA ACCESS
