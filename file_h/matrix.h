@@ -201,7 +201,7 @@ template<typename T> std::ostream& operator<<(std::ostream& out, const matrix<T>
 template<typename T> std::istream& operator>>(std::istream& in, matrix<T>& plnm);
 template <typename T> class matrix
 {
-private:
+protected:
     //output_mode out_mode 
     output_mode out_mode = output_mode::ABBREVIATED;
 

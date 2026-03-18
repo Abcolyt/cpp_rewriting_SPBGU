@@ -4,7 +4,7 @@ template <typename T>
 class derived_matrix : public matrix<T> {
 private:
 	enum class StorageMethod {
-		None,									//не хранит
+		None=666,									//не хранит
 
 		One_dimensional_array_of_strings = 0,	//по строкам 
 		one_dimensional_array_of_columns = 1,	//по столбцам
@@ -44,7 +44,20 @@ public:
 	//DATA ACCESS
 
 	//to index row access operator
-	T* operator[](const uint64_t row_index) const { return ptr + row_index * rowsize; }
+	T* operator[](const uint64_t index) const {
+		if (OrderStorage == StorageMethod::row_major_order) {		
+			return ptr + index * rowsize; }
+		else if (OrderStorage == StorageMethod::column_major_oreder) {
+			return ptr + index * colsize;
+		}
+		else
+		{
+			if  this->matrix<T>::ptr;
+			uint64_t colsize;
+			uint64_t rowsize;
+
+		}
+	}
 	//№ + учет типа хранения
 
 	//ARITHMETIC OPERATORS
