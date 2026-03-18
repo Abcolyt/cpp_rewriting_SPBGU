@@ -262,7 +262,7 @@ public:
 
     //ARITHMETIC OPERATORS
 
-     // the unary operator returns a matrix with inverse (multiplied by minus 1 ) elements
+    // the unary operator returns a matrix with inverse (multiplied by minus 1 ) elements
     matrix<T> operator-() const;
     // binary matrix addition
     matrix<T> operator+(const matrix<T>& other) const;

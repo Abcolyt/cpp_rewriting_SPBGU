@@ -148,6 +148,7 @@
     <ClCompile Include="cpp_rewriting_SPBGU.cpp" />
     <ClCompile Include="example\sem_3.cpp" />
     <ClCompile Include="example\sem_4.cpp" />
+    <ClCompile Include="myltiplying_by_speed.cpp" />
     <ClCompile Include="_cpp_realisation_file\complex.cpp" />
     <ClCompile Include="_cpp_realisation_file\complex_number.cpp" />
     <ClCompile Include="_cpp_realisation_file\fraction.cpp" />
