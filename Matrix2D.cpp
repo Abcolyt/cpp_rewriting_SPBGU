@@ -11,14 +11,11 @@
 #include <cmath>
 #include <limits>
 #include <stdexcept>
+#include <immintrin.h>  // AVX-интринсики
 
 
 // ============================================================================
 // ==========================  CLASS Matrix2D  ================================
-// ============================================================================
-// Новый независимый класс матрицы с поддержкой двух форматов хранения:
-// - RowMajor (построчное)
-// - ColumnMajor (по столбцовое)
 // ============================================================================
 
 template<typename T>
@@ -26,7 +23,7 @@ class Matrix2D {
 public:
 	/// Формат хранения данных в памяти
 	enum class StorageOrder {
-		RowMajor,    // построчное хранение (как в базовом matrix<T>)
+		RowMajor,    // построчное хранение
 		ColumnMajor  // по столбцовое хранение
 	};
 
@@ -36,273 +33,79 @@ private:
 	uint64_t rows;    ///< Количество строк
 	StorageOrder storage;  ///< Формат хранения данных
 
-	/// Внутренний доступ к элементу по индексам (с учётом формата хранения)
-	/// @param row индекс строки
-	/// @param col индекс столбца
-	/// @return ссылка на элемент матрицы
-	T& at(uint64_t row, uint64_t col);
-	const T& at(uint64_t row, uint64_t col) const;
-
-	/// Выделение памяти под матрицу (с инициализацией нулями)
+	/// Выделение памяти под матрицу
 	void allocateMemory();
 
 public:
 	// ==================== КОНСТРУКТОРЫ / ДЕСТРУКТОР ====================
 
-	/// Конструктор по умолчанию — создаёт пустую матрицу 0×0
 	Matrix2D();
-
-	/// Конструктор с указанием размеров и формата хранения
-	/// @param cols количество столбцов
-	/// @param rows количество строк
-	/// @param storage формат хранения (по умолчанию RowMajor)
 	Matrix2D(uint64_t cols, uint64_t rows, StorageOrder storage = StorageOrder::RowMajor);
-
-	/// Конструктор квадратной матрицы
-	/// @param size размер матрицы (количество строк и столбцов)
-	/// @param storage формат хранения (по умолчанию RowMajor)
 	Matrix2D(uint64_t size, StorageOrder storage = StorageOrder::RowMajor);
-
-	/// Конструктор инициализации списком значений
-	/// @param init список списков значений для инициализации
-	/// @param storage формат хранения (по умолчанию RowMajor)
 	Matrix2D(std::initializer_list<std::initializer_list<T>> init, StorageOrder storage = StorageOrder::RowMajor);
-
-	/// Конструктор копирования — создаёт копию другой матрицы
-	/// @param other матрица для копирования
 	Matrix2D(const Matrix2D& other);
-
-	/// Конструктор перемещения — перемещает данные из другой матрицы
-	/// @param other матрица для перемещения
 	Matrix2D(Matrix2D&& other) noexcept;
-
-	/// Деструктор — освобождает выделенную память
 	~Matrix2D();
+
+	// ==================== ДОСТУП К ЭЛЕМЕНТАМ ====================
+
+	/// Доступ к элементу по индексам
+	T& at(uint64_t row, uint64_t col);
+	const T& at(uint64_t row, uint64_t col) const;
 
 	// ==================== ОПЕРАТОРЫ ПРИСВАИВАНИЯ ====================
 
-	/// Оператор присваивания копированием
-	/// @param other матрица для копирования
-	/// @return ссылка на текущую матрицу
 	Matrix2D& operator=(const Matrix2D& other);
-
-	/// Оператор присваивания перемещением
-	/// @param other матрица для перемещения
-	/// @return ссылка на текущую матрицу
 	Matrix2D& operator=(Matrix2D&& other) noexcept;
 
 	// ==================== ДОСТУП К ДАННЫМ ====================
 
-	/// Получить количество столбцов матрицы
-	/// @return количество столбцов
 	uint64_t getcol() const;
-
-	/// Получить количество строк матрицы
-	/// @return количество строк
 	uint64_t getrow() const;
-
-	/// Получить текущий формат хранения данных
-	/// @return формат хранения (RowMajor или ColumnMajor)
 	StorageOrder getStorageOrder() const;
-
-	/// Установить новый формат хранения (с конвертацией данных)
-	/// @param order новый формат хранения
 	void setStorageOrder(StorageOrder order);
 
-	/// Оператор доступа к строке по индексу
+	/// Получить прямой доступ к данным (для оптимизированных операций)
 	/// @param row индекс строки
-	/// @return указатель на начало строки
-	/// @note Для ColumnMajor создаётся временная копия строки (неэффективно)
+	/// @param col индекс столбца
+	/// @return указатель на данные в памяти (последовательно для данного формата хранения)
+	/// @note Для RowMajor: возвращает указатель на начало строки row
+	/// @note Для ColumnMajor: возвращает указатель на начало столбца col
+	const double* getDataPtr(uint64_t row, uint64_t col) const;
+
 	T* operator[](uint64_t row);
-
-	/// Оператор доступа к строке по индексу (const-версия)
-	/// @param row индекс строки
-	/// @return указатель на начало строки
 	const T* operator[](uint64_t row) const;
-
-	/// Оператор доступа к элементу по индексам (рекомендуется для ColumnMajor)
-	/// @param row индекс строки
-	/// @param col индекс столбца
-	/// @return ссылка на элемент
 	T& operator()(uint64_t row, uint64_t col);
-
-	/// Оператор доступа к элементу по индексам (const-версия)
-	/// @param row индекс строки
-	/// @param col индекс столбца
-	/// @return константная ссылка на элемент
 	const T& operator()(uint64_t row, uint64_t col) const;
 
-	/// Получить столбец матрицы как матрицу размера rows×1
-	/// @param col индекс столбца
-	/// @return матрица-столбец
-	/// @throws std::out_of_range если индекс выходит за границы
-	Matrix2D getColumn(uint64_t col) const;
+	// ==================== АРИФМЕТИЧЕСКИЕ ОПЕРАТОРЫ ====================
 
-	/// Получить строку матрицы как матрицу размера 1×cols
-	/// @param row индекс строки
-	/// @return матрица-строка
-	/// @throws std::out_of_range если индекс выходит за границы
-	Matrix2D getRow(uint64_t row) const;
-
-	// ==================== УНАРНЫЕ ОПЕРАТОРЫ ====================
-
-	/// Унарный минус — возвращает матрицу с противоположным знаком элементов
-	/// @return новая матрица с элементами -ptr[i]
 	Matrix2D operator-() const;
-
-	// ==================== БИНАРНЫЕ АРИФМЕТИЧЕСКИЕ ОПЕРАТОРЫ ====================
-
-	/// Сложение матриц
-	/// @param other матрица для сложения
-	/// @return новая матрица — результат сложения
-	/// @throws std::invalid_argument если размеры матриц не совпадают
 	Matrix2D operator+(const Matrix2D& other) const;
-
-	/// Вычитание матриц
-	/// @param other матрица для вычитания
-	/// @return новая матрица — результат вычитания
-	/// @throws std::invalid_argument если размеры матриц не совпадают
 	Matrix2D operator-(const Matrix2D& other) const;
-
-	/// Умножение матриц
-	/// @param other матрица для умножения
-	/// @return новая матрица — результат умножения
-	/// @throws std::invalid_argument если число строк первой не равно числу столбцов второй
 	Matrix2D operator*(const Matrix2D& other) const;
-
-	/// Умножение матрицы на скаляр
-	/// @param scalar скаляр для умножения
-	/// @return новая матрица с умноженными элементами
 	Matrix2D operator*(const T& scalar) const;
-
-	/// Деление матрицы на скаляр
-	/// @param scalar скаляр для деления
-	/// @return новая матрица с разделёнными элементами
-	/// @throws std::invalid_argument если скаляр равен нулю
 	Matrix2D operator/(const T& scalar) const;
 
-	/// Дружественный оператор для умножения скаляра на матрицу
-	/// @param scalar скаляр для умножения
-	/// @param mat матрица для умножения
-	/// @return новая матрица — результат умножения
 	friend Matrix2D operator*(const T& scalar, const Matrix2D& mat) {
 		return mat * scalar;
 	}
 
-	// ==================== СПЕЦИАЛЬНЫЕ МЕТОДЫ ====================
+	// ==================== СТАТИЧЕСКИЕ МЕТОДЫ ====================
 
-	/// Транспонирование матрицы — строки становятся столбцами
-	/// @return новая транспонированная матрица
-	Matrix2D transpose() const;
-
-	/// Вычисление нормы матрицы (Lp-норма)
-	/// @param p порядок нормы (1, 2, INT_MAX для бесконечной нормы)
-	/// @return значение нормы матрицы
-	T norm(int p = 2) const;
-
-	/// Вычисление определителя матрицы (только для квадратных)
-	/// @return значение определителя
-	/// @throws std::invalid_argument если матрица не квадратная
-	T determinant() const;
-
-	/// Вычисление обратной матрицы (только для невырожденных квадратных)
-	/// @return новая обратная матрица
-	/// @throws std::invalid_argument если матрица вырожденная или не квадратная
-	Matrix2D inverse() const;
-
-	/// Создать единичную матрицу заданного размера
-	/// @param size размер матрицы
-	/// @param storage формат хранения (по умолчанию RowMajor)
-	/// @return единичная матрица с единицами на главной диагонали
-	static Matrix2D eye(uint64_t size, StorageOrder storage = StorageOrder::RowMajor);
-
-	/// Создать нулевую матрицу заданного размера
-	/// @param cols количество столбцов
-	/// @param rows количество строк
-	/// @param storage формат хранения (по умолчанию RowMajor)
-	/// @return матрица, заполненная нулями
-	static Matrix2D zeros(uint64_t cols, uint64_t rows, StorageOrder storage = StorageOrder::RowMajor);
-
-	/// Создать матрицу из единиц заданного размера
-	/// @param cols количество столбцов
-	/// @param rows количество строк
-	/// @param storage формат хранения (по умолчанию RowMajor)
-	/// @return матрица, заполненная единицами
-	static Matrix2D ones(uint64_t cols, uint64_t rows, StorageOrder storage = StorageOrder::RowMajor);
-
-	/// Создать случайную матрицу заданного размера
-	/// @param cols количество столбцов
-	/// @param rows количество строк
-	/// @param min минимальное значение элемента
-	/// @param max максимальное значение элемента
-	/// @param storage формат хранения (по умолчанию RowMajor)
-	/// @return матрица со случайными элементами
+	/// Создать случайную матрицу
 	static Matrix2D random(uint64_t cols, uint64_t rows, T min, T max, StorageOrder storage = StorageOrder::RowMajor);
-
-	/// Создать случайную диагональную матрицу
-	/// @param size размер матрицы
-	/// @param min минимальное значение элемента
-	/// @param max максимальное значение элемента
-	/// @param storage формат хранения (по умолчанию RowMajor)
-	/// @return диагональная матрица со случайными элементами на диагонали
-	static Matrix2D randomDiagonal(uint64_t size, T min, T max, StorageOrder storage = StorageOrder::RowMajor);
-
-	/// Создать матрицу Вандермонда из вектора значений
-	/// @param x вектор значений
-	/// @param m количество столбцов (степени от 0 до m-1), по умолчанию равно размеру x
-	/// @param storage формат хранения (по умолчанию RowMajor)
-	/// @return матрица Вандермонда размера n×m
-	static Matrix2D vander(const std::vector<T>& x, uint64_t m = 0, StorageOrder storage = StorageOrder::RowMajor);
-
-	/// Получить подматрицу — часть исходной матрицы
-	/// @param startRow индекс начальной строки
-	/// @param startCol индекс начального столбца
-	/// @param numRows количество строк подматрицы
-	/// @param numCols количество столбцов подматрицы
-	/// @return новая матрица — подматрица
-	/// @throws std::out_of_range если размеры выходят за границы
-	Matrix2D submatrix(uint64_t startRow, uint64_t startCol, uint64_t numRows, uint64_t numCols) const;
-
-	/// Поменять местами две строки матрицы
-	/// @param i индекс первой строки
-	/// @param j индекс второй строки
-	void swapRows(size_t i, size_t j);
 
 	// ==================== ОПЕРАТОРЫ СРАВНЕНИЯ ====================
 
-	/// Проверка на равенство двух матриц
-	/// @param other матрица для сравнения
-	/// @return true если матрицы одинакового размера и все элементы равны
 	bool operator==(const Matrix2D& other) const;
-
-	/// Проверка на неравенство двух матриц
-	/// @param other матрица для сравнения
-	/// @return true если матрицы различаются размером или хотя бы одним элементом
 	bool operator!=(const Matrix2D& other) const;
-
-	// ==================== ВВОД / ВЫВОД ====================
-
-	/// Оператор вывода матрицы в поток
-	/// @param out выходной поток
-	/// @param m матрица для вывода
-	/// @return ссылка на поток
-	template<typename U>
-	friend std::ostream& operator<<(std::ostream& out, const Matrix2D<U>& m);
-
-	/// Оператор ввода матрицы из потока
-	/// @param in входной поток
-	/// @param m матрица для ввода
-	/// @return ссылка на поток
-	template<typename U>
-	friend std::istream& operator>>(std::istream& in, Matrix2D<U>& m);
 };
 
 
 // ============================================================================
-// ==================== РЕАЛИЗАЦИИ МЕТОДОВ Matrix2D ===========================
+// ==================== РЕАЛИЗАЦИИ МЕТОДОВ ====================================
 // ============================================================================
-
-// ------------------- Внутренние методы -------------------
 
 template<typename T>
 T& Matrix2D<T>::at(uint64_t row, uint64_t col) {
@@ -323,15 +126,12 @@ const T& Matrix2D<T>::at(uint64_t row, uint64_t col) const {
 template<typename T>
 void Matrix2D<T>::allocateMemory() {
 	delete[] ptr;
-	ptr = new T[cols * rows]();  // инициализация нулями
+	ptr = new T[cols * rows]();
 }
-
-// ------------------- Конструкторы / Деструктор -------------------
 
 template<typename T>
 Matrix2D<T>::Matrix2D()
-	: ptr(nullptr), cols(0), rows(0), storage(StorageOrder::RowMajor) {
-}
+	: ptr(nullptr), cols(0), rows(0), storage(StorageOrder::RowMajor) {}
 
 template<typename T>
 Matrix2D<T>::Matrix2D(uint64_t cols, uint64_t rows, StorageOrder storage)
@@ -393,8 +193,6 @@ Matrix2D<T>::~Matrix2D() {
 	delete[] ptr;
 }
 
-// ------------------- Операторы присваивания -------------------
-
 template<typename T>
 Matrix2D<T>& Matrix2D<T>::operator=(const Matrix2D& other) {
 	if (this != &other) {
@@ -425,8 +223,6 @@ Matrix2D<T>& Matrix2D<T>::operator=(Matrix2D&& other) noexcept {
 	return *this;
 }
 
-// ------------------- Доступ к данным -------------------
-
 template<typename T>
 uint64_t Matrix2D<T>::getcol() const {
 	return cols;
@@ -447,7 +243,6 @@ void Matrix2D<T>::setStorageOrder(StorageOrder order) {
 	if (order != storage) {
 		T* newPtr = new T[cols * rows];
 		if (storage == StorageOrder::RowMajor) {
-			// Было row-major, станет column-major
 			for (uint64_t i = 0; i < cols; ++i) {
 				for (uint64_t j = 0; j < rows; ++j) {
 					newPtr[j * cols + i] = ptr[i * rows + j];
@@ -455,7 +250,6 @@ void Matrix2D<T>::setStorageOrder(StorageOrder order) {
 			}
 		}
 		else {
-			// Было column-major, станет row-major
 			for (uint64_t i = 0; i < cols; ++i) {
 				for (uint64_t j = 0; j < rows; ++j) {
 					newPtr[i * rows + j] = ptr[j * cols + i];
@@ -468,13 +262,24 @@ void Matrix2D<T>::setStorageOrder(StorageOrder order) {
 	}
 }
 
+template<>
+const double* Matrix2D<double>::getDataPtr(uint64_t row, uint64_t col) const {
+	if (storage == StorageOrder::RowMajor) {
+		// Для RowMajor: строки хранятся последовательно
+		return ptr + row * cols;
+	}
+	else {
+		// Для ColumnMajor: столбцы хранятся последовательно
+		return ptr + col * rows;
+	}
+}
+
 template<typename T>
 T* Matrix2D<T>::operator[](uint64_t row) {
 	if (storage == StorageOrder::RowMajor) {
 		return ptr + row * cols;
 	}
 	else {
-		// Для column-major создаём временную строку
 		static T* tempRow = nullptr;
 		static uint64_t tempRowSize = 0;
 		if (tempRowSize != cols) {
@@ -495,7 +300,6 @@ const T* Matrix2D<T>::operator[](uint64_t row) const {
 		return ptr + row * cols;
 	}
 	else {
-		// Для column-major создаём временную строку
 		static T* tempRow = nullptr;
 		static uint64_t tempRowSize = 0;
 		if (tempRowSize != cols) {
@@ -521,32 +325,6 @@ const T& Matrix2D<T>::operator()(uint64_t row, uint64_t col) const {
 }
 
 template<typename T>
-Matrix2D<T> Matrix2D<T>::getColumn(uint64_t col) const {
-	if (col >= cols) {
-		throw std::out_of_range("Column index out of bounds");
-	}
-	Matrix2D result(1, rows, storage);
-	for (uint64_t row = 0; row < rows; ++row) {
-		result.at(0, row) = at(row, col);
-	}
-	return result;
-}
-
-template<typename T>
-Matrix2D<T> Matrix2D<T>::getRow(uint64_t row) const {
-	if (row >= rows) {
-		throw std::out_of_range("Row index out of bounds");
-	}
-	Matrix2D result(cols, 1, storage);
-	for (uint64_t col = 0; col < cols; ++col) {
-		result.at(col, 0) = at(row, col);
-	}
-	return result;
-}
-
-// ------------------- Унарные операторы -------------------
-
-template<typename T>
 Matrix2D<T> Matrix2D<T>::operator-() const {
 	Matrix2D result(cols, rows, storage);
 	for (uint64_t i = 0; i < cols * rows; ++i) {
@@ -554,8 +332,6 @@ Matrix2D<T> Matrix2D<T>::operator-() const {
 	}
 	return result;
 }
-
-// ------------------- Бинарные арифметические операторы -------------------
 
 template<typename T>
 Matrix2D<T> Matrix2D<T>::operator+(const Matrix2D& other) const {
@@ -583,17 +359,17 @@ Matrix2D<T> Matrix2D<T>::operator-(const Matrix2D& other) const {
 
 template<typename T>
 Matrix2D<T> Matrix2D<T>::operator*(const Matrix2D& other) const {
-	if (rows != other.cols) {
+	if (cols != other.rows) {
 		throw std::invalid_argument("Matrix dimensions incompatible for multiplication");
 	}
-	Matrix2D result(cols, other.rows, storage);
-	for (uint64_t i = 0; i < result.cols; ++i) {
-		for (uint64_t j = 0; j < result.rows; ++j) {
+	Matrix2D result(other.cols, rows, storage);
+	for (uint64_t i = 0; i < rows; ++i) {
+		for (uint64_t j = 0; j < other.cols; ++j) {
 			T sum = 0;
-			for (uint64_t k = 0; k < rows; ++k) {
-				sum += at(k, i) * other.at(j, k);
+			for (uint64_t k = 0; k < cols; ++k) {
+				sum += at(i, k) * other.at(k, j);
 			}
-			result.at(j, i) = sum;
+			result.at(i, j) = sum;
 		}
 	}
 	return result;
@@ -620,197 +396,6 @@ Matrix2D<T> Matrix2D<T>::operator/(const T& scalar) const {
 	return result;
 }
 
-// ------------------- Специальные методы -------------------
-
-template<typename T>
-Matrix2D<T> Matrix2D<T>::transpose() const {
-	Matrix2D result(rows, cols, storage);
-	for (uint64_t i = 0; i < cols; ++i) {
-		for (uint64_t j = 0; j < rows; ++j) {
-			result.at(j, i) = at(i, j);
-		}
-	}
-	return result;
-}
-
-template<typename T>
-T Matrix2D<T>::norm(int p) const {
-	T result = 0;
-	const uint64_t size = cols * rows;
-
-	if (p == 1) {
-		for (uint64_t i = 0; i < size; ++i) {
-			result += std::abs(ptr[i]);
-		}
-	}
-	else if (p == 2) {
-		for (uint64_t i = 0; i < size; ++i) {
-			result += ptr[i] * ptr[i];
-		}
-		result = std::sqrt(result);
-	}
-	else if (p == INT_MAX) {
-		for (uint64_t i = 0; i < size; ++i) {
-			T abs_val = std::abs(ptr[i]);
-			if (abs_val > result) {
-				result = abs_val;
-			}
-		}
-	}
-	else {
-		for (uint64_t i = 0; i < size; ++i) {
-			result += std::pow(std::abs(ptr[i]), p);
-		}
-		result = std::pow(result, 1.0 / p);
-	}
-	return result;
-}
-
-template<typename T>
-T Matrix2D<T>::determinant() const {
-	if (cols != rows) {
-		throw std::invalid_argument("Determinant requires square matrix");
-	}
-
-	Matrix2D M = *this;
-	T det = T(1);
-	const size_t n = rows;
-
-	if (n == 0) return T(1);
-
-	for (size_t k = 0; k < n; ++k) {
-		size_t maxRow = k;
-		T maxVal = std::abs(M.at(k, k));
-		for (size_t i = k + 1; i < n; ++i) {
-			T val = std::abs(M.at(k, i));
-			if (val > maxVal) {
-				maxVal = val;
-				maxRow = i;
-			}
-		}
-
-		if (maxVal == T(0)) {
-			return T(0);
-		}
-
-		if (maxRow != k) {
-			for (size_t j = 0; j < n; ++j) {
-				T temp = M.at(k, j);
-				M.at(k, j) = M.at(maxRow, j);
-				M.at(maxRow, j) = temp;
-			}
-			det = -det;
-		}
-
-		det *= M.at(k, k);
-
-		for (size_t i = k + 1; i < n; ++i) {
-			T factor = M.at(k, i) / M.at(k, k);
-			for (size_t j = k; j < n; ++j) {
-				M.at(j, i) -= factor * M.at(j, k);
-			}
-		}
-	}
-
-	return det;
-}
-
-template<typename T>
-Matrix2D<T> Matrix2D<T>::inverse() const {
-	if (cols != rows) {
-		throw std::invalid_argument("Inverse requires square matrix");
-	}
-
-	T det = determinant();
-	if (det == T(0)) {
-		throw std::invalid_argument("Matrix is singular, cannot invert");
-	}
-
-	Matrix2D augmented(cols, rows * 2, storage);
-
-	for (uint64_t i = 0; i < cols; ++i) {
-		for (uint64_t j = 0; j < rows; ++j) {
-			augmented.at(j, i) = at(j, i);
-		}
-	}
-
-	for (uint64_t i = 0; i < cols; ++i) {
-		for (uint64_t j = 0; j < rows; ++j) {
-			augmented.at(j, i + rows) = (i == j) ? T(1) : T(0);
-		}
-	}
-
-	for (uint64_t k = 0; k < cols; ++k) {
-		size_t maxRow = k;
-		T maxVal = std::abs(augmented.at(k, k));
-		for (size_t i = k + 1; i < rows; ++i) {
-			T val = std::abs(augmented.at(k, i));
-			if (val > maxVal) {
-				maxVal = val;
-				maxRow = i;
-			}
-		}
-
-		if (maxVal == T(0)) {
-			throw std::invalid_argument("Matrix is singular");
-		}
-
-		if (maxRow != k) {
-			for (uint64_t j = 0; j < cols * 2; ++j) {
-				T temp = augmented.at(k, j);
-				augmented.at(k, j) = augmented.at(maxRow, j);
-				augmented.at(maxRow, j) = temp;
-			}
-		}
-
-		T pivot = augmented.at(k, k);
-		for (uint64_t j = 0; j < cols * 2; ++j) {
-			augmented.at(k, j) /= pivot;
-		}
-
-		for (uint64_t i = 0; i < rows; ++i) {
-			if (i != k) {
-				T factor = augmented.at(k, i);
-				for (uint64_t j = 0; j < cols * 2; ++j) {
-					augmented.at(i, j) -= factor * augmented.at(k, j);
-				}
-			}
-		}
-	}
-
-	Matrix2D result(cols, rows, storage);
-	for (uint64_t i = 0; i < cols; ++i) {
-		for (uint64_t j = 0; j < rows; ++j) {
-			result.at(j, i) = augmented.at(j, i + rows);
-		}
-	}
-
-	return result;
-}
-
-template<typename T>
-Matrix2D<T> Matrix2D<T>::eye(uint64_t size, StorageOrder storage) {
-	Matrix2D result(size, size, storage);
-	for (uint64_t i = 0; i < size; ++i) {
-		result.at(i, i) = T(1);
-	}
-	return result;
-}
-
-template<typename T>
-Matrix2D<T> Matrix2D<T>::zeros(uint64_t cols, uint64_t rows, StorageOrder storage) {
-	return Matrix2D(cols, rows, storage);
-}
-
-template<typename T>
-Matrix2D<T> Matrix2D<T>::ones(uint64_t cols, uint64_t rows, StorageOrder storage) {
-	Matrix2D result(cols, rows, storage);
-	for (uint64_t i = 0; i < cols * rows; ++i) {
-		result.ptr[i] = T(1);
-	}
-	return result;
-}
-
 template<typename T>
 Matrix2D<T> Matrix2D<T>::random(uint64_t cols, uint64_t rows, T min, T max, StorageOrder storage) {
 	Matrix2D result(cols, rows, storage);
@@ -833,68 +418,6 @@ Matrix2D<T> Matrix2D<T>::random(uint64_t cols, uint64_t rows, T min, T max, Stor
 }
 
 template<typename T>
-Matrix2D<T> Matrix2D<T>::randomDiagonal(uint64_t size, T min, T max, StorageOrder storage) {
-	Matrix2D result(size, size, storage);
-	std::random_device rd;
-	std::mt19937 gen(rd());
-
-	if constexpr (std::is_integral_v<T>) {
-		std::uniform_int_distribution<T> dist(min, max);
-		for (uint64_t i = 0; i < size; ++i) {
-			result.at(i, i) = dist(gen);
-		}
-	}
-	else {
-		std::uniform_real_distribution<T> dist(min, max);
-		for (uint64_t i = 0; i < size; ++i) {
-			result.at(i, i) = dist(gen);
-		}
-	}
-	return result;
-}
-
-template<typename T>
-Matrix2D<T> Matrix2D<T>::vander(const std::vector<T>& x, uint64_t m, StorageOrder storage) {
-	uint64_t n = x.size();
-	if (m == 0) m = n;
-
-	Matrix2D result(n, m, storage);
-	for (uint64_t i = 0; i < n; ++i) {
-		result.at(i, 0) = T(1);
-		for (uint64_t j = 1; j < m; ++j) {
-			result.at(i, j) = result.at(i, j - 1) * x[i];
-		}
-	}
-	return result;
-}
-
-template<typename T>
-Matrix2D<T> Matrix2D<T>::submatrix(uint64_t startRow, uint64_t startCol, uint64_t numRows, uint64_t numCols) const {
-	if (startRow + numRows > rows || startCol + numCols > cols) {
-		throw std::out_of_range("Submatrix dimensions exceed matrix bounds");
-	}
-
-	Matrix2D result(numCols, numRows, storage);
-	for (uint64_t i = 0; i < numCols; ++i) {
-		for (uint64_t j = 0; j < numRows; ++j) {
-			result.at(j, i) = at(startRow + j, startCol + i);
-		}
-	}
-	return result;
-}
-
-template<typename T>
-void Matrix2D<T>::swapRows(size_t i, size_t j) {
-	for (size_t col = 0; col < cols; ++col) {
-		T temp = at(i, col);
-		at(i, col) = at(j, col);
-		at(j, col) = temp;
-	}
-}
-
-// ------------------- Операторы сравнения -------------------
-
-template<typename T>
 bool Matrix2D<T>::operator==(const Matrix2D& other) const {
 	if (cols != other.cols || rows != other.rows) {
 		return false;
@@ -912,43 +435,121 @@ bool Matrix2D<T>::operator!=(const Matrix2D& other) const {
 	return !(*this == other);
 }
 
-// ------------------- Ввод / Вывод -------------------
+// ============================================================================
+// ==================== СВОБОДНЫЕ ФУНКЦИИ =====================================
+// ============================================================================
 
+/// Умножение матриц с явным указанием результата
+/// @param A первая матрица (левый множитель)
+/// @param B вторая матрица (правый множитель)
+/// @param result матрица для сохранения результата (должна быть правильного размера: A.rows × B.cols)
 template<typename T>
-std::ostream& operator<<(std::ostream& out, const Matrix2D<T>& m) {
-	out << "Matrix2D[" << m.cols << "x" << m.rows << "] ("
-		<< (m.storage == Matrix2D<T>::StorageOrder::RowMajor ? "RowMajor" : "ColumnMajor")
-		<< ")\n";
-	for (uint64_t i = 0; i < m.rows; ++i) {
-		for (uint64_t j = 0; j < m.cols; ++j) {
-			out << std::setw(10) << m.at(i, j) << " ";
-		}
-		out << "\n";
+void multiply(const Matrix2D<T>* A, const Matrix2D<T>* B, Matrix2D<T>* result) {
+	if (A == nullptr || B == nullptr || result == nullptr) {
+		throw std::invalid_argument("Null pointer passed to multiply");
 	}
-	return out;
+	
+	if (A->getcol() != B->getrow()) {
+		throw std::invalid_argument("Matrix dimensions incompatible for multiplication");
+	}
+	
+	// Проверяем размер result
+	if (result->getrow() != A->getrow() || result->getcol() != B->getcol()) {
+		// Пересоздаём result правильного размера
+		*result = Matrix2D<T>(B->getcol(), A->getrow(), A->getStorageOrder());
+	}
+	
+	uint64_t rowsA = A->getrow();
+	uint64_t colsA = A->getcol();
+	uint64_t colsB = B->getcol();
+	
+	for (uint64_t i = 0; i < rowsA; ++i) {
+		for (uint64_t j = 0; j < colsB; ++j) {
+			T sum = 0;
+			for (uint64_t k = 0; k < colsA; ++k) {
+				sum += A->at(i, k) * B->at(k, j);
+			}
+			result->at(i, j) = sum;
+		}
+	}
 }
 
-template<typename T>
-std::istream& operator>>(std::istream& in, Matrix2D<T>& m) {
-	uint64_t cols, rows;
-	std::cout << "Enter number of columns: ";
-	in >> cols;
-	std::cout << "Enter number of rows: ";
-	in >> rows;
+// ============================================================================
+// AVX-версия умножения матриц (только для double)
+// ============================================================================
 
-	m = Matrix2D<T>(cols, rows);
-	for (uint64_t i = 0; i < rows; ++i) {
-		for (uint64_t j = 0; j < cols; ++j) {
-			std::cout << "[" << i << "][" << j << "]=";
-			in >> m.at(i, j);
+/// Умножение матриц с использованием AVX инструкций
+/// @param A первая матрица (левый множитель), должна быть в RowMajor формате
+/// @param B вторая матрица (правый множитель), должна быть в ColumnMajor формате
+/// @param result матрица для сохранения результата
+/// @note B должна храниться в ColumnMajor для эффективной загрузки столбцов AVX-регистром
+void multiplyAVX(const Matrix2D<double>* A, const Matrix2D<double>* B, Matrix2D<double>* result) {
+	if (A == nullptr || B == nullptr || result == nullptr) {
+		throw std::invalid_argument("Null pointer passed to multiplyAVX");
+	}
+	
+	if (A->getcol() != B->getrow()) {
+		throw std::invalid_argument("Matrix dimensions incompatible for multiplication");
+	}
+	
+	// Проверяем форматы хранения
+	if (A->getStorageOrder() != Matrix2D<double>::StorageOrder::RowMajor) {
+		throw std::invalid_argument("Matrix A must be in RowMajor format for AVX multiplication");
+	}
+	if (B->getStorageOrder() != Matrix2D<double>::StorageOrder::ColumnMajor) {
+		throw std::invalid_argument("Matrix B must be in ColumnMajor format for AVX multiplication");
+	}
+	
+	// Проверяем размер result
+	if (result->getrow() != A->getrow() || result->getcol() != B->getcol()) {
+		*result = Matrix2D<double>(B->getcol(), A->getrow(), A->getStorageOrder());
+	}
+	
+	const uint64_t M = A->getrow();      // строки A
+	const uint64_t K = A->getcol();      // столбцы A = строки B
+	const uint64_t N = B->getcol();      // столбцы B
+	
+	// Получаем прямые указатели на данные
+	// A: RowMajor - строки последовательно
+	// B: ColumnMajor - столбцы последовательно
+	
+	// AVX умножение: C[i][j] = sum_k(A[i][k] * B[k][j])
+	for (uint64_t i = 0; i < M; ++i) {
+		// Получаем указатель на i-ю строку A (последовательно в RowMajor)
+		const double* rowA = A->getDataPtr(i, 0);
+		
+		for (uint64_t j = 0; j < N; ++j) {
+			// Получаем указатель на j-й столбец B (последовательно в ColumnMajor)
+			const double* colB = B->getDataPtr(0, j);
+			
+			double sum = 0.0;
+			
+			// Обрабатываем по 4 элемента AVX-регистром
+			uint64_t k = 0;
+			for (; k + 4 <= K; k += 4) {
+				// Загружаем 4 элемента из строки A и столбца B
+				__m256d va = _mm256_load_pd(rowA + k);
+				__m256d vb = _mm256_load_pd(colB + k);
+				
+				// Умножаем поэлементно
+				__m256d vmul = _mm256_mul_pd(va, vb);
+				
+				// Горизонтальная сумма всех 4 элементов
+				__m128d vlow = _mm256_castpd256_pd128(vmul);        // [a0, a1]
+				__m128d vhigh = _mm256_extractf128_pd(vmul, 1);     // [a2, a3]
+				__m128d vsum = _mm_add_pd(vlow, vhigh);             // [a0+a2, a1+a3]
+				__m128d vshuf = _mm_shuffle_pd(vsum, vsum, 1);      // [a1+a3, a0+a2]
+				__m128d vfinal = _mm_add_sd(vsum, vshuf);           // [a0+a1+a2+a3, ...]
+				
+				sum += _mm_cvtsd_f64(vfinal);
+			}
+			
+			// Обрабатываем "хвост" — оставшиеся 1-3 элемента скалярно
+			for (; k < K; ++k) {
+				sum += rowA[k] * colB[k];
+			}
+			
+			result->at(i, j) = sum;
 		}
 	}
-	return in;
-}
-
-// ------------------- Свободные операторы -------------------
-
-template<typename T>
-Matrix2D<T> operator*(const T& scalar, const Matrix2D<T>& mat) {
-	return mat * scalar;
 }
