@@ -347,12 +347,12 @@ Matrix2D<T>::Matrix2D(uint64_t size, StorageOrder storage)
 
 template<typename T>
 Matrix2D<T>::Matrix2D(std::initializer_list<std::initializer_list<T>> init, StorageOrder storage)
-	: cols(init.size()), rows(0), storage(storage) {
+	: rows(init.size()), cols(0), storage(storage) {
 
-	if (cols > 0) {
-		rows = init.begin()->size();
+	if (rows > 0) {
+		cols = init.begin()->size();
 		for (const auto& row : init) {
-			if (row.size() != rows) {
+			if (row.size() != cols) {
 				throw std::invalid_argument("All rows must have the same length");
 			}
 		}
