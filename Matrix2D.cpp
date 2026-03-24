@@ -125,8 +125,19 @@ const T& Matrix2D<T>::at(uint64_t row, uint64_t col) const {
 
 template<typename T>
 void Matrix2D<T>::allocateMemory() {
-	delete[] ptr;
-	ptr = new T[cols * rows]();
+	// Освобождаем старую память
+	if (ptr != nullptr) {
+		_mm_free(ptr);
+	}
+	
+	// Выделяем новую память с выравниванием 32 байта (для AVX)
+	// _mm_malloc возвращает выровненный указатель
+	ptr = static_cast<T*>(_mm_malloc(cols * rows * sizeof(T), 32));
+	
+	// Инициализация нулями
+	for (uint64_t i = 0; i < cols * rows; ++i) {
+		ptr[i] = T(0);
+	}
 }
 
 template<typename T>
@@ -136,13 +147,19 @@ Matrix2D<T>::Matrix2D()
 template<typename T>
 Matrix2D<T>::Matrix2D(uint64_t cols, uint64_t rows, StorageOrder storage)
 	: cols(cols), rows(rows), storage(storage) {
-	ptr = new T[cols * rows]();
+	ptr = static_cast<T*>(_mm_malloc(cols * rows * sizeof(T), 32));
+	for (uint64_t i = 0; i < cols * rows; ++i) {
+		ptr[i] = T(0);
+	}
 }
 
 template<typename T>
 Matrix2D<T>::Matrix2D(uint64_t size, StorageOrder storage)
 	: cols(size), rows(size), storage(storage) {
-	ptr = new T[size * size]();
+	ptr = static_cast<T*>(_mm_malloc(size * size * sizeof(T), 32));
+	for (uint64_t i = 0; i < size * size; ++i) {
+		ptr[i] = T(0);
+	}
 }
 
 template<typename T>
@@ -158,7 +175,10 @@ Matrix2D<T>::Matrix2D(std::initializer_list<std::initializer_list<T>> init, Stor
 		}
 	}
 
-	ptr = new T[cols * rows]();
+	ptr = static_cast<T*>(_mm_malloc(cols * rows * sizeof(T), 32));
+	for (uint64_t i = 0; i < cols * rows; ++i) {
+		ptr[i] = T(0);
+	}
 
 	uint64_t i = 0;
 	for (const auto& row : init) {
@@ -174,7 +194,7 @@ Matrix2D<T>::Matrix2D(std::initializer_list<std::initializer_list<T>> init, Stor
 template<typename T>
 Matrix2D<T>::Matrix2D(const Matrix2D& other)
 	: cols(other.cols), rows(other.rows), storage(other.storage) {
-	ptr = new T[cols * rows];
+	ptr = static_cast<T*>(_mm_malloc(cols * rows * sizeof(T), 32));
 	for (uint64_t i = 0; i < cols * rows; ++i) {
 		ptr[i] = other.ptr[i];
 	}
@@ -190,17 +210,28 @@ Matrix2D<T>::Matrix2D(Matrix2D&& other) noexcept
 
 template<typename T>
 Matrix2D<T>::~Matrix2D() {
-	delete[] ptr;
+	// Освобождаем выровненную память через _mm_free
+	if (ptr != nullptr) {
+		_mm_free(ptr);
+		ptr = nullptr;
+	}
 }
 
 template<typename T>
 Matrix2D<T>& Matrix2D<T>::operator=(const Matrix2D& other) {
 	if (this != &other) {
-		delete[] ptr;
+		// Освобождаем старую память
+		if (ptr != nullptr) {
+			_mm_free(ptr);
+		}
+		
 		cols = other.cols;
 		rows = other.rows;
 		storage = other.storage;
-		ptr = new T[cols * rows];
+		
+		// Выделяем новую выровненную память
+		ptr = static_cast<T*>(_mm_malloc(cols * rows * sizeof(T), 32));
+		
 		for (uint64_t i = 0; i < cols * rows; ++i) {
 			ptr[i] = other.ptr[i];
 		}
@@ -211,11 +242,16 @@ Matrix2D<T>& Matrix2D<T>::operator=(const Matrix2D& other) {
 template<typename T>
 Matrix2D<T>& Matrix2D<T>::operator=(Matrix2D&& other) noexcept {
 	if (this != &other) {
-		delete[] ptr;
+		// Освобождаем старую выровненную память
+		if (ptr != nullptr) {
+			_mm_free(ptr);
+		}
+		
 		ptr = other.ptr;
 		cols = other.cols;
 		rows = other.rows;
 		storage = other.storage;
+		
 		other.ptr = nullptr;
 		other.cols = 0;
 		other.rows = 0;
@@ -532,14 +568,15 @@ void multiplyAVX(const Matrix2D<double>* A, const Matrix2D<double>* B, Matrix2D<
 			uint64_t k = 0;
 			for (; k + 16 <= K; k += 16) {
 				// Загружаем 4 элемента из строки A и столбца B
-				__m256d va0 = _mm256_loadu_pd(rowA + k);
-				__m256d vb0 = _mm256_loadu_pd(colB + k);
-				__m256d va1 = _mm256_loadu_pd(rowA + k + 4);
-				__m256d vb1 = _mm256_loadu_pd(colB + k + 4);
-				__m256d va2 = _mm256_loadu_pd(rowA + k + 8);
-				__m256d vb2 = _mm256_loadu_pd(colB + k + 8);
-				__m256d va3 = _mm256_loadu_pd(rowA + k + 12);
-				__m256d vb3 = _mm256_loadu_pd(colB + k + 12);
+				// _mm256_load_pd требует выравнивания 32 байта!
+				__m256d va0 = _mm256_load_pd(rowA + k);
+				__m256d vb0 = _mm256_load_pd(colB + k);
+				__m256d va1 = _mm256_load_pd(rowA + k + 4);
+				__m256d vb1 = _mm256_load_pd(colB + k + 4);
+				__m256d va2 = _mm256_load_pd(rowA + k + 8);
+				__m256d vb2 = _mm256_load_pd(colB + k + 8);
+				__m256d va3 = _mm256_load_pd(rowA + k + 12);
+				__m256d vb3 = _mm256_load_pd(colB + k + 12);
 				
 				// FMA: vsum = va * vb + vsum (одна инструкция на умножение+сложение!)
 				vsum0 = _mm256_fmadd_pd(va0, vb0, vsum0);
