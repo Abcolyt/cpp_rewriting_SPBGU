@@ -509,27 +509,27 @@ void multiplyAVX(const Matrix2D<double>* A, const Matrix2D<double>* B, Matrix2D<
 	const uint64_t K = A->getcol();      // столбцы A = строки B
 	const uint64_t N = B->getcol();      // столбцы B
 	
-	// Получаем прямые указатели на данные
-	// A: RowMajor - строки последовательно
-	// B: ColumnMajor - столбцы последовательно
+	// Получаем прямые указатели на данные один раз!
+	const double* dataA = A->getDataPtr(0, 0);  // начало данных A
+	const double* dataB = B->getDataPtr(0, 0);  // начало данных B
 	
 	// AVX умножение: C[i][j] = sum_k(A[i][k] * B[k][j])
 	for (uint64_t i = 0; i < M; ++i) {
-		// Получаем указатель на i-ю строку A (последовательно в RowMajor)
-		const double* rowA = A->getDataPtr(i, 0);
+		// Указатель на начало i-й строки A (RowMajor: строки последовательно)
+		const double* rowA = dataA + i * K;
 		
 		for (uint64_t j = 0; j < N; ++j) {
-			// Получаем указатель на j-й столбец B (последовательно в ColumnMajor)
-			const double* colB = B->getDataPtr(0, j);
+			// Указатель на начало j-го столбца B (ColumnMajor: столбцы последовательно)
+			const double* colB = dataB + j * K;
 			
 			double sum = 0.0;
 			
 			// Обрабатываем по 4 элемента AVX-регистром
 			uint64_t k = 0;
 			for (; k + 4 <= K; k += 4) {
-				// Загружаем 4 элемента из строки A и столбца B
-				__m256d va = _mm256_load_pd(rowA + k);
-				__m256d vb = _mm256_load_pd(colB + k);
+				// Загружаем 4 элемента из строки A и столбца B напрямую из памяти
+				__m256d va = _mm256_loadu_pd(rowA + k);
+				__m256d vb = _mm256_loadu_pd(colB + k);
 				
 				// Умножаем поэлементно
 				__m256d vmul = _mm256_mul_pd(va, vb);
