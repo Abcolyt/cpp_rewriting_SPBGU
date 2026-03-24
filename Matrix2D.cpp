@@ -478,7 +478,7 @@ void multiply(const Matrix2D<T>* A, const Matrix2D<T>* B, Matrix2D<T>* result) {
 // AVX-версия умножения матриц (только для double)
 // ============================================================================
 
-/// Умножение матриц с использованием AVX инструкций + FMA
+/// Умножение матриц с использованием AVX инструкций + FMA + развёртка цикла
 /// @param A первая матрица (левый множитель), должна быть в RowMajor формате
 /// @param B вторая матрица (правый множитель), должна быть в ColumnMajor формате
 /// @param result матрица для сохранения результата
@@ -513,7 +513,7 @@ void multiplyAVX(const Matrix2D<double>* A, const Matrix2D<double>* B, Matrix2D<
 	const double* dataA = A->getDataPtr(0, 0);  // начало данных A
 	const double* dataB = B->getDataPtr(0, 0);  // начало данных B
 	
-	// AVX + FMA умножение: C[i][j] = sum_k(A[i][k] * B[k][j])
+	// AVX + FMA умножение с развёрткой цикла: C[i][j] = sum_k(A[i][k] * B[k][j])
 	for (uint64_t i = 0; i < M; ++i) {
 		// Указатель на начало i-й строки A (RowMajor: строки последовательно)
 		const double* rowA = dataA + i * K;
@@ -522,19 +522,34 @@ void multiplyAVX(const Matrix2D<double>* A, const Matrix2D<double>* B, Matrix2D<
 			// Указатель на начало j-го столбца B (ColumnMajor: столбцы последовательно)
 			const double* colB = dataB + j * K;
 			
-			// Инициализируем аккумулятор нулём
-			__m256d vsum = _mm256_setzero_pd();
+			// Инициализируем 4 аккумулятора для развёртки цикла
+			__m256d vsum0 = _mm256_setzero_pd();
+			__m256d vsum1 = _mm256_setzero_pd();
+			__m256d vsum2 = _mm256_setzero_pd();
+			__m256d vsum3 = _mm256_setzero_pd();
 			
-			// Обрабатываем по 4 элемента AVX-регистром с FMA
+			// Обрабатываем по 16 элементов за итерацию (4×4 с развёрткой)
 			uint64_t k = 0;
-			for (; k + 4 <= K; k += 4) {
+			for (; k + 16 <= K; k += 16) {
 				// Загружаем 4 элемента из строки A и столбца B
-				__m256d va = _mm256_loadu_pd(rowA + k);
-				__m256d vb = _mm256_loadu_pd(colB + k);
+				__m256d va0 = _mm256_loadu_pd(rowA + k);
+				__m256d vb0 = _mm256_loadu_pd(colB + k);
+				__m256d va1 = _mm256_loadu_pd(rowA + k + 4);
+				__m256d vb1 = _mm256_loadu_pd(colB + k + 4);
+				__m256d va2 = _mm256_loadu_pd(rowA + k + 8);
+				__m256d vb2 = _mm256_loadu_pd(colB + k + 8);
+				__m256d va3 = _mm256_loadu_pd(rowA + k + 12);
+				__m256d vb3 = _mm256_loadu_pd(colB + k + 12);
 				
-				// FMA: vsum = va * vb + vsum (одна инструкция!)
-				vsum = _mm256_fmadd_pd(va, vb, vsum);
+				// FMA: vsum = va * vb + vsum (одна инструкция на умножение+сложение!)
+				vsum0 = _mm256_fmadd_pd(va0, vb0, vsum0);
+				vsum1 = _mm256_fmadd_pd(va1, vb1, vsum1);
+				vsum2 = _mm256_fmadd_pd(va2, vb2, vsum2);
+				vsum3 = _mm256_fmadd_pd(va3, vb3, vsum3);
 			}
+			
+			// Суммируем 4 аккумулятора
+			__m256d vsum = _mm256_add_pd(_mm256_add_pd(vsum0, vsum1), _mm256_add_pd(vsum2, vsum3));
 			
 			// Горизонтальная сумма аккумулятора
 			__m128d vlow = _mm256_castpd256_pd128(vsum);        // [a0, a1]
@@ -545,7 +560,7 @@ void multiplyAVX(const Matrix2D<double>* A, const Matrix2D<double>* B, Matrix2D<
 			
 			double sum = _mm_cvtsd_f64(vfinal);
 			
-			// Обрабатываем "хвост" — оставшиеся 1-3 элемента скалярно
+			// Обрабатываем "хвост" — оставшиеся 1-15 элементов скалярно
 			for (; k < K; ++k) {
 				sum += rowA[k] * colB[k];
 			}
